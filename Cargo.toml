@@ -1,0 +1,16 @@
+[package]
+name = "skryn"
+version = "0.1.0"
+authors = ["Fasih Rana <fasih.rana@apparicion.com>"]
+
+[dependencies]
+winit = "*"
+glutin = "*"
+webrender = {git = "https://github.com/servo/webrender"}
+gleam = "*"
+app_units = "0.6.1"
+euclid = "0.17.3"
+scan-rules = "*"
+rusttype = "*"
+font-loader = "*"
+lazy_static = "*"
