@@ -5,7 +5,7 @@ use std::collections::HashMap;
 
 use webrender::api::{FontKey,FontInstanceKey, Transaction, RenderApi, DocumentId};
 use floader::system_fonts;
-use app_units::Au;
+use app_units;
 use rusttype;
 
 lazy_static! {
@@ -68,7 +68,7 @@ impl InstanceKeys{
         let mut txn = Transaction::new();
         txn.add_font_instance(ikey.clone(),
                               self.key,
-                              Au::from_px(size),
+                              app_units::Au::from_px(size),
                               None,
                               None,
                               Vec::new());

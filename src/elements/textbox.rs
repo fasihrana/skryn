@@ -14,9 +14,11 @@ pub struct TextBox {
 
 impl TextBox{
     pub fn new(s: String) -> Self{
+        let mut props = properties::Properties::new();
+        props.default();
         TextBox{
             value:s,
-            props: properties::Properties::new()
+            props,
         }
     }
 }
@@ -29,33 +31,23 @@ impl Element for TextBox{
     fn get(&self, prop: &properties::Property) -> Option<&properties::Property> {
         self.props.get(&prop)
     }
-}
-impl Render for TextBox{
+
     fn render(&mut self,
               builder: &mut DisplayListBuilder,
               extent: properties::Extent,
               font_store: &mut font::FontStore,
-              props: Option<Arc<properties::Properties>>) {
-        let mut size = 12.0;
-        if let properties::Property::Size(s) = self.props.get(&properties::SIZE).unwrap() {
-            size = s.clone() as f32;
-        }
-        let mut family= String::from("Arial");
-        if let properties::Property::Family(f) = self.props.get(&properties::FAMILY).unwrap() {
-            family = f.clone()
-        }
-        let mut color = ColorF{
+              _props: Option<Arc<properties::Properties>>) {
+        let size = 12.0;
+        let family= String::from("Arial");
+        let color = ColorF{
             r: 0.0,
             g: 0.0,
             b: 0.0,
             a: 1.0,
         };
-        if let properties::Property::Color(c) = self.props.get(&properties::COLOR).unwrap() {
-            color = c.clone();
-        }
 
         let mut _x = extent.x.clone();
-        let mut _y = extent.y.clone();
+        let mut _y = extent.y.clone() + (size*1.1);
         let mut glyphs = Vec::new();
         let mut ignore_ws = true;
 
@@ -73,7 +65,7 @@ impl Render for TextBox{
             let _char = _char.unwrap();
             let _glyph = mappings.next().unwrap();
 
-            if _char == '\r' {
+            if _char == '\r' || _char == '\n' {
                 _y = _y + (size*1.1);
                 _x = 0.0;
                 ignore_ws = true;
