@@ -125,4 +125,52 @@ impl Properties {
     pub fn get(&self, property: &Property) -> Option<&Property>{
         self.0.get(property)
     }
+
+    pub fn get_size(&self) -> i32 {
+        if let Some(Property::Size(x)) = self.get(&SIZE) {x.clone()} else {panic!("Size not found")}
+    }
+
+    pub fn get_family(&self) -> String {
+        if let Some(Property::Family(x)) = self.get(&FAMILY) {x.clone()} else {panic!("Family not found")}
+    }
+
+    pub fn get_left(&self) -> Unit {
+        if let Some(Property::Left(x)) = self.get(&LEFT) {x.clone()} else {panic!("Left not found")}
+    }
+
+    pub fn get_width(&self) -> Unit {
+        if let Some(Property::Width(x)) = self.get(&WIDTH) {x.clone()} else {panic!("Width not found")}
+    }
+
+    pub fn get_right(&self) -> Unit {
+        if let Some(Property::Right(x)) = self.get(&RIGHT) {x.clone()} else {panic!("Right not found")}
+    }
+
+    pub fn get_top(&self) -> Unit {
+        if let Some(Property::Top(x)) = self.get(&TOP) {x.clone()} else {panic!("Top not found")}
+    }
+
+    pub fn get_height(&self) -> Unit {
+        if let Some(Property::Height(x)) = self.get(&HEIGHT) {x.clone()} else {panic!("Height not found")}
+    }
+
+    pub fn get_bottom(&self) -> Unit {
+        if let Some(Property::Bottom(x)) = self.get(&BOTTOM) {x.clone()} else {panic!("Bottom not found")}
+    }
+
+    pub fn get_color(&self) -> ColorF {
+        if let Some(Property::Color(x)) = self.get(&COLOR) {x.clone()} else {panic!("Color not found")}
+    }
+
+    pub fn get_bg_color(&self) -> ColorF {
+        if let Some(Property::BgColor(x)) = self.get(&BG_COLOR) {x.clone()} else {panic!("Background Color not found")}
+    }
+
+    pub fn get_overflow_x(&self) -> Overflow {
+        if let Some(Property::OverflowX(x)) = self.get(&OVERFLOW_X) {x.clone()} else {panic!("Overflow X not found")}
+    }
+
+    pub fn get_overflow_y(&self) -> Overflow {
+        if let Some(Property::OverflowY(y)) = self.get(&OVERFLOW_Y) {y.clone()} else {panic!("Overflow Y not found")}
+    }
 }

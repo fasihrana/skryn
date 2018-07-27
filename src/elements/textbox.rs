@@ -37,14 +37,9 @@ impl Element for TextBox{
               extent: properties::Extent,
               font_store: &mut font::FontStore,
               _props: Option<Arc<properties::Properties>>) {
-        let size = 12.0;
-        let family= String::from("Arial");
-        let color = ColorF{
-            r: 0.0,
-            g: 0.0,
-            b: 0.0,
-            a: 1.0,
-        };
+        let size = self.props.get_size() as f32;
+        let family = self.props.get_family();
+        let color = self.props.get_color();
 
         let mut _x = extent.x.clone();
         let mut _y = extent.y.clone() + (size*1.1);
