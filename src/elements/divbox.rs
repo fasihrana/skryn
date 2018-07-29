@@ -56,29 +56,23 @@ impl Element for DivBox {
 
         builder.push_rect(&info, bgcolor);
 
-        let mut used_extent = properties::Extent{
-            x: extent.x,
-            y: extent.y,
-            w: 0.0,
-            h: 0.0,
-            dpi: extent.dpi,
-        };
+        let mut next_x = extent.x;
+        let mut next_y = extent.y;
 
         for elm in self.children.iter_mut() {
             let tmp_extent = elm.render(builder,
                                         properties::Extent{
-                                            x: extent.x,
-                                            y: used_extent.y,
-                                            w: extent.w,
-                                            h: extent.h,
+                                            x:next_x,
+                                            y:next_y,
+                                            w:extent.w,
+                                            h:extent.h,
                                             dpi: extent.dpi,
                                         },
                                         font_store,
                                         props.clone());
-            if tmp_extent.w > used_extent.w {
-                used_extent.x = tmp_extent.w;
-            }
-            used_extent.y += tmp_extent.h;
+
+            //next_x = tmp_extent.w;
+            next_y = tmp_extent.h;
         }
 
         builder.pop_stacking_context();
@@ -86,8 +80,8 @@ impl Element for DivBox {
         properties::Extent{
             x: extent.x,
             y: extent.y,
-            w: used_extent.w,
-            h: used_extent.h,
+            w: extent.w,
+            h: extent.h,
             dpi: extent.dpi,
         }
     }

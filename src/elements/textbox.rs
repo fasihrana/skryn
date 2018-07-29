@@ -41,14 +41,18 @@ impl Element for TextBox{
         let size = (self.props.get_size() as f32) * extent.dpi;
         let family = self.props.get_family();
         let color = self.props.get_color();
+        let bgcolor = self.props.get_bg_color();
 
-        let mut _x = extent.x.clone();
-        let mut _y = extent.y.clone() + size;
+        let mut next_x = extent.x;
+        let mut next_y = extent.y + size;
         let mut glyphs = Vec::new();
         let mut ignore_ws = true;
 
         let fi_key = font_store.get_font_instance_key(&family,size as i32);
         let font_type = font_store.get_font_type(&family);
+        let v_metrics = font_type.v_metrics(rusttype::Scale{ x: 1.0, y: 1.0 });
+        let baseline = (size * v_metrics.ascent) - size;
+
         let mut mappings = font_type.glyphs_for(self.value.chars());
         let mut text_iter = self.value.chars();
 
@@ -71,11 +75,8 @@ impl Element for TextBox{
             let _glyph = mappings.next().unwrap();
 
             if _char == '\r' || _char == '\n' {
-                if max_x < _x {
-                    max_x = _x;
-                }
-                _y = _y + size;
-                _x = 0.0;
+                next_y = next_y + size;
+                next_x = 0.0;
                 ignore_ws = true;
                 continue;
             }
@@ -93,15 +94,24 @@ impl Element for TextBox{
 
             glyphs.push(GlyphInstance{
                 index: _scaled.id().0,
-                point: LayoutPoint::new(_x,_y)
+                point: LayoutPoint::new(next_x,next_y + baseline)
             });
 
-            _x=_x + ((h_metrics.advance_width+h_metrics.left_side_bearing) * size);
+            next_x = next_x + ((h_metrics.advance_width+h_metrics.left_side_bearing) * size);
+            if max_x < next_x {
+                max_x = next_x;
+            }
         }
 
         let info = LayoutPrimitiveInfo::new(LayoutRect::new(
-            LayoutPoint::new(extent.x.clone(), extent.y.clone()),
-            LayoutSize::new(extent.w.clone(), extent.h.clone())
+            LayoutPoint::new(extent.x, extent.y),
+            LayoutSize::new(max_x, next_y - extent.y)
+        ));
+        builder.push_rect(&info, bgcolor);
+
+        let info = LayoutPrimitiveInfo::new(LayoutRect::new(
+            LayoutPoint::new(extent.x, extent.y),
+            LayoutSize::new(extent.w, extent.h)
         ));
         builder.push_text(&info,
                       &glyphs,
@@ -109,11 +119,12 @@ impl Element for TextBox{
                       color.clone(),
                       Some(GlyphOptions::default()));
 
+
         properties::Extent{
             x: extent.x,
             y: extent.y,
             w: max_x,
-            h: _y,
+            h: next_y - extent.y,
             dpi: extent.dpi,
         }
     }
