@@ -37,6 +37,7 @@ impl Element for TextBox{
               extent: properties::Extent,
               font_store: &mut font::FontStore,
               _props: Option<Arc<properties::Properties>>) {
+
         let size = self.props.get_size() as f32;
         let family = self.props.get_family();
         let color = self.props.get_color();

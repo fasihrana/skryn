@@ -81,7 +81,8 @@ impl Window {
             glutin::Api::WebGl => unimplemented!(),
         };
 
-        let device_pixel_ratio = window.get_hidpi_factor() as f32;
+        let _dpi = window.get_hidpi_factor();
+        let device_pixel_ratio = _dpi as f32;
 
         let opts = webrender::RendererOptions {
             device_pixel_ratio,
@@ -90,7 +91,7 @@ impl Window {
 
         let framebuffer_size = {
             let winit::dpi::PhysicalSize{width, height} = window.get_current_monitor().get_dimensions();
-            DeviceUintSize::new(width as u32, height as u32)
+            DeviceUintSize::new((width*_dpi) as u32, (height*_dpi) as u32)
         };
 
         let notifier = Box::new(WindowNotifier::new(events_loop.create_proxy()));
@@ -123,13 +124,18 @@ impl Window {
 
     fn render (&mut self){
         if let Some(ref mut r) = self.root {
+            unsafe {self.window.make_current()};
+
             let renderer = &mut self.renderer;
+
+            let _dpi = self.window.get_hidpi_factor();
+
             let frame_size = {
                 let winit::dpi::LogicalSize{width, height} = self.window.get_inner_size().unwrap();
-                DeviceUintSize::new(width as u32,height as u32)
+                DeviceUintSize::new((width * _dpi) as u32,(height * _dpi) as u32)
             };
 
-            let device_pixel_ratio = self.window.get_hidpi_factor() as f32;
+            let device_pixel_ratio = _dpi as f32;
             let layout_size = frame_size.to_f32() / euclid::TypedScale::new(device_pixel_ratio);
 
             let mut txn = Transaction::new();
@@ -138,10 +144,10 @@ impl Window {
             let (_width,_height) = (layout_size.to_f32().width_typed().get(),
                                     layout_size.to_f32().height_typed().get());
 
-            txn.set_window_parameters(DeviceUintSize::new(_width as u32, _height as u32),
+            /*txn.set_window_parameters(DeviceUintSize::new(_width as u32, _height as u32),
                                       DeviceUintRect::new(euclid::TypedPoint2D::new(0 as u32,0 as u32),
-                                                          euclid::TypedSize2D::new(_width as u32, _height as u32)),
-                                      device_pixel_ratio);
+                                      euclid::TypedSize2D::new(_width as u32, _height as u32)),
+                                      device_pixel_ratio);*/
 
             r.render(&mut builder,properties::Extent{
                 x: 0.0,
