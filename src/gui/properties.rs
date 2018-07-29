@@ -10,6 +10,7 @@ pub struct Extent{
     pub y:f32,
     pub w:f32,
     pub h:f32,
+    pub dpi:f32,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

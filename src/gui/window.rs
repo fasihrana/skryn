@@ -149,11 +149,12 @@ impl Window {
                                       euclid::TypedSize2D::new(_width as u32, _height as u32)),
                                       device_pixel_ratio);*/
 
-            r.render(&mut builder,properties::Extent{
+            let _used_extent = r.render(&mut builder,properties::Extent{
                 x: 0.0,
                 y: 0.0,
                 w: _width.clone(),
                 h: _height.clone(),
+                dpi: device_pixel_ratio,
             },&mut self.font_store, None);
 
             txn.set_display_list(

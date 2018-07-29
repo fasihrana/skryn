@@ -36,14 +36,14 @@ impl Element for TextBox{
               builder: &mut DisplayListBuilder,
               extent: properties::Extent,
               font_store: &mut font::FontStore,
-              _props: Option<Arc<properties::Properties>>) {
+              _props: Option<Arc<properties::Properties>>) -> properties::Extent {
 
-        let size = self.props.get_size() as f32;
+        let size = (self.props.get_size() as f32) * extent.dpi;
         let family = self.props.get_family();
         let color = self.props.get_color();
 
         let mut _x = extent.x.clone();
-        let mut _y = extent.y.clone() + (size*1.1);
+        let mut _y = extent.y.clone() + size;
         let mut glyphs = Vec::new();
         let mut ignore_ws = true;
 
@@ -52,6 +52,15 @@ impl Element for TextBox{
         let mut mappings = font_type.glyphs_for(self.value.chars());
         let mut text_iter = self.value.chars();
 
+        let used_extent = properties::Extent{
+            x: extent.x,
+            y: extent.y,
+            w: 0.0,
+            h: 0.0,
+            dpi: extent.dpi,
+        };
+
+        let mut max_x:f32 = 0.0;
 
         loop {
             let _char = text_iter.next();
@@ -62,7 +71,10 @@ impl Element for TextBox{
             let _glyph = mappings.next().unwrap();
 
             if _char == '\r' || _char == '\n' {
-                _y = _y + (size*1.1);
+                if max_x < _x {
+                    max_x = _x;
+                }
+                _y = _y + size;
                 _x = 0.0;
                 ignore_ws = true;
                 continue;
@@ -96,5 +108,13 @@ impl Element for TextBox{
                       fi_key.clone(),
                       color.clone(),
                       Some(GlyphOptions::default()));
+
+        properties::Extent{
+            x: extent.x,
+            y: extent.y,
+            w: max_x,
+            h: _y,
+            dpi: extent.dpi,
         }
+    }
 }
