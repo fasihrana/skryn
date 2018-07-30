@@ -175,3 +175,31 @@ impl Properties {
         if let Some(Property::OverflowY(y)) = self.get(&OVERFLOW_Y) {y.clone()} else {panic!("Overflow Y not found")}
     }
 }
+
+#[derive(Debug, Clone)]
+pub struct Position{
+    pub x: f32,
+    pub y: f32,
+}
+
+#[derive(Debug, Clone)]
+pub struct Modifiers{
+    pub shift: bool,
+    pub ctrl: bool,
+    pub alt: bool,
+    pub logo: bool
+}
+
+#[derive(Debug, Clone)]
+pub enum ButtonState{
+    Pressed,
+    Released,
+}
+
+#[derive(Debug, Clone)]
+pub enum Button{
+    Left,
+    Middle,
+    Right,
+    Other,
+}

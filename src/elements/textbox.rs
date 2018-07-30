@@ -10,6 +10,7 @@ use gui::font;
 pub struct TextBox {
     value: String,
     props: properties::Properties,
+    bounds: properties::Extent,
 }
 
 impl TextBox{
@@ -19,6 +20,13 @@ impl TextBox{
         TextBox{
             value:s,
             props,
+            bounds: properties::Extent{
+                x: 0.0,
+                y: 0.0,
+                w: 0.0,
+                h: 0.0,
+                dpi: 0.0,
+            }
         }
     }
 }
@@ -36,7 +44,7 @@ impl Element for TextBox{
               builder: &mut DisplayListBuilder,
               extent: properties::Extent,
               font_store: &mut font::FontStore,
-              _props: Option<Arc<properties::Properties>>) -> properties::Extent {
+              _props: Option<Arc<properties::Properties>>) {
 
         let size = (self.props.get_size() as f32) * extent.dpi;
         let family = self.props.get_family();
@@ -55,14 +63,6 @@ impl Element for TextBox{
 
         let mut mappings = font_type.glyphs_for(self.value.chars());
         let mut text_iter = self.value.chars();
-
-        let used_extent = properties::Extent{
-            x: extent.x,
-            y: extent.y,
-            w: 0.0,
-            h: 0.0,
-            dpi: extent.dpi,
-        };
 
         let mut max_x:f32 = 0.0;
 
@@ -120,12 +120,39 @@ impl Element for TextBox{
                       Some(GlyphOptions::default()));
 
 
-        properties::Extent{
+        self.bounds = properties::Extent{
             x: extent.x,
             y: extent.y,
             w: max_x,
             h: next_y - extent.y,
             dpi: extent.dpi,
+        };
+    }
+
+    fn get_bounds(&self) -> properties::Extent {
+        self.bounds.clone()
+    }
+
+    fn on_event(&mut self, e: PrimitiveEvent) {
+        match e {
+            PrimitiveEvent::Char(c) => {
+                if c == '\x08' {
+                    let s = {
+                        let l = self.value.len() - 1;
+                        let t = &self.value[..l];
+                        String::from(t)
+                    };
+                    self.value = s;
+                } else {
+                    let s = format!("{}{}",self.value, c);
+                    self.value = s;
+                }
+            },
+            PrimitiveEvent::Button(p,b,s,m)=>{
+
+            },
+            _ => ()
         }
+
     }
 }

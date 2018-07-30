@@ -8,8 +8,61 @@ use webrender::api::*;
 use euclid;
 
 use elements::element;
+use elements::element::PrimitiveEvent;
 use gui::font;
 use gui::properties;
+
+impl Into<properties::Position> for winit::dpi::LogicalPosition {
+    fn into(self) -> properties::Position {
+        properties::Position{
+            x:self.x as f32,
+            y:self.y as f32,
+        }
+    }
+}
+
+impl Into<properties::Modifiers> for winit::ModifiersState {
+    fn into(self) -> properties::Modifiers {
+        properties::Modifiers{
+            shift: self.shift,
+            ctrl: self.ctrl,
+            alt: self.alt,
+            logo: self.logo,
+        }
+    }
+}
+
+impl Into<properties::Button> for winit::MouseButton{
+    fn into(self) -> properties::Button{
+        match self {
+            winit::MouseButton::Left => {
+                properties::Button::Left
+            },
+            winit::MouseButton::Right => {
+                properties::Button::Right
+            },
+            winit::MouseButton::Middle => {
+                properties::Button::Middle
+            },
+            winit::MouseButton::Other(_)=> {
+                properties::Button::Other
+            },
+        }
+    }
+}
+
+impl Into<properties::ButtonState> for winit::ElementState{
+    fn into (self) -> properties::ButtonState{
+        match self {
+            winit::ElementState::Pressed => {
+                properties::ButtonState::Pressed
+            },
+            winit::ElementState::Released => {
+                properties::ButtonState::Released
+            },
+        }
+    }
+}
 
 struct WindowNotifier {
     events_proxy: winit::EventsLoopProxy,
@@ -42,6 +95,7 @@ impl RenderNotifier for WindowNotifier {
     }
 }
 
+
 pub struct Window {
     window: glutin::GlWindow,
     events_loop: winit::EventsLoop,
@@ -52,6 +106,7 @@ pub struct Window {
     api: RenderApi,
     font_store: font::FontStore,
     root: Option<Box<element::Element>>,
+    mouse_position_cache: Option<properties::Position>,
 }
 
 impl Window {
@@ -114,6 +169,7 @@ impl Window {
             renderer,
             font_store,
             root: None,
+            mouse_position_cache: None,
         }
     }
 
@@ -124,7 +180,7 @@ impl Window {
 
     fn render (&mut self){
         if let Some(ref mut r) = self.root {
-            unsafe {self.window.make_current()};
+            unsafe {self.window.make_current().unwrap();}
 
             let renderer = &mut self.renderer;
 
@@ -143,11 +199,6 @@ impl Window {
 
             let (_width,_height) = (layout_size.to_f32().width_typed().get(),
                                     layout_size.to_f32().height_typed().get());
-
-            /*txn.set_window_parameters(DeviceUintSize::new(_width as u32, _height as u32),
-                                      DeviceUintRect::new(euclid::TypedPoint2D::new(0 as u32,0 as u32),
-                                      euclid::TypedSize2D::new(_width as u32, _height as u32)),
-                                      device_pixel_ratio);*/
 
             let _used_extent = r.render(&mut builder,properties::Extent{
                 x: 0.0,
@@ -176,23 +227,76 @@ impl Window {
         }
     }
 
-    pub fn tick(&mut self) -> bool {
-        let mut do_exit = false;
+    fn events(&mut self, mouse_position_cache: Option<properties::Position>) -> Vec<PrimitiveEvent> {
+        let mut events = Vec::new();
 
         self.events_loop.poll_events(|event|{
             match event {
                 winit::Event::WindowEvent { event: winit::WindowEvent::CloseRequested, .. /*window_id*/ } => {
-                    do_exit = true;
+                    events.push(PrimitiveEvent::Exit);
+                },
+                winit::Event::WindowEvent {event: winit::WindowEvent::CursorEntered {device_id}, .. } => {
+                    events.push(PrimitiveEvent::CursorEntered);
+                },
+                winit::Event::WindowEvent {event: winit::WindowEvent::CursorMoved {device_id, position, modifiers}, .. } => {
+                    events.push(PrimitiveEvent::CursorMoved(position.into()));
+                },
+                winit::Event::WindowEvent {event: winit::WindowEvent::CursorLeft {device_id}, .. } => {
+                    events.push(PrimitiveEvent::CursorLeft);
+                },
+                winit::Event::WindowEvent {event: winit::WindowEvent::MouseInput {device_id, state, button, modifiers}, ..} => {
+                    let _tmp = mouse_position_cache.clone();
+                    if let Some(mp) = _tmp {
+                        events.push(PrimitiveEvent::Button(mp,button.into(), state.into(), modifiers.into()));
+                    }
+                },
+                /*winit::Event::WindowEvent {event: winit::WindowEvent::KeyboardInput {device_id,input}, ..} => {
+                    println!("{:?}", input);
+                },*/
+                winit::Event::WindowEvent {event: winit::WindowEvent::ReceivedCharacter(c), ..} => {
+                    events.push(PrimitiveEvent::Char(c));
                 },
                 _ => ()
             }
         });
+        events
+    }
 
-        if !do_exit {
-            self.render();
+    pub fn tick(&mut self) -> bool {
+        let mp_cache = self.mouse_position_cache.clone();
+        let events = self.events(mp_cache.clone());
+
+        if let Some(ref mut _r) = self.root {
+
+            let _bounds = _r.get_bounds();
+
+            for e in events.iter() {
+                match e {
+                    PrimitiveEvent::Exit => {
+                        return true;
+                    },
+                    PrimitiveEvent::CursorMoved(p) => {
+                        self.mouse_position_cache = Some(p.clone());
+                    }
+                    PrimitiveEvent::Button(p,b,s,m) =>{
+                        let _b = _r.get_bounds();
+                        if p.x >= _b.x && p.x <= (_b.w + _b.x)
+                            && p.y >= _b.y && p.y <= (_b.h + _b.y) {
+                            _r.on_event(e.clone());
+                        }
+                    },
+                    PrimitiveEvent::Char(c) => {
+                        _r.on_event(e.clone());
+                    },
+                    _ => ()
+                }
+
+            }
         }
 
-        return do_exit;
+        self.render();
+
+        return false;
     }
 
     pub fn set_root(&mut self, r: Box<element::Element> ){
