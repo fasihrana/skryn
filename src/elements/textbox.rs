@@ -7,10 +7,12 @@ use elements::element::*;
 use gui::properties;
 use gui::font;
 
+
 pub struct TextBox {
     value: String,
     props: properties::Properties,
     bounds: properties::Extent,
+    cache:Vec<GlyphInstance>,
 }
 
 impl TextBox{
@@ -26,8 +28,14 @@ impl TextBox{
                 w: 0.0,
                 h: 0.0,
                 dpi: 0.0,
-            }
+            },
+            cache: Vec::new()
         }
+    }
+
+    pub fn set_value(&mut self, s: String){
+        self.value = s;
+        self.cache.clear();
     }
 }
 
@@ -46,66 +54,82 @@ impl Element for TextBox{
               font_store: &mut font::FontStore,
               _props: Option<Arc<properties::Properties>>) {
 
+        if self.bounds.dpi != extent.dpi {
+            self.cache.clear();
+        }
+        let glyphs = &mut self.cache;
         let size = (self.props.get_size() as f32) * extent.dpi;
         let family = self.props.get_family();
         let color = self.props.get_color();
         let bgcolor = self.props.get_bg_color();
+        let fi_key = font_store.get_font_instance_key(&family, size as i32);
 
-        let mut next_x = extent.x;
-        let mut next_y = extent.y + size;
-        let mut glyphs = Vec::new();
-        let mut ignore_ws = true;
+        if glyphs.is_empty() {
 
-        let fi_key = font_store.get_font_instance_key(&family,size as i32);
-        let font_type = font_store.get_font_type(&family);
-        let v_metrics = font_type.v_metrics(rusttype::Scale{ x: 1.0, y: 1.0 });
-        let baseline = (size * v_metrics.ascent) - size;
+            let mut next_x = extent.x;
+            let mut next_y = extent.y + size;
 
-        let mut mappings = font_type.glyphs_for(self.value.chars());
-        let mut text_iter = self.value.chars();
+            let mut ignore_ws = true;
 
-        let mut max_x:f32 = 0.0;
 
-        loop {
-            let _char = text_iter.next();
-            if _char.is_none(){
-                break;
+            let font_type = font_store.get_font_type(&family);
+            let v_metrics = font_type.v_metrics(rusttype::Scale { x: 1.0, y: 1.0 });
+            let baseline = (size * v_metrics.ascent) - size;
+
+            let mut mappings = font_type.glyphs_for(self.value.chars());
+            let mut text_iter = self.value.chars();
+
+            let mut max_x: f32 = 0.0;
+
+            loop {
+                let _char = text_iter.next();
+                if _char.is_none() {
+                    break;
+                }
+                let _char = _char.unwrap();
+                let _glyph = mappings.next().unwrap();
+
+                if _char == '\r' || _char == '\n' {
+                    next_y = next_y + size;
+                    next_x = 0.0;
+                    ignore_ws = true;
+                    continue;
+                }
+                if ignore_ws && (_char == ' ' || _char == '\t') {
+                    continue;
+                }
+                if _glyph.id().0 == 0 {
+                    continue;
+                }
+
+                ignore_ws = false;
+
+                let _scaled = _glyph.scaled(rusttype::Scale { x: 1.0, y: 1.0 });
+                let h_metrics = _scaled.h_metrics();
+
+                glyphs.push(GlyphInstance {
+                    index: _scaled.id().0,
+                    point: LayoutPoint::new(next_x, next_y + baseline)
+                });
+
+                next_x = next_x + ((h_metrics.advance_width + h_metrics.left_side_bearing) * size);
+                if max_x < next_x {
+                    max_x = next_x;
+                }
             }
-            let _char = _char.unwrap();
-            let _glyph = mappings.next().unwrap();
 
-            if _char == '\r' || _char == '\n' {
-                next_y = next_y + size;
-                next_x = 0.0;
-                ignore_ws = true;
-                continue;
-            }
-            if ignore_ws && (_char == ' ' || _char == '\t') {
-                continue;
-            }
-            if _glyph.id().0 == 0 {
-                continue;
-            }
-
-            ignore_ws = false;
-
-            let _scaled = _glyph.scaled(rusttype::Scale{ x: 1.0, y: 1.0 });
-            let h_metrics = _scaled.h_metrics();
-
-            glyphs.push(GlyphInstance{
-                index: _scaled.id().0,
-                point: LayoutPoint::new(next_x,next_y + baseline)
-            });
-
-            next_x = next_x + ((h_metrics.advance_width+h_metrics.left_side_bearing) * size);
-            if max_x < next_x {
-                max_x = next_x;
-            }
+            self.bounds = properties::Extent{
+                x: extent.x,
+                y: extent.y,
+                w: max_x,
+                h: next_y - extent.y,
+                dpi: extent.dpi,
+            };
         }
 
         let info = LayoutPrimitiveInfo::new(LayoutRect::new(
             LayoutPoint::new(extent.x, extent.y),
-            LayoutSize::new(max_x, next_y - extent.y)
+            LayoutSize::new(self.bounds.w, self.bounds.h)
         ));
         builder.push_rect(&info, bgcolor);
 
@@ -119,14 +143,6 @@ impl Element for TextBox{
                       color.clone(),
                       Some(GlyphOptions::default()));
 
-
-        self.bounds = properties::Extent{
-            x: extent.x,
-            y: extent.y,
-            w: max_x,
-            h: next_y - extent.y,
-            dpi: extent.dpi,
-        };
     }
 
     fn get_bounds(&self) -> properties::Extent {
@@ -148,9 +164,10 @@ impl Element for TextBox{
                 } else {
                     self.value.push(c);
                 }
+                self.cache.clear();
             },
             PrimitiveEvent::Button(p,b,s,m)=>{
-
+                println!("{:?},{:?},{:?},{:?}", p,b,s,m);
             },
             _ => ()
         }

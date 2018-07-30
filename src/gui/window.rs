@@ -285,7 +285,7 @@ impl Window {
                             _r.on_event(e.clone());
                         }
                     },
-                    PrimitiveEvent::Char(c) => {
+                    PrimitiveEvent::Char(_) => {
                         _r.on_event(e.clone());
                     },
                     _ => ()
