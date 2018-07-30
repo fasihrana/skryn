@@ -137,15 +137,16 @@ impl Element for TextBox{
         match e {
             PrimitiveEvent::Char(c) => {
                 if c == '\x08' {
-                    let s = {
-                        let l = self.value.len() - 1;
-                        let t = &self.value[..l];
-                        String::from(t)
-                    };
-                    self.value = s;
+                    let mut l = self.value.len();
+                    if l > 0 {
+                        l = l - 1;
+                        while !self.value.is_char_boundary(l) && l > 0 {
+                            l = l - 1;
+                        }
+                        self.value = self.value.split_at(l).0.to_owned();
+                    }
                 } else {
-                    let s = format!("{}{}",self.value, c);
-                    self.value = s;
+                    self.value.push(c);
                 }
             },
             PrimitiveEvent::Button(p,b,s,m)=>{
