@@ -13,7 +13,7 @@ fn main () {
 
     let mut t1 = TextBox::new(String::from("i'm a text box\nand\ni am proud of it!"));
     t1.set(Property::Color(ColorF::new(1.0,0.5,0.5,1.0)));
-    t1.set_event(ElementEvent::FocusChange,|_elm, _e|{
+    t1.set_handler(ElementEvent::FocusChange,|_elm, _e|{
         let e = _e.downcast_ref::<bool>().unwrap();
         println!("t1 gained({focus}) or lost({focus}) focus", focus=e);
     });
@@ -23,7 +23,7 @@ fn main () {
     t2.set(Property::Color(ColorF::new(0.5,0.5,1.0,1.0)));
     e.append(Box::new(t2));
 
-    e.set_event(ElementEvent::Clicked, |_elm, _e|{
+    e.set_handler(ElementEvent::Clicked, |_elm, _e|{
         println!("div box clicked");
     });
 

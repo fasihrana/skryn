@@ -224,13 +224,13 @@ impl Properties {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Position{
     pub x: f32,
     pub y: f32,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Modifiers{
     pub shift: bool,
     pub ctrl: bool,
@@ -238,13 +238,13 @@ pub struct Modifiers{
     pub logo: bool
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum ButtonState{
     Pressed,
     Released,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Button{
     Left,
     Middle,

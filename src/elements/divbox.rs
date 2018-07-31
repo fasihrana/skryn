@@ -11,6 +11,7 @@ pub struct DivBox{
     children: Vec<Box<Element>>,
     props: properties::Properties,
     bounds: properties::Extent,
+    handlers: EventHandlers,
 }
 
 impl DivBox{
@@ -26,7 +27,8 @@ impl DivBox{
                 w: 0.0,
                 h: 0.0,
                 dpi: 0.0,
-            }
+            },
+            handlers: EventHandlers::new(),
         }
     }
 }
@@ -101,6 +103,7 @@ impl Element for DivBox {
     }
 
     fn on_primitive_event(&mut self, e: PrimitiveEvent) {
+        let mut handled_click = false;
         for elm in self.children.iter_mut() {
             match e.clone() {
                 PrimitiveEvent::Button(p,_b,_s,_m) =>{
@@ -108,6 +111,7 @@ impl Element for DivBox {
                     if p.x >= _b.x && p.x <= (_b.w + _b.x)
                         && p.y >= _b.y && p.y <= (_b.h + _b.y) {
                         elm.on_primitive_event(e.clone());
+                        handled_click = true;
                     }
                 },
                 PrimitiveEvent::Char(_c) => {
@@ -128,6 +132,31 @@ impl Element for DivBox {
                 },
                 _ => ()
             }
+        }
+        if !handled_click {
+            match e.clone() {
+                PrimitiveEvent::Button(_p,_b,_s,_m) => {
+                    if _s == properties::ButtonState::Released {
+                        let handler = self.get_handler(ElementEvent::Clicked);
+                        handler(self, &_p);
+                    }
+                },
+                _ => ()
+            }
+        }
+    }
+
+    fn set_handler(&mut self, _e: ElementEvent, _f: EventFn) {
+        self.handlers.insert(_e, _f);
+    }
+
+    fn get_handler(&mut self, _e: ElementEvent) -> EventFn {
+        let eh = &mut self.handlers;
+        let h = eh.get(&_e);
+        if let Some(h) = h{
+            h.clone()
+        } else {
+            default_fn
         }
     }
 

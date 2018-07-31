@@ -1,6 +1,7 @@
 use std::sync::Arc;
 use std::hash::{Hash, Hasher};
 use std::mem;
+use std::collections::HashMap;
 use std::any::Any;
 
 use webrender::api::*;
@@ -33,6 +34,8 @@ impl Hash for ElementEvent {
 
 pub type EventFn = fn(&mut Element, &Any);
 
+pub type EventHandlers = HashMap<ElementEvent,EventFn>;
+
 pub fn default_fn(_e:&mut Element, _d: &Any){}
 
 pub trait Element {
@@ -45,7 +48,8 @@ pub trait Element {
               props: Option<Arc<properties::Properties>>);
     fn get_bounds(&self) -> properties::Extent;
     fn on_primitive_event(&mut self, e: PrimitiveEvent);
-    fn set_event(&mut self, _e: ElementEvent, _f:EventFn){}
+    fn set_handler(&mut self, _e: ElementEvent, _f:EventFn){}
+    fn get_handler(&mut self, _e: ElementEvent) -> EventFn{ default_fn }
     fn as_any(&self) -> &Any;
 }
 
