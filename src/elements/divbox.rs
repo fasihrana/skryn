@@ -1,11 +1,11 @@
 use std::sync::Arc;
+use std::any::Any;
 
 use webrender::api::*;
 
 use elements::element::*;
 use gui::properties;
 use gui::font;
-//use elements::textbox::TextBox;
 
 pub struct DivBox{
     children: Vec<Box<Element>>,
@@ -100,35 +100,39 @@ impl Element for DivBox {
         self.bounds.clone()
     }
 
-    fn on_event(&mut self, e: PrimitiveEvent) {
+    fn on_primitive_event(&mut self, e: PrimitiveEvent) {
         for elm in self.children.iter_mut() {
             match e.clone() {
-                PrimitiveEvent::Button(p,b,s,m) =>{
+                PrimitiveEvent::Button(p,_b,_s,_m) =>{
                     let _b = elm.get_bounds();
                     if p.x >= _b.x && p.x <= (_b.w + _b.x)
                         && p.y >= _b.y && p.y <= (_b.h + _b.y) {
-                        elm.on_event(e.clone());
+                        elm.on_primitive_event(e.clone());
                     }
                 },
-                PrimitiveEvent::Char(c) => {
-                    elm.on_event(e.clone());
+                PrimitiveEvent::Char(_c) => {
+                    elm.on_primitive_event(e.clone());
                 },
-                PrimitiveEvent::SetFocus(f,p) => {
+                PrimitiveEvent::SetFocus(_f,p) => {
                     if let Some(p) = p {
                         let _b = elm.get_bounds();
                         if p.x >= _b.x && p.x <= (_b.w + _b.x)
                             && p.y >= _b.y && p.y <= (_b.h + _b.y) {
-                            elm.on_event(e.clone());
+                            elm.on_primitive_event(e.clone());
                         } else {
-                            elm.on_event(PrimitiveEvent::SetFocus(false, None));
+                            elm.on_primitive_event(PrimitiveEvent::SetFocus(false, None));
                         }
                     } else {
-                        elm.on_event(PrimitiveEvent::SetFocus(false, None));
+                        elm.on_primitive_event(PrimitiveEvent::SetFocus(false, None));
                     }
                 },
                 _ => ()
             }
         }
+    }
+
+    fn as_any(&self) -> &Any {
+        self
     }
 }
 

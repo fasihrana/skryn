@@ -1,4 +1,6 @@
 use std::sync::Arc;
+use std::collections::HashMap;
+use std::any::Any;
 
 use rusttype;
 use webrender::api::*;
@@ -7,13 +9,13 @@ use elements::element::*;
 use gui::properties;
 use gui::font;
 
-
 pub struct TextBox {
     value: String,
     props: properties::Properties,
     bounds: properties::Extent,
     cache:Vec<GlyphInstance>,
     focus: bool,
+    event_handlers: HashMap<ElementEvent, EventFn>,
 }
 
 impl TextBox{
@@ -32,12 +34,17 @@ impl TextBox{
             },
             cache: Vec::new(),
             focus: false,
+            event_handlers: HashMap::new(),
         }
     }
 
     pub fn set_value(&mut self, s: String){
         self.value = s;
         self.cache.clear();
+    }
+
+    pub fn get_value(&self) -> String {
+        self.value.clone()
     }
 }
 
@@ -157,12 +164,9 @@ impl Element for TextBox{
         self.bounds.clone()
     }
 
-    fn on_event(&mut self, e: PrimitiveEvent) {
+    fn on_primitive_event(&mut self, e: PrimitiveEvent) {
         match e {
             PrimitiveEvent::Char(c) => {
-                if c == '\x1b' {
-                    self.focus = false;
-                }
                 if self.focus {
                     if c == '\x08' {
                         let mut l = self.value.len();
@@ -180,10 +184,31 @@ impl Element for TextBox{
                 }
             },
             PrimitiveEvent::SetFocus(f,_p) => {
-                self.focus = f;
+                if self.focus != f {
+                    self.focus = f;
+                    let handler = {
+                        let eh = &mut self.event_handlers;
+                        let h = eh.get(&ElementEvent::FocusChange);
+                        if let Some(h) = h{
+                            h.clone()
+                        } else {
+                            default_fn
+                        }
+                    };
+                    handler(self, &f);
+                }
             }
             _ => ()
         }
 
     }
+
+    fn set_event(&mut self, e: ElementEvent, f: EventFn) {
+        self.event_handlers.insert(e,f);
+    }
+
+    fn as_any(&self) -> &Any{
+        self
+    }
 }
+

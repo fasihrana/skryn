@@ -7,8 +7,7 @@ use webrender;
 use webrender::api::*;
 use euclid;
 
-use elements::element;
-use elements::element::PrimitiveEvent;
+use elements::{Element, PrimitiveEvent};
 use gui::font;
 use gui::properties;
 
@@ -105,7 +104,7 @@ pub struct Window {
     epoch: Epoch,
     api: RenderApi,
     font_store: font::FontStore,
-    root: Option<Box<element::Element>>,
+    root: Option<Box<Element>>,
     mouse_position_cache: Option<properties::Position>,
 }
 
@@ -227,6 +226,7 @@ impl Window {
         }
     }
 
+    #[allow(unused)]
     fn events(&mut self, mouse_position_cache: Option<properties::Position>) -> Vec<PrimitiveEvent> {
         let mut events = Vec::new();
 
@@ -255,7 +255,11 @@ impl Window {
                     println!("{:?}", input);
                 },*/
                 winit::Event::WindowEvent {event: winit::WindowEvent::ReceivedCharacter(c), ..} => {
-                    events.push(PrimitiveEvent::Char(c));
+                    if c == '\x1b' {
+                        events.push(PrimitiveEvent::SetFocus(false,None));
+                    } else {
+                        events.push(PrimitiveEvent::Char(c));
+                    }
                 },
                 _ => ()
             }
@@ -279,7 +283,7 @@ impl Window {
                     PrimitiveEvent::CursorMoved(p) => {
                         self.mouse_position_cache = Some(p.clone());
                     },
-                    _ => {_r.on_event(e.clone())}
+                    _ => {_r.on_primitive_event(e.clone())}
                 }
             }
         }
@@ -289,7 +293,7 @@ impl Window {
         return false;
     }
 
-    pub fn set_root(&mut self, r: Box<element::Element> ){
+    pub fn set_root(&mut self, r: Box<Element> ){
         self.root = Some(r);
     }
 }
