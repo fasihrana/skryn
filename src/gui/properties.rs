@@ -4,7 +4,7 @@ use std::mem;
 
 use webrender::api::ColorF;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Extent{
     pub x:f32,
     pub y:f32,
@@ -50,6 +50,10 @@ pub enum Property{
     Bottom(Unit), //in pixels or stretches
     Color(ColorF),
     BgColor(ColorF),
+    FocusColor(ColorF),
+    FocusBgColor(ColorF),
+    DisabledColor(ColorF),
+    DisabledBgColor(ColorF),
     OverflowX(Overflow),
     OverflowY(Overflow),
 }
@@ -73,6 +77,30 @@ lazy_static!{
         r: 1.0,
         g: 1.0,
         b: 1.0,
+        a: 1.0,
+    });
+    pub static ref FOCUS_COLOR: Property = Property::FocusColor(ColorF{
+        r: 0.0,
+        g: 0.0,
+        b: 0.0,
+        a: 1.0,
+    });
+    pub static ref FOCUS_BG_COLOR: Property = Property::FocusBgColor(ColorF{
+        r: 0.9,
+        g: 0.9,
+        b: 0.9,
+        a: 1.0,
+    });
+    pub static ref DISABLED_COLOR: Property = Property::DisabledColor(ColorF{
+        r: 0.2,
+        g: 0.2,
+        b: 0.2,
+        a: 1.0,
+    });
+    pub static ref DISABLED_BG_COLOR: Property = Property::DisabledBgColor(ColorF{
+        r: 0.8,
+        g: 0.8,
+        b: 0.8,
         a: 1.0,
     });
     pub static ref OVERFLOW_X: Property = Property::OverflowX(Overflow::Hidden);
@@ -111,6 +139,10 @@ impl Properties {
             .set(Property::Bottom(Unit::Stretch(0.0)))
             .set(Property::Color(ColorF::new(0.2,0.2,0.2,1.0)))
             .set(Property::BgColor(ColorF::new(1.0,1.0,1.0,1.0)))
+            .set(Property::FocusColor(ColorF::new(0.0,0.0,0.0,1.0)))
+            .set(Property::FocusBgColor(ColorF::new(0.9,0.9,0.9,1.0)))
+            .set(Property::DisabledColor(ColorF::new(0.2,0.2,0.2,1.0)))
+            .set(Property::DisabledBgColor(ColorF::new(0.8,0.8,0.8,1.0)))
             .set(Property::OverflowX(Overflow::Hidden))
             .set(Property::OverflowY(Overflow::Hidden))
     }
@@ -165,6 +197,22 @@ impl Properties {
 
     pub fn get_bg_color(&self) -> ColorF {
         if let Some(Property::BgColor(x)) = self.get(&BG_COLOR) {x.clone()} else {panic!("Background Color not found")}
+    }
+
+    pub fn get_focus_color(&self) -> ColorF {
+        if let Some(Property::FocusColor(x)) = self.get(&FOCUS_COLOR) {x.clone()} else {panic!("Focus Color not found")}
+    }
+
+    pub fn get_focus_bg_color(&self) -> ColorF {
+        if let Some(Property::FocusBgColor(x)) = self.get(&FOCUS_BG_COLOR) {x.clone()} else {panic!("Focus Background Color not found")}
+    }
+
+    pub fn get_disabled_color(&self) -> ColorF {
+        if let Some(Property::DisabledColor(x)) = self.get(&DISABLED_COLOR) {x.clone()} else {panic!("Disabled Color not found")}
+    }
+
+    pub fn get_disabled_bg_color(&self) -> ColorF {
+        if let Some(Property::DisabledBgColor(x)) = self.get(&DISABLED_BG_COLOR) {x.clone()} else {panic!("Disabled Background Color not found")}
     }
 
     pub fn get_overflow_x(&self) -> Overflow {

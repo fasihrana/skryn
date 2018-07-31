@@ -247,6 +247,7 @@ impl Window {
                 winit::Event::WindowEvent {event: winit::WindowEvent::MouseInput {device_id, state, button, modifiers}, ..} => {
                     let _tmp = mouse_position_cache.clone();
                     if let Some(mp) = _tmp {
+                        events.push(PrimitiveEvent::SetFocus(true,Some(mp.clone())));
                         events.push(PrimitiveEvent::Button(mp,button.into(), state.into(), modifiers.into()));
                     }
                 },
@@ -277,20 +278,9 @@ impl Window {
                     },
                     PrimitiveEvent::CursorMoved(p) => {
                         self.mouse_position_cache = Some(p.clone());
-                    }
-                    PrimitiveEvent::Button(p,b,s,m) =>{
-                        let _b = _r.get_bounds();
-                        if p.x >= _b.x && p.x <= (_b.w + _b.x)
-                            && p.y >= _b.y && p.y <= (_b.h + _b.y) {
-                            _r.on_event(e.clone());
-                        }
                     },
-                    PrimitiveEvent::Char(_) => {
-                        _r.on_event(e.clone());
-                    },
-                    _ => ()
+                    _ => {_r.on_event(e.clone())}
                 }
-
             }
         }
 

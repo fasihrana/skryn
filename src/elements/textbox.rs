@@ -13,6 +13,7 @@ pub struct TextBox {
     props: properties::Properties,
     bounds: properties::Extent,
     cache:Vec<GlyphInstance>,
+    focus: bool,
 }
 
 impl TextBox{
@@ -29,7 +30,8 @@ impl TextBox{
                 h: 0.0,
                 dpi: 0.0,
             },
-            cache: Vec::new()
+            cache: Vec::new(),
+            focus: false,
         }
     }
 
@@ -54,14 +56,20 @@ impl Element for TextBox{
               font_store: &mut font::FontStore,
               _props: Option<Arc<properties::Properties>>) {
 
-        if self.bounds.dpi != extent.dpi {
+        if self.bounds != extent {
             self.cache.clear();
         }
         let glyphs = &mut self.cache;
         let size = (self.props.get_size() as f32) * extent.dpi;
         let family = self.props.get_family();
-        let color = self.props.get_color();
-        let bgcolor = self.props.get_bg_color();
+        let mut color = self.props.get_color();
+        let mut bgcolor = self.props.get_bg_color();
+
+        if self.focus {
+            color = self.props.get_focus_color();
+            bgcolor = self.props.get_focus_bg_color();
+        }
+
         let fi_key = font_store.get_font_instance_key(&family, size as i32);
 
         if glyphs.is_empty() {
@@ -152,23 +160,28 @@ impl Element for TextBox{
     fn on_event(&mut self, e: PrimitiveEvent) {
         match e {
             PrimitiveEvent::Char(c) => {
-                if c == '\x08' {
-                    let mut l = self.value.len();
-                    if l > 0 {
-                        l = l - 1;
-                        while !self.value.is_char_boundary(l) && l > 0 {
-                            l = l - 1;
-                        }
-                        self.value = self.value.split_at(l).0.to_owned();
-                    }
-                } else {
-                    self.value.push(c);
+                if c == '\x1b' {
+                    self.focus = false;
                 }
-                self.cache.clear();
+                if self.focus {
+                    if c == '\x08' {
+                        let mut l = self.value.len();
+                        if l > 0 {
+                            l = l - 1;
+                            while !self.value.is_char_boundary(l) && l > 0 {
+                                l = l - 1;
+                            }
+                            self.value = self.value.split_at(l).0.to_owned();
+                        }
+                    } else {
+                        self.value.push(c);
+                    }
+                    self.cache.clear();
+                }
             },
-            PrimitiveEvent::Button(p,b,s,m)=>{
-                println!("{:?},{:?},{:?},{:?}", p,b,s,m);
-            },
+            PrimitiveEvent::SetFocus(f,_p) => {
+                self.focus = f;
+            }
             _ => ()
         }
 

@@ -112,7 +112,20 @@ impl Element for DivBox {
                 },
                 PrimitiveEvent::Char(c) => {
                     elm.on_event(e.clone());
-                }
+                },
+                PrimitiveEvent::SetFocus(f,p) => {
+                    if let Some(p) = p {
+                        let _b = elm.get_bounds();
+                        if p.x >= _b.x && p.x <= (_b.w + _b.x)
+                            && p.y >= _b.y && p.y <= (_b.h + _b.y) {
+                            elm.on_event(e.clone());
+                        } else {
+                            elm.on_event(PrimitiveEvent::SetFocus(false, None));
+                        }
+                    } else {
+                        elm.on_event(PrimitiveEvent::SetFocus(false, None));
+                    }
+                },
                 _ => ()
             }
         }

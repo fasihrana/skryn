@@ -15,6 +15,7 @@ pub enum PrimitiveEvent {
     CursorMoved(properties::Position),
     Button(properties::Position, properties::Button, properties::ButtonState, properties::Modifiers),
     Char(char),
+    SetFocus(bool,Option<properties::Position>),
 }
 
 pub trait Element {
@@ -29,8 +30,7 @@ pub trait Element {
     fn on_event(&mut self, e: PrimitiveEvent);
 }
 
-
-pub trait HasChildren {
+pub trait HasChildren : Element {
     #[allow(unused)]
     fn get_child(&self, i:u32) -> Option<&Element> {None}
     #[allow(unused)]
@@ -38,3 +38,5 @@ pub trait HasChildren {
     #[allow(unused)]
     fn append(&mut self, e:Box<Element>) {}
 }
+
+
