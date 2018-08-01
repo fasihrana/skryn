@@ -16,7 +16,6 @@ pub struct DivBox{
     props: properties::Properties,
     bounds: properties::Extent,
     handlers: EventHandlers,
-    cursor_position: WorldPoint,
 }
 
 impl DivBox{
@@ -34,7 +33,6 @@ impl DivBox{
                 dpi: 0.0,
             },
             handlers: EventHandlers::new(),
-            cursor_position: WorldPoint::new(0.0,0.0),
         }
     }
 }
@@ -244,7 +242,7 @@ impl Element for DivBox {
         self
     }
 
-    fn on_event(&mut self, event: winit::WindowEvent, api: &RenderApi, document_id: DocumentId) -> bool {
+    /*fn on_event(&mut self, event: winit::WindowEvent, api: &RenderApi, document_id: DocumentId) -> bool {
         let mut txn = Transaction::new();
         match event {
             winit::WindowEvent::KeyboardInput {
@@ -303,7 +301,7 @@ impl Element for DivBox {
         api.send_transaction(document_id, txn);
 
         false
-    }
+    }*/
 }
 
 impl HasChildren for DivBox {

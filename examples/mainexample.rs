@@ -51,19 +51,7 @@ fn main () {
     container.append(Box::new(d1));
     container.append(Box::new(d2));
 
-    let mut w = skryn::gui::window::Window::new(String::from("Main window"), 600.0, 400.0);
-    //w.set_root(Box::new(container));
+    let mut w = skryn::gui::window::Window::new( Box::new(container),String::from("Main window"), 800.0, 800.0);
 
-    w.tick(container);
-
-    /*loop {
-        if w.tick() {
-            break;
-        }
-
-        let dur = time::Duration::from_millis(50);
-
-        thread::sleep(dur);
-    }
-    w.deinit();*/
+    w.start();
 }
