@@ -11,5 +11,6 @@ extern crate font_loader as floader;
 //#[macro_use] extern crate scan_rules;
 #[macro_use] extern crate lazy_static;
 
+mod util;
 pub mod elements;
 pub mod gui;

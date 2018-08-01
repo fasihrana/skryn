@@ -163,7 +163,8 @@ impl Element for TextBox{
         self.bounds.clone()
     }
 
-    fn on_primitive_event(&mut self, e: PrimitiveEvent) {
+    fn on_primitive_event(&mut self, e: PrimitiveEvent) -> bool {
+        let mut handled = false;
         match e {
             PrimitiveEvent::Char(c) => {
                 if self.focus {
@@ -182,16 +183,24 @@ impl Element for TextBox{
                     self.cache.clear();
                 }
             },
+            PrimitiveEvent::Button(_p,b,s,m) =>{
+                if  b == properties::Button::Left
+                    && s == properties::ButtonState::Released
+                {
+                    let handler = self.get_handler(ElementEvent::Clicked);
+                    handled = handler(self, &m);
+                }
+            },
             PrimitiveEvent::SetFocus(f,_p) => {
                 if self.focus != f {
                     self.focus = f;
                     let handler = self.get_handler(ElementEvent::FocusChange);
-                    handler(self, &f);
+                    handled = handler(self, &f);
                 }
             }
             _ => ()
         }
-
+        return handled;
     }
 
     fn set_handler(&mut self, e: ElementEvent, f: EventFn) {

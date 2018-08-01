@@ -4,6 +4,7 @@ use std::mem;
 use std::collections::HashMap;
 use std::any::Any;
 
+use winit;
 use webrender::api::*;
 
 use gui::font;
@@ -18,6 +19,7 @@ pub enum PrimitiveEvent {
     Button(properties::Position, properties::Button, properties::ButtonState, properties::Modifiers),
     Char(char),
     SetFocus(bool,Option<properties::Position>),
+    Scroll(f32, f32),
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]
@@ -32,11 +34,11 @@ impl Hash for ElementEvent {
     }
 }
 
-pub type EventFn = fn(&mut Element, &Any);
+pub type EventFn = fn(&mut Element, &Any) -> bool;
 
 pub type EventHandlers = HashMap<ElementEvent,EventFn>;
 
-pub fn default_fn(_e:&mut Element, _d: &Any){}
+pub fn default_fn(_e:&mut Element, _d: &Any)->bool{false}
 
 pub trait Element {
     fn set(&mut self, prop: properties::Property);
@@ -47,10 +49,11 @@ pub trait Element {
               font_store: &mut font::FontStore,
               props: Option<Arc<properties::Properties>>);
     fn get_bounds(&self) -> properties::Extent;
-    fn on_primitive_event(&mut self, e: PrimitiveEvent);
+    fn on_primitive_event(&mut self, e: PrimitiveEvent) -> bool;
     fn set_handler(&mut self, _e: ElementEvent, _f:EventFn){}
     fn get_handler(&mut self, _e: ElementEvent) -> EventFn{ default_fn }
     fn as_any(&self) -> &Any;
+    fn on_event(&mut self, event: winit::WindowEvent, api: &RenderApi, document_id: DocumentId) -> bool {false}
 }
 
 pub trait HasChildren : Element {
