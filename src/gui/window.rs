@@ -1,3 +1,4 @@
+use std::sync::Arc;
 
 use gleam::gl;
 use glutin;
@@ -98,22 +99,28 @@ impl RenderNotifier for WindowNotifier {
 }
 
 
+
 pub struct Window {
     width: f64,
     height: f64,
     root: Box<Element>,
     name: String,
     cursor_position: WorldPoint,
+    id_generator: properties::IdGenerator,
+    scroll: WorldPoint,
 }
 
 impl Window {
     pub fn new(mut root: Box<Element>, name: String, width: f64, height: f64) -> Window {
+        let id_generator = properties::IdGenerator::new(0);
         Window {
             width,
             height,
             root,
             name,
             cursor_position: WorldPoint::new(0.0,0.0),
+            id_generator,
+            scroll: WorldPoint::new(0.0,0.0),
         }
     }
 
@@ -168,6 +175,19 @@ impl Window {
         events
     }
 
+    fn render(&mut self, builder:&mut DisplayListBuilder, font_store: &mut font::FontStore, dpi: f32){
+        let mut gen = self.id_generator.clone();
+        gen.zero();
+
+        self.root.render(builder, properties::Extent {
+            x: 0.0,
+            y: 0.0,
+            w: self.width as f32,
+            h: self.height as f32,
+            dpi,
+        }, font_store, None, &mut gen);
+    }
+
     pub fn start(&mut self) {
         let mut events_loop = winit::EventsLoop::new();
         let context_builder = glutin::ContextBuilder::new()
@@ -196,7 +216,7 @@ impl Window {
             glutin::Api::WebGl => unimplemented!(),
         };
 
-        let device_pixel_ratio = window.get_hidpi_factor() as f32;
+        let mut device_pixel_ratio = window.get_hidpi_factor() as f32;
 
         let opts = webrender::RendererOptions {
             device_pixel_ratio,
@@ -204,7 +224,7 @@ impl Window {
             ..webrender::RendererOptions::default()
         };
 
-        let framebuffer_size = {
+        let mut framebuffer_size = {
             let size = window
                 .get_inner_size()
                 .unwrap()
@@ -221,18 +241,14 @@ impl Window {
 
         let epoch = Epoch(0);
         let pipeline_id = PipelineId(0, 0);
-        let layout_size = framebuffer_size.to_f32() / euclid::TypedScale::new(device_pixel_ratio);
+        let mut layout_size = framebuffer_size.to_f32() / euclid::TypedScale::new(device_pixel_ratio);
         let mut builder = DisplayListBuilder::new(pipeline_id, layout_size);
         let mut txn = Transaction::new();
 
 
-        self.root.render(&mut builder, properties::Extent {
-            x: 0.0,
-            y: 0.0,
-            w: framebuffer_size.width as f32,
-            h: framebuffer_size.height as f32,
-            dpi: device_pixel_ratio,
-        }, &mut font_store, None);
+        self.render(&mut builder,
+                    &mut font_store,
+                    device_pixel_ratio);
 
         txn.set_display_list(
             epoch,
@@ -248,62 +264,105 @@ impl Window {
         const LINE_HEIGHT: f32 = 40.0;
 
         events_loop.run_forever(|e|{
+            let mut txn = Transaction::new();
+            let mut new_render = false;
+
             match e {
                 winit::Event::WindowEvent { event: winit::WindowEvent::CloseRequested, .. } => {
-                    winit::ControlFlow::Break
+                    return winit::ControlFlow::Break;
                 },
+                winit::Event::WindowEvent {event,..}=> match event {
+                    winit::WindowEvent::Resized(..) => {
+                        framebuffer_size = {
+                            let size = window
+                                .get_inner_size()
+                                .unwrap()
+                                .to_physical(device_pixel_ratio as f64);
+                            self.width = size.width;
+                            self.height = size.height;
+                            DeviceUintSize::new(size.width as u32, size.height as u32)
+                        };
+                        layout_size = framebuffer_size.to_f32() / euclid::TypedScale::new(device_pixel_ratio);
+                        txn.set_window_parameters(
+                            framebuffer_size,
+                            DeviceUintRect::new(DeviceUintPoint::zero(), framebuffer_size),
+                            1.0
+                        );
+                        new_render = true;
+                    },
+                    winit::WindowEvent::HiDpiFactorChanged(factor) => {
+                        device_pixel_ratio = factor as f32;
+                        new_render = true;
+                    },
+                    winit::WindowEvent::CursorMoved { position: winit::dpi::LogicalPosition { x, y }, .. } => {
+                        self.cursor_position = WorldPoint::new(x as f32, y as f32);
+                    },
+                    winit::WindowEvent::MouseWheel { delta, .. } => {
+                        const LINE_HEIGHT: f32 = 38.0;
+                        let (dx, dy) = match delta {
+                            winit::MouseScrollDelta::LineDelta(dx, dy) => (dx, dy * LINE_HEIGHT),
+                            winit::MouseScrollDelta::PixelDelta(pos) => (pos.x as f32, pos.y as f32),
+                        };
 
-                winit::Event::WindowEvent {event,..}=>{
-                    let mut txn = Transaction::new();
+                        //self.scroll.x += dx;
+                        //self.scroll.y += dy;
+                        txn.scroll(
+                            ScrollLocation::Delta(LayoutVector2D::new(dx, dy)),
+                            self.cursor_position,
+                        );
+                    },
+                    winit::WindowEvent::MouseInput { .. } => {
+                        let results = api.hit_test(
+                            document_id,
+                            None,
+                            self.cursor_position,
+                            HitTestFlags::FIND_ALL
+                        );
 
-                    match event {
-                        winit::WindowEvent::CursorMoved { position: winit::dpi::LogicalPosition { x, y }, .. } => {
-                            self.cursor_position = WorldPoint::new(x as f32, y as f32);
-                        },
-                        winit::WindowEvent::MouseWheel { delta, .. } => {
-                            const LINE_HEIGHT: f32 = 38.0;
-                            let (dx, dy) = match delta {
-                                winit::MouseScrollDelta::LineDelta(dx, dy) => (dx, dy * LINE_HEIGHT),
-                                winit::MouseScrollDelta::PixelDelta(pos) => (pos.x as f32, pos.y as f32),
-                            };
-
-                            let mut txn = Transaction::new();
-                            txn.scroll(
-                                ScrollLocation::Delta(LayoutVector2D::new(dx, dy)),
-                                self.cursor_position,
-                            );
-                            api.send_transaction(document_id, txn);
-                        },
-                        winit::WindowEvent::MouseInput { .. } => {
-                            let results = api.hit_test(
-                                document_id,
-                                None,
-                                self.cursor_position,
-                                HitTestFlags::FIND_ALL
-                            );
-
-                            println!("Hit test results:");
-                            for item in &results.items {
-                                println!("  • {:?}", item);
-                            }
-                            println!("");
-                        },
-                        _ => ()
+                        println!("Hit test results:");
+                        for item in &results.items {
+                            println!("  • {:?}", item);
+                        }
+                        println!("");
+                    },
+                    _ => {
+                        new_render = self.root.on_event(event, &api, document_id);
                     }
-
-                    api.send_transaction(document_id, txn);
-
-                    renderer.update();
-                    renderer.render(framebuffer_size).unwrap();
-                    let _ = renderer.flush_pipeline_info();
-                    window.swap_buffers().ok();
-
-                    winit::ControlFlow::Continue
                 },
-                _ => {
-                    winit::ControlFlow::Continue
-                },
+                _ => (),
             }
+
+            if new_render {
+                let mut builder = DisplayListBuilder::new(pipeline_id, layout_size);
+                self.render(&mut builder,
+                            &mut font_store,
+                            device_pixel_ratio);
+
+                txn.set_display_list(
+                    epoch,
+                    None,
+                    layout_size,
+                    builder.finalize(),
+                    true,
+                );
+                txn.generate_frame();
+
+                /*txn.scroll(
+                    ScrollLocation::Delta(LayoutVector2D::new(self.scroll.x, self.scroll.y)),
+                    self.cursor_position,
+                );*/
+            }
+
+            api.send_transaction(document_id, txn);
+
+            renderer.update();
+            renderer.render(framebuffer_size).unwrap();
+            let _ = renderer.flush_pipeline_info();
+            window.swap_buffers().ok();
+
+            return winit::ControlFlow::Continue;
         });
+
+        renderer.deinit();
     }
 }

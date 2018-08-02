@@ -47,7 +47,8 @@ pub trait Element {
               builder: &mut DisplayListBuilder,
               extent: properties::Extent,
               font_store: &mut font::FontStore,
-              props: Option<Arc<properties::Properties>>);
+              props: Option<Arc<properties::Properties>>,
+              &mut properties::IdGenerator);
     fn get_bounds(&self) -> properties::Extent;
     fn on_primitive_event(&mut self, e: PrimitiveEvent) -> bool;
     fn set_handler(&mut self, _e: ElementEvent, _f:EventFn){}

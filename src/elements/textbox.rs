@@ -15,6 +15,7 @@ pub struct TextBox {
     cache:Vec<GlyphInstance>,
     focus: bool,
     event_handlers: EventHandlers,
+    id_generator: Option<properties::IdGenerator>,
 }
 
 impl TextBox{
@@ -34,6 +35,7 @@ impl TextBox{
             cache: Vec::new(),
             focus: false,
             event_handlers: EventHandlers::new(),
+            id_generator: None,
         }
     }
 
@@ -60,7 +62,8 @@ impl Element for TextBox{
               builder: &mut DisplayListBuilder,
               extent: properties::Extent,
               font_store: &mut font::FontStore,
-              _props: Option<Arc<properties::Properties>>) {
+              _props: Option<Arc<properties::Properties>>,
+              gen: &mut properties::IdGenerator) {
 
         if self.bounds != extent {
             self.cache.clear();
@@ -220,5 +223,6 @@ impl Element for TextBox{
     fn as_any(&self) -> &Any{
         self
     }
+
 }
 

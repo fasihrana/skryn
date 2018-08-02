@@ -1,6 +1,7 @@
 use std::collections::{HashSet};
 use std::hash::{Hash, Hasher};
 use std::mem;
+use std::sync::{Mutex, Arc};
 
 use webrender::api::ColorF;
 
@@ -250,4 +251,26 @@ pub enum Button{
     Middle,
     Right,
     Other,
+}
+
+#[derive(Clone, Debug)]
+pub struct IdGenerator{
+    pub next_id: Arc<Mutex<u64>>,
+}
+
+impl IdGenerator{
+    pub fn new(start: u64) -> Self{
+        IdGenerator{
+            next_id: Arc::new(Mutex::new(start)),
+        }
+    }
+    pub fn get(&mut self) -> u64 {
+        let mut counter = self.next_id.lock().unwrap();
+        *counter +=1;
+        (*counter).clone()
+    }
+    pub fn zero(&mut self){
+        let mut counter = self.next_id.lock().unwrap();
+        *counter = 0;
+    }
 }
