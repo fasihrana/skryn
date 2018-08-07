@@ -1,7 +1,7 @@
 mod element;
 mod textbox;
-mod divbox;
+mod vbox;
 
 pub use self::element::*;
 pub use self::textbox::TextBox;
-pub use self::divbox::DivBox;
+pub use self::vbox::VBox;

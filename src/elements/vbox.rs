@@ -11,7 +11,7 @@ use gui::properties;
 use gui::font;
 use winit;
 
-pub struct DivBox{
+pub struct VBox {
     children: Vec<Box<Element>>,
     props: properties::Properties,
     bounds: properties::Extent,
@@ -19,11 +19,11 @@ pub struct DivBox{
     id_generator: Option<properties::IdGenerator>,
 }
 
-impl DivBox{
+impl VBox {
     pub fn new() -> Self{
         let mut props = properties::Properties::new();
         props.default();
-        DivBox{
+        VBox {
             children:Vec::new(),
             props,
             bounds: properties::Extent{
@@ -39,7 +39,7 @@ impl DivBox{
     }
 }
 
-impl Element for DivBox {
+impl Element for VBox {
     fn set(&mut self, prop: properties::Property) {
         self.props.set(prop);
     }
@@ -57,55 +57,33 @@ impl Element for DivBox {
 
         let bgcolor = self.props.get_bg_color();
 
-        let info = LayoutPrimitiveInfo::new(
-            LayoutRect::new(LayoutPoint::zero(), builder.content_size())
-        );
+        let _id = gen.get();
 
-        builder.push_stacking_context(
-            &info,
-            None,
-            TransformStyle::Flat,
-            MixBlendMode::Normal,
-            Vec::new(),
-            GlyphRasterSpace::Screen,
-        );
+        let mut info = LayoutPrimitiveInfo::new((self.bounds.x, self.bounds.y).by(self.bounds.w, self.bounds.h));
+        info.tag = Some((_id, 0));
+        builder.push_rect(&info, bgcolor);
 
-        if true {
-            // set the scrolling clip
-            let clip_id = builder.define_scroll_frame(
-                None,
-                (0, 0).by(2000,2000),
-                (extent.x, extent.y).by(extent.w, extent.h),
-                vec![],
-                None,
-                ScrollSensitivity::ScriptAndInputEvents,
-            );
-            builder.push_clip_id(clip_id);
+        let next_x = extent.x;
+        let mut next_y = extent.y;
 
-            // now put some content into it.
-            // start with a white background
-            let mut info = LayoutPrimitiveInfo::new((extent.x, extent.y).by(extent.w, extent.h));
-            //let id = {self.id_generator};
-            info.tag = Some((gen.get(), 0));
-            builder.push_rect(&info, bgcolor);
+        for elm in self.children.iter_mut(){
+            elm.render(builder, properties::Extent{
+                x: next_x,
+                y: next_y,
+                w: extent.w,
+                h: extent.h,
+                dpi: extent.dpi,
+            }, font_store, None, gen);
 
-            // let's make a 50x50 blue square as a visual reference
-            let mut info = LayoutPrimitiveInfo::new((0, 0).to(50, 50));
-            info.tag = Some((gen.get(), 0));
-            builder.push_rect(&info, ColorF::new(0.0, 0.0, 1.0, 1.0));
-
-
-
-            builder.pop_clip_id(); // clip_id
+            let _bounds = elm.get_bounds();
+            next_y += _bounds.h;
         }
-
-        builder.pop_stacking_context();
 
         self.bounds = properties::Extent{
             x: extent.x,
             y: extent.y,
             w: extent.w,
-            h: extent.y,
+            h: next_y - extent.y,
             dpi: extent.dpi,
         };
     }
@@ -240,7 +218,7 @@ impl Element for DivBox {
     }*/
 }
 
-impl HasChildren for DivBox {
+impl HasChildren for VBox {
     #[allow(unused)]
     fn get_child(&self, i:u32) -> Option<&Element> {None}
     #[allow(unused)]

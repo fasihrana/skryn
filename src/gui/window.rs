@@ -179,6 +179,17 @@ impl Window {
         let mut gen = self.id_generator.clone();
         gen.zero();
 
+        let info = LayoutPrimitiveInfo::new(
+            (0.0, 0.0).by(self.width as f32, self.height as f32)
+        );
+        builder.push_stacking_context(
+            &info,
+            None,
+            TransformStyle::Flat,
+            MixBlendMode::Normal,
+            Vec::new(),
+            GlyphRasterSpace::Screen,
+        );
         self.root.render(builder, properties::Extent {
             x: 0.0,
             y: 0.0,
@@ -186,6 +197,7 @@ impl Window {
             h: self.height as f32,
             dpi,
         }, font_store, None, &mut gen);
+        builder.pop_stacking_context();
     }
 
     pub fn start(&mut self) {
@@ -220,7 +232,7 @@ impl Window {
 
         let opts = webrender::RendererOptions {
             device_pixel_ratio,
-            clear_color: Some(ColorF::new(0.3, 0.0, 0.0, 1.0)),
+            clear_color: Some(ColorF::new(1.0, 1.0, 1.0, 1.0)),
             ..webrender::RendererOptions::default()
         };
 
@@ -346,11 +358,6 @@ impl Window {
                     true,
                 );
                 txn.generate_frame();
-
-                /*txn.scroll(
-                    ScrollLocation::Delta(LayoutVector2D::new(self.scroll.x, self.scroll.y)),
-                    self.cursor_position,
-                );*/
             }
 
             api.send_transaction(document_id, txn);
