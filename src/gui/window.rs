@@ -315,8 +315,8 @@ impl Window {
                         let (dx, dy) = match modifiers.alt {
                             true => {
                                 match delta {
-                                    winit::MouseScrollDelta::LineDelta(dx, dy) => (dx * LINE_HEIGHT, 0.0),
-                                    winit::MouseScrollDelta::PixelDelta(pos) => (pos.x as f32, 0.0),
+                                    winit::MouseScrollDelta::LineDelta(dx, dy) => (dy * LINE_HEIGHT, 0.0),
+                                    winit::MouseScrollDelta::PixelDelta(pos) => (pos.y as f32, 0.0),
                                 }
                             },
                             _ => {
@@ -332,7 +332,7 @@ impl Window {
                             self.cursor_position,
                         );
                         api.send_transaction(document_id,_txn);
-                        println!("scrolling");
+                        println!("scrolling {} {}",dx,dy);
                     },
                     winit::WindowEvent::MouseInput { .. } => {
                         let results = api.hit_test(
@@ -356,12 +356,6 @@ impl Window {
             }
 
             if new_render {
-                //get scroll states
-                let scroll_states = api.get_scroll_node_state(document_id);
-
-                for sns in scroll_states.iter() {
-                    println!("Scroll State {:?} , {:?}", sns.id, sns.scroll_offset);
-                }
 
                 //do two passes of render for all the bounds to be properly calculated.
                 let mut builder = DisplayListBuilder::new(pipeline_id, layout_size);

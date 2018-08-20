@@ -92,6 +92,8 @@ impl Element for VBox {
             h: next_y,
             dpi: extent.dpi,
         };
+
+        println!("{:?}", self.bounds);
     }
 
     fn get_bounds(&self) -> properties::Extent {

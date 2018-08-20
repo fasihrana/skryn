@@ -3,7 +3,7 @@ extern crate skryn;
 extern crate webrender;
 
 use skryn::gui::properties::Property;
-use skryn::elements::{Element, HasChildren, ElementEvent, TextBox, VBox, ScrollBox};
+use skryn::elements::{Element, HasChildren, ElementEvent, TextBox, VBox, ScrollBox, HBox};
 
 use webrender::api::ColorF;
 
@@ -16,7 +16,7 @@ fn main () {
         false
     });
 
-    let mut container = VBox::new();
+    let mut container = HBox::new();
     container.set(Property::BgColor(ColorF::new(1.0,1.0,0.5,1.0)));
     container.set_handler(ElementEvent::Clicked, |_elm, _e|{
         println!("container clicked");
