@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{sync::Arc};
 
 use gleam::gl;
 use glutin;
@@ -190,6 +190,7 @@ impl Window {
             Vec::new(),
             GlyphRasterSpace::Screen,
         );
+
         self.root.render(builder, properties::Extent {
             x: 0.0,
             y: 0.0,
@@ -197,6 +198,7 @@ impl Window {
             h: self.height as f32,
             dpi,
         }, font_store, None, &mut gen);
+
         builder.pop_stacking_context();
     }
 
@@ -273,8 +275,6 @@ impl Window {
         txn.generate_frame();
         api.send_transaction(document_id, txn);
 
-        const LINE_HEIGHT: f32 = 40.0;
-
         events_loop.run_forever(|e|{
             let mut txn = Transaction::new();
             let mut new_render = false;
@@ -309,19 +309,30 @@ impl Window {
                     winit::WindowEvent::CursorMoved { position: winit::dpi::LogicalPosition { x, y }, .. } => {
                         self.cursor_position = WorldPoint::new(x as f32, y as f32);
                     },
-                    winit::WindowEvent::MouseWheel { delta, .. } => {
+                    winit::WindowEvent::MouseWheel { delta, modifiers,.. } => {
+                        let mut _txn = Transaction::new();
                         const LINE_HEIGHT: f32 = 38.0;
-                        let (dx, dy) = match delta {
-                            winit::MouseScrollDelta::LineDelta(dx, dy) => (dx, dy * LINE_HEIGHT),
-                            winit::MouseScrollDelta::PixelDelta(pos) => (pos.x as f32, pos.y as f32),
+                        let (dx, dy) = match modifiers.alt {
+                            true => {
+                                match delta {
+                                    winit::MouseScrollDelta::LineDelta(dx, dy) => (dx * LINE_HEIGHT, 0.0),
+                                    winit::MouseScrollDelta::PixelDelta(pos) => (pos.x as f32, 0.0),
+                                }
+                            },
+                            _ => {
+                                match delta {
+                                    winit::MouseScrollDelta::LineDelta(dx, dy) => (0.0, dy * LINE_HEIGHT),
+                                    winit::MouseScrollDelta::PixelDelta(pos) => (0.0, pos.y as f32),
+                                }
+                            }
                         };
 
-                        //self.scroll.x += dx;
-                        //self.scroll.y += dy;
-                        txn.scroll(
+                        _txn.scroll(
                             ScrollLocation::Delta(LayoutVector2D::new(dx, dy)),
                             self.cursor_position,
                         );
+                        api.send_transaction(document_id,_txn);
+                        println!("scrolling");
                     },
                     winit::WindowEvent::MouseInput { .. } => {
                         let results = api.hit_test(
@@ -345,7 +356,31 @@ impl Window {
             }
 
             if new_render {
+                //get scroll states
+                let scroll_states = api.get_scroll_node_state(document_id);
+
+                for sns in scroll_states.iter() {
+                    println!("Scroll State {:?} , {:?}", sns.id, sns.scroll_offset);
+                }
+
+                //do two passes of render for all the bounds to be properly calculated.
                 let mut builder = DisplayListBuilder::new(pipeline_id, layout_size);
+                self.render(&mut builder,
+                            &mut font_store,
+                            device_pixel_ratio);
+
+                txn.set_display_list(
+                    epoch,
+                    None,
+                    layout_size,
+                    builder.finalize(),
+                    true,
+                );
+                //txn.generate_frame();
+                api.send_transaction(document_id, txn);
+
+                txn = Transaction::new();
+                builder = DisplayListBuilder::new(pipeline_id, layout_size);
                 self.render(&mut builder,
                             &mut font_store,
                             device_pixel_ratio);

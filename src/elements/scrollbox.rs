@@ -11,22 +11,30 @@ use gui::properties;
 use gui::font;
 use winit;
 
-pub struct VBox {
-    children: Vec<Box<Element>>,
+pub struct ScrollBox {
+    child: Option<Box<Element>>,
     props: properties::Properties,
     bounds: properties::Extent,
+    content: properties::Extent,
     handlers: EventHandlers,
     id_generator: Option<properties::IdGenerator>,
 }
 
-impl VBox {
+impl ScrollBox {
     pub fn new() -> Self{
         let mut props = properties::Properties::new();
         props.default();
-        VBox {
-            children:Vec::new(),
+        ScrollBox {
+            child: None,
             props,
             bounds: properties::Extent{
+                x: 0.0,
+                y: 0.0,
+                w: 0.0,
+                h: 0.0,
+                dpi: 0.0,
+            },
+            content: properties::Extent{
                 x: 0.0,
                 y: 0.0,
                 w: 0.0,
@@ -39,15 +47,7 @@ impl VBox {
     }
 }
 
-impl Element for VBox {
-    fn set(&mut self, prop: properties::Property) {
-        self.props.set(prop);
-    }
-
-    fn get(&self, prop: &properties::Property) -> Option<&properties::Property> {
-        self.props.get(&prop)
-    }
-
+impl Element for ScrollBox {
     fn render(&mut self,
               builder: &mut DisplayListBuilder,
               extent: properties::Extent,
@@ -59,39 +59,52 @@ impl Element for VBox {
 
         let _id = gen.get();
 
-        let mut info = LayoutPrimitiveInfo::new((self.bounds.x, self.bounds.y).by(self.bounds.w, self.bounds.h));
-        info.tag = Some((_id, 0));
-        builder.push_rect(&info, bgcolor);
-
-        let next_x = 0.0;
-        let mut next_y = 0.0;
-
-        for elm in self.children.iter_mut(){
-            let child_extent = properties::Extent{
-                x: next_x + extent.x,
-                y: next_y + extent.y,
-                w: extent.w,
-                h: extent.h,
-                dpi: extent.dpi,
-            };
-
-            elm.render(builder,child_extent,font_store,None,gen);
-            let _ex = elm.get_bounds();
-            next_y += _ex.h;
-        }
-
-        //only her for debugging.
-        if next_y == 0.0 {
-            next_y = extent.h;
-        }
-
-        self.bounds = properties::Extent{
-            x: extent.x,
-            y: extent.y,
-            w: extent.w,
-            h: next_y,
-            dpi: extent.dpi,
+        let mut bounds = properties::Extent{
+            x:  0.0,
+            y:  0.0,
+            w:  0.0,
+            h:  0.0,
+            dpi:0.0
         };
+
+        self.bounds = extent.clone();
+
+        builder.push_stacking_context(
+            &LayoutPrimitiveInfo::new((extent.x, extent.y).by(0.0, 0.0)),
+            None,
+            TransformStyle::Flat,
+            MixBlendMode::Normal,
+            Vec::new(),
+            GlyphRasterSpace::Screen,
+        );
+
+        let pipeline_id = builder.pipeline_id.clone();
+        let scroll_frame = builder.define_scroll_frame(Some(ExternalScrollId(_id,pipeline_id)),
+                                    (self.content.x,self.content.y).by(self.content.w, self.content.h),
+                                    (0.0,0.0).by(extent.w,extent.h),
+                                    vec![],
+                                    None,
+                                    ScrollSensitivity::ScriptAndInputEvents);
+
+        builder.push_clip_id(scroll_frame);
+
+        if let Some(ref mut elm) = self.child {
+            elm.render(builder,extent.clone(),font_store,None,gen);
+            bounds = elm.get_bounds();
+        }
+
+        builder.pop_clip_id(); //scroll frame
+        builder.pop_stacking_context();
+
+        self.content = bounds;
+    }
+
+    fn set(&mut self, prop: properties::Property) {
+        self.props.set(prop);
+    }
+
+    fn get(&self, prop: &properties::Property) -> Option<&properties::Property> {
+        self.props.get(&prop)
     }
 
     fn get_bounds(&self) -> properties::Extent {
@@ -100,7 +113,7 @@ impl Element for VBox {
 
     fn on_primitive_event(&mut self, e: PrimitiveEvent) -> bool {
         let mut handled = false;
-        for elm in self.children.iter_mut() {
+        if let Some(ref mut elm)  = self.child {
             match e.clone() {
                 PrimitiveEvent::Button(p,_b,_s,_m) => {
                     if !handled {
@@ -224,14 +237,13 @@ impl Element for VBox {
     }*/
 }
 
-impl HasChildren for VBox {
+impl HasChildren for ScrollBox {
     #[allow(unused)]
     fn get_child(&self, i:u32) -> Option<&Element> {None}
     #[allow(unused)]
     fn get_child_mut(&mut self, i:u32) -> Option<&mut Element> {None}
     fn append(&mut self, e:Box<Element>) {
-        //e.set_id_generator()
-        self.children.push(e);
+        self.child = Some(e);
     }
 
 }
