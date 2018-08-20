@@ -163,67 +163,6 @@ impl Element for HBox {
     fn as_any(&self) -> &Any {
         self
     }
-
-    /*fn on_event(&mut self, event: winit::WindowEvent, api: &RenderApi, document_id: DocumentId) -> bool {
-        let mut txn = Transaction::new();
-        match event {
-            winit::WindowEvent::KeyboardInput {
-                input: winit::KeyboardInput {
-                    state: winit::ElementState::Pressed,
-                    virtual_keycode: Some(key),
-                    ..
-                },
-                ..
-            } => {
-                let offset = match key {
-                    winit::VirtualKeyCode::Down => (0.0, -10.0),
-                    winit::VirtualKeyCode::Up => (0.0, 10.0),
-                    winit::VirtualKeyCode::Right => (-10.0, 0.0),
-                    winit::VirtualKeyCode::Left => (10.0, 0.0),
-                    _ => return false,
-                };
-
-                txn.scroll(
-                    ScrollLocation::Delta(LayoutVector2D::new(offset.0, offset.1)),
-                    self.cursor_position,
-                );
-            }
-            winit::WindowEvent::CursorMoved { position: winit::dpi::LogicalPosition { x, y }, .. } => {
-                self.cursor_position = WorldPoint::new(x as f32, y as f32);
-            }
-            winit::WindowEvent::MouseWheel { delta, .. } => {
-                const LINE_HEIGHT: f32 = 38.0;
-                let (dx, dy) = match delta {
-                    winit::MouseScrollDelta::LineDelta(dx, dy) => (dx, dy * LINE_HEIGHT),
-                    winit::MouseScrollDelta::PixelDelta(pos) => (pos.x as f32, pos.y as f32),
-                };
-
-                txn.scroll(
-                    ScrollLocation::Delta(LayoutVector2D::new(dx, dy)),
-                    self.cursor_position,
-                );
-            }
-            winit::WindowEvent::MouseInput { .. } => {
-                let results = api.hit_test(
-                    document_id,
-                    None,
-                    self.cursor_position,
-                    HitTestFlags::FIND_ALL
-                );
-
-                println!("Hit test results:");
-                for item in &results.items {
-                    println!("  • {:?}", item);
-                }
-                println!("");
-            }
-            _ => (),
-        }
-
-        api.send_transaction(document_id, txn);
-
-        false
-    }*/
 }
 
 impl HasChildren for HBox {
@@ -231,9 +170,9 @@ impl HasChildren for HBox {
     fn get_child(&self, i:u32) -> Option<&Element> {None}
     #[allow(unused)]
     fn get_child_mut(&mut self, i:u32) -> Option<&mut Element> {None}
-    fn append(&mut self, e:Box<Element>) {
-        //e.set_id_generator()
+    fn append(&mut self, e:Box<Element>) -> Option<Box<Element>>{
         self.children.push(e);
+        None
     }
 
 }

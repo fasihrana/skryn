@@ -63,7 +63,7 @@ pub trait HasChildren : Element {
     #[allow(unused)]
     fn get_child_mut(&mut self, i:u32) -> Option<&mut Element> {None}
     #[allow(unused)]
-    fn append(&mut self, e:Box<Element>) {}
+    fn append(&mut self, e:Box<Element>) -> Option<Box<Element>>{None}
 }
 
 

@@ -8,7 +8,7 @@ use elements::*;
 use gui::properties;
 use gui::font;
 
-pub struct TextBox {
+pub struct Button {
     value: String,
     props: properties::Properties,
     bounds: properties::Extent,
@@ -17,11 +17,11 @@ pub struct TextBox {
     event_handlers: EventHandlers,
 }
 
-impl TextBox{
+impl Button {
     pub fn new(s: String) -> Self{
         let mut props = properties::Properties::new();
         props.default();
-        TextBox{
+        Button {
             value:s,
             props,
             bounds: properties::Extent{
@@ -47,7 +47,7 @@ impl TextBox{
     }
 }
 
-impl Element for TextBox{
+impl Element for Button {
     fn set(&mut self, prop: properties::Property) {
         self.props.set(prop);
     }
@@ -153,10 +153,10 @@ impl Element for TextBox{
             LayoutSize::new(extent.w, extent.h)
         ));
         builder.push_text(&info,
-                      &glyphs,
-                      fi_key.clone(),
-                      color.clone(),
-                      Some(GlyphOptions::default()));
+                          &glyphs,
+                          fi_key.clone(),
+                          color.clone(),
+                          Some(GlyphOptions::default()));
 
     }
 
@@ -167,30 +167,13 @@ impl Element for TextBox{
     fn on_primitive_event(&mut self, e: PrimitiveEvent) -> bool {
         let mut handled = false;
         match e {
-            PrimitiveEvent::Char(c) => {
-                if self.focus {
-                    if c == '\x08' {
-                        let mut l = self.value.len();
-                        if l > 0 {
-                            l = l - 1;
-                            while !self.value.is_char_boundary(l) && l > 0 {
-                                l = l - 1;
-                            }
-                            self.value = self.value.split_at(l).0.to_owned();
-                        }
-                    } else {
-                        self.value.push(c);
-                    }
-                    self.cache.clear();
-                }
-            },
             PrimitiveEvent::Button(_p,b,s,m) =>{
                 if  b == properties::Button::Left
                     && s == properties::ButtonState::Released
-                {
-                    let handler = self.get_handler(ElementEvent::Clicked);
-                    handled = handler(self, &m);
-                }
+                    {
+                        let handler = self.get_handler(ElementEvent::Clicked);
+                        handled = handler(self, &m);
+                    }
             },
             PrimitiveEvent::SetFocus(f,_p) => {
                 if self.focus != f {
@@ -221,6 +204,5 @@ impl Element for TextBox{
     fn as_any(&self) -> &Any{
         self
     }
-
 }
 

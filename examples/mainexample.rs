@@ -3,7 +3,7 @@ extern crate skryn;
 extern crate webrender;
 
 use skryn::gui::properties::Property;
-use skryn::elements::{Element, HasChildren, ElementEvent, TextBox, VBox, ScrollBox, HBox};
+use skryn::elements::{Element, HasChildren, ElementEvent, TextBox, VBox, ScrollBox, HBox, Button};
 
 use webrender::api::ColorF;
 
@@ -39,6 +39,8 @@ fn main () {
         false
     });
 
+    let mut b1 = Button::new(String::from("I'm a Button. Click me!"));
+
     /*/text boxes begin
 
     let mut t1 = TextBox::new(String::from("i'm a text box\nand\ni am proud of it!"));
@@ -61,6 +63,7 @@ fn main () {
     //textboxes end*/
 
 
+    d1.append(Box::new(b1));
     container.append(Box::new(d1));
     container.append(Box::new(d2));
     sbox.append(Box::new(container));
