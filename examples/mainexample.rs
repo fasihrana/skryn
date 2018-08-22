@@ -39,7 +39,7 @@ fn main () {
         false
     });
 
-    let mut b1 = Button::new(String::from("I'm a Button. Click me!"));
+    let b1 = Button::new(String::from("I'm a Button. Click me!"));
 
     /*/text boxes begin
 

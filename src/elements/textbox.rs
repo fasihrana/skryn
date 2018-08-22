@@ -61,7 +61,7 @@ impl Element for TextBox{
               extent: properties::Extent,
               font_store: &mut font::FontStore,
               _props: Option<Arc<properties::Properties>>,
-              gen: &mut properties::IdGenerator) {
+              _gen: &mut properties::IdGenerator) {
 
         if self.bounds != extent {
             self.cache.clear();

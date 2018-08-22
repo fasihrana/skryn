@@ -4,13 +4,10 @@ use std::mem;
 
 use webrender::api::*;
 
-use euclid::SideOffsets2D;
-
 use util::*;
 use elements::element::*;
 use gui::properties;
 use gui::font;
-use winit;
 
 pub struct ScrollBox {
     child: Option<Box<Element>>,
@@ -18,7 +15,6 @@ pub struct ScrollBox {
     bounds: properties::Extent,
     content: properties::Extent,
     handlers: EventHandlers,
-    id_generator: Option<properties::IdGenerator>,
 }
 
 impl ScrollBox {
@@ -43,7 +39,6 @@ impl ScrollBox {
                 dpi: 0.0,
             },
             handlers: EventHandlers::new(),
-            id_generator: None,
         }
     }
 }
@@ -53,10 +48,10 @@ impl Element for ScrollBox {
               builder: &mut DisplayListBuilder,
               extent: properties::Extent,
               font_store: &mut font::FontStore,
-              props: Option<Arc<properties::Properties>>,
+              _props: Option<Arc<properties::Properties>>,
               gen: &mut properties::IdGenerator) {
 
-        let bgcolor = self.props.get_bg_color();
+        //let bgcolor = self.props.get_bg_color();
 
         let _id = gen.get();
 

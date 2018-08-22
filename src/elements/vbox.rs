@@ -3,20 +3,16 @@ use std::any::Any;
 
 use webrender::api::*;
 
-use euclid::SideOffsets2D;
-
 use util::*;
 use elements::element::*;
 use gui::properties;
 use gui::font;
-use winit;
 
 pub struct VBox {
     children: Vec<Box<Element>>,
     props: properties::Properties,
     bounds: properties::Extent,
     handlers: EventHandlers,
-    id_generator: Option<properties::IdGenerator>,
 }
 
 impl VBox {
@@ -34,7 +30,6 @@ impl VBox {
                 dpi: 0.0,
             },
             handlers: EventHandlers::new(),
-            id_generator: None,
         }
     }
 }
@@ -52,7 +47,7 @@ impl Element for VBox {
               builder: &mut DisplayListBuilder,
               extent: properties::Extent,
               font_store: &mut font::FontStore,
-              props: Option<Arc<properties::Properties>>,
+              _props: Option<Arc<properties::Properties>>,
               gen: &mut properties::IdGenerator) {
 
         let bgcolor = self.props.get_bg_color();

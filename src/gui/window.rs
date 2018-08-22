@@ -1,4 +1,3 @@
-use std::{sync::Arc};
 
 use gleam::gl;
 use glutin;
@@ -12,8 +11,6 @@ use util::*;
 use elements::{Element, PrimitiveEvent};
 use gui::font;
 use gui::properties;
-
-use std::path::PathBuf;
 
 impl Into<properties::Position> for winit::dpi::LogicalPosition {
     fn into(self) -> properties::Position {
@@ -107,11 +104,10 @@ pub struct Window {
     name: String,
     cursor_position: WorldPoint,
     id_generator: properties::IdGenerator,
-    scroll: WorldPoint,
 }
 
 impl Window {
-    pub fn new(mut root: Box<Element>, name: String, width: f64, height: f64) -> Window {
+    pub fn new(root: Box<Element>, name: String, width: f64, height: f64) -> Window {
         let id_generator = properties::IdGenerator::new(0);
         Window {
             width,
@@ -120,7 +116,6 @@ impl Window {
             name,
             cursor_position: WorldPoint::new(0.0,0.0),
             id_generator,
-            scroll: WorldPoint::new(0.0,0.0),
         }
     }
 
@@ -315,13 +310,13 @@ impl Window {
                         let (dx, dy) = match modifiers.alt {
                             true => {
                                 match delta {
-                                    winit::MouseScrollDelta::LineDelta(dx, dy) => (dy * LINE_HEIGHT, 0.0),
+                                    winit::MouseScrollDelta::LineDelta(_, dy) => (dy * LINE_HEIGHT, 0.0),
                                     winit::MouseScrollDelta::PixelDelta(pos) => (pos.y as f32, 0.0),
                                 }
                             },
                             _ => {
                                 match delta {
-                                    winit::MouseScrollDelta::LineDelta(dx, dy) => (0.0, dy * LINE_HEIGHT),
+                                    winit::MouseScrollDelta::LineDelta(_, dy) => (0.0, dy * LINE_HEIGHT),
                                     winit::MouseScrollDelta::PixelDelta(pos) => (0.0, pos.y as f32),
                                 }
                             }

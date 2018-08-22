@@ -54,6 +54,7 @@ pub trait Element {
     fn set_handler(&mut self, _e: ElementEvent, _f:EventFn){}
     fn get_handler(&mut self, _e: ElementEvent) -> EventFn{ default_fn }
     fn as_any(&self) -> &Any;
+    #[allow(unused)]
     fn on_event(&mut self, event: winit::WindowEvent, api: &RenderApi, document_id: DocumentId) -> bool {false}
 }
 
