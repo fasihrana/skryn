@@ -19,6 +19,7 @@ pub enum PrimitiveEvent {
     Button(properties::Position, properties::Button, properties::ButtonState, properties::Modifiers),
     //Char(char),
     //SetFocus(bool,Option<properties::Position>),
+    SetFocus(bool),
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]
@@ -50,10 +51,11 @@ pub trait Element {
               props: Option<Arc<properties::Properties>>,
               &mut properties::IdGenerator);
     fn get_bounds(&self) -> properties::Extent;
-    fn on_primitive_event(&mut self, ext_ids:Vec<ItemTag>, e: PrimitiveEvent) -> bool;
+    fn on_primitive_event(&mut self, &[ItemTag], e: PrimitiveEvent) -> bool;
     fn set_handler(&mut self, _e: ElementEvent, _f:EventFn){}
     fn get_handler(&mut self, _e: ElementEvent) -> EventFn{ default_fn }
     fn as_any(&self) -> &Any;
+    fn as_any_mut(&mut self) -> &mut Any;
     #[allow(unused)]
     fn on_event(&mut self, event: winit::WindowEvent, api: &RenderApi, document_id: DocumentId) -> bool {false}
 }

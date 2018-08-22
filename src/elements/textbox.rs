@@ -174,7 +174,7 @@ impl Element for TextBox{
         self.bounds.clone()
     }
 
-    fn on_primitive_event(&mut self, ext_ids:Vec<ItemTag>, e: PrimitiveEvent) -> bool {
+    fn on_primitive_event(&mut self, ext_ids:&[ItemTag], e: PrimitiveEvent) -> bool {
         let mut handled = false;
         match e {
             /*PrimitiveEvent::Char(c) => {
@@ -202,13 +202,13 @@ impl Element for TextBox{
                     handled = handler(self, &m);
                 }
             },
-            /*PrimitiveEvent::SetFocus(f,_p) => {
+            PrimitiveEvent::SetFocus(f) => {
                 if self.focus != f {
                     self.focus = f;
                     let handler = self.get_handler(ElementEvent::FocusChange);
                     handled = handler(self, &f);
                 }
-            }*/
+            }
             _ => ()
         }
         return handled;
@@ -231,6 +231,8 @@ impl Element for TextBox{
     fn as_any(&self) -> &Any{
         self
     }
-
+    fn as_any_mut(&mut self) -> &mut Any{
+        self
+    }
 }
 

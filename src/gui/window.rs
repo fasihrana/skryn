@@ -313,7 +313,7 @@ impl Window {
                         new_render = true;
                     },
                     winit::WindowEvent::CursorMoved { position: winit::dpi::LogicalPosition { x, y }, .. } => {
-                        self.cursor_position = WorldPoint::new(x as f32, y as f32);
+                        self.cursor_position = WorldPoint::new((x as f32) * device_pixel_ratio , (y as f32) * device_pixel_ratio);
                     },
                     winit::WindowEvent::MouseWheel { delta, modifiers,.. } => {
                         let mut _txn = Transaction::new();
@@ -348,22 +348,20 @@ impl Window {
                             self.cursor_position,
                             HitTestFlags::FIND_ALL
                         );
-
-                        for item in &results.items {
-                            tags.push(item.tag);
+                        let mut ind= results.items.len();
+                        while ind > 0 {
+                            ind -=1;
+                            tags.push(results.items[ind].tag);
                         }
 
-                        tags.reverse();
-
-                        let _pos : properties::Position = self.cursor_position.clone().into();/*match self.cursor_position {
-                            WorldPoint{x,y,_unit} => properties::Position{x:x,y:y},
-                        };*/
+                        let _pos : properties::Position = self.cursor_position.clone().into();
                         let _button = button.into();
                         let _state = state.into();
                         let _modifiers = modifiers.into();
 
                         if tags.len() > 0 {
-                            new_render = self.root.on_primitive_event(tags.clone(),
+                            self.root.on_primitive_event(&tags[0..], PrimitiveEvent::SetFocus(true));
+                            new_render = self.root.on_primitive_event(&tags[0..],
                                                                       PrimitiveEvent::Button(_pos,
                                                                                              _button,
                                                                                              _state,

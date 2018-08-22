@@ -174,9 +174,9 @@ impl Element for Button {
         self.bounds.clone()
     }
 
-    fn on_primitive_event(&mut self, ext_ids:Vec<ItemTag>, e: PrimitiveEvent) -> bool {
+    fn on_primitive_event(&mut self, ext_ids:&[ItemTag], e: PrimitiveEvent) -> bool {
         let mut handled = false;
-        /*match e {
+        match e {
             PrimitiveEvent::Button(_p,b,s,m) =>{
                 if  b == properties::Button::Left
                     && s == properties::ButtonState::Released
@@ -193,7 +193,7 @@ impl Element for Button {
                 }
             }*/
             _ => ()
-        }*/
+        }
         return handled;
     }
 
@@ -212,6 +212,9 @@ impl Element for Button {
     }
 
     fn as_any(&self) -> &Any{
+        self
+    }
+    fn as_any_mut(&mut self) -> &mut Any{
         self
     }
 }
