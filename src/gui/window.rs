@@ -327,9 +327,10 @@ impl Window {
                             self.cursor_position,
                         );
                         api.send_transaction(document_id,_txn);
-                        println!("scrolling {} {}",dx,dy);
+                        //println!("scrolling {} {}",dx,dy);
                     },
                     winit::WindowEvent::MouseInput { .. } => {
+                        let mut tags : Vec<ItemTag> = Vec::new();
                         let results = api.hit_test(
                             document_id,
                             None,
@@ -339,9 +340,12 @@ impl Window {
 
                         println!("Hit test results:");
                         for item in &results.items {
-                            println!("  • {:?}", item);
+                            tags.push(item.tag);
                         }
-                        println!("");
+
+                        tags.reverse();
+
+                        println!("tags: {:?}", tags);
                     },
                     _ => {
                         new_render = self.root.on_event(event, &api, document_id);
