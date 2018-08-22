@@ -80,7 +80,8 @@ impl Element for HBox {
             next_x += _ex.w;
         }
 
-        //only here for debugging.
+        // TODO: Remove
+        // only here for debugging.
         if next_x == 0.0 {
             next_x = extent.w;
         }

@@ -55,7 +55,7 @@ impl Element for ScrollBox {
               _props: Option<Arc<properties::Properties>>,
               gen: &mut properties::IdGenerator) {
 
-        //let bgcolor = self.props.get_bg_color();
+        let bgcolor = self.props.get_bg_color();
 
         let _id = gen.get();
         self.ext_id = _id;
@@ -86,8 +86,11 @@ impl Element for ScrollBox {
                                     vec![],
                                     None,
                                     ScrollSensitivity::ScriptAndInputEvents);
-
         builder.push_clip_id(scroll_frame);
+
+        let mut info = LayoutPrimitiveInfo::new((self.content.x,self.content.y).by(self.content.w, self.content.h));
+        info.tag = Some((_id, 0));
+        builder.push_rect(&info, bgcolor);
 
         if let Some(ref mut elm) = self.child {
             elm.render(builder,extent.clone(),font_store,None,gen);
