@@ -174,9 +174,9 @@ impl Element for Button {
         self.bounds.clone()
     }
 
-    fn on_primitive_event(&mut self, e: PrimitiveEvent) -> bool {
+    fn on_primitive_event(&mut self, ext_ids:Vec<ItemTag>, e: PrimitiveEvent) -> bool {
         let mut handled = false;
-        match e {
+        /*match e {
             PrimitiveEvent::Button(_p,b,s,m) =>{
                 if  b == properties::Button::Left
                     && s == properties::ButtonState::Released
@@ -185,15 +185,15 @@ impl Element for Button {
                         handled = handler(self, &m);
                     }
             },
-            PrimitiveEvent::SetFocus(f,_p) => {
+            /*PrimitiveEvent::SetFocus(f,_p) => {
                 if self.focus != f {
                     self.focus = f;
                     let handler = self.get_handler(ElementEvent::FocusChange);
                     handled = handler(self, &f);
                 }
-            }
+            }*/
             _ => ()
-        }
+        }*/
         return handled;
     }
 

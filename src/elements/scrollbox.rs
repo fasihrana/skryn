@@ -115,9 +115,19 @@ impl Element for ScrollBox {
         self.bounds.clone()
     }
 
-    fn on_primitive_event(&mut self, e: PrimitiveEvent) -> bool {
+    fn on_primitive_event(&mut self, ext_ids:Vec<ItemTag>, e: PrimitiveEvent) -> bool {
         let mut handled = false;
-        if let Some(ref mut elm)  = self.child {
+        let (_ext_id,_sub_id) = ext_ids[0];
+        if _ext_id == self.ext_id {
+            match e {
+                PrimitiveEvent::Button(_p,b,s,m) => {
+                    let handler = self.get_handler(ElementEvent::Clicked);
+                    handled = handler(self, &m);
+                },
+                _ => ()
+            }
+        }
+        /*if let Some(ref mut elm)  = self.child {
             match e.clone() {
                 PrimitiveEvent::Button(p,_b,_s,_m) => {
                     if !handled {
@@ -131,7 +141,7 @@ impl Element for ScrollBox {
                 PrimitiveEvent::Char(_c) => {
                     handled = elm.on_primitive_event(e.clone());
                 },
-                PrimitiveEvent::SetFocus(_f,p) => {
+                /*PrimitiveEvent::SetFocus(_f,p) => {
                     if let Some(p) = p {
                         let _b = elm.get_bounds();
                         if p.x >= _b.x && p.x <= (_b.w + _b.x)
@@ -143,7 +153,7 @@ impl Element for ScrollBox {
                     } else {
                         handled = elm.on_primitive_event(PrimitiveEvent::SetFocus(false, None));
                     }
-                },
+                },*/
                 _ => ()
             }
         }
@@ -157,7 +167,7 @@ impl Element for ScrollBox {
                 },
                 _ => ()
             }
-        }
+        }*/
         return handled;
     }
 

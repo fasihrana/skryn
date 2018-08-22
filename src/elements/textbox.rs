@@ -174,10 +174,10 @@ impl Element for TextBox{
         self.bounds.clone()
     }
 
-    fn on_primitive_event(&mut self, e: PrimitiveEvent) -> bool {
+    fn on_primitive_event(&mut self, ext_ids:Vec<ItemTag>, e: PrimitiveEvent) -> bool {
         let mut handled = false;
         match e {
-            PrimitiveEvent::Char(c) => {
+            /*PrimitiveEvent::Char(c) => {
                 if self.focus {
                     if c == '\x08' {
                         let mut l = self.value.len();
@@ -193,7 +193,7 @@ impl Element for TextBox{
                     }
                     self.cache.clear();
                 }
-            },
+            },*/
             PrimitiveEvent::Button(_p,b,s,m) =>{
                 if  b == properties::Button::Left
                     && s == properties::ButtonState::Released
@@ -202,13 +202,13 @@ impl Element for TextBox{
                     handled = handler(self, &m);
                 }
             },
-            PrimitiveEvent::SetFocus(f,_p) => {
+            /*PrimitiveEvent::SetFocus(f,_p) => {
                 if self.focus != f {
                     self.focus = f;
                     let handler = self.get_handler(ElementEvent::FocusChange);
                     handled = handler(self, &f);
                 }
-            }
+            }*/
             _ => ()
         }
         return handled;

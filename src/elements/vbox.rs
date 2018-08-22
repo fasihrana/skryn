@@ -92,17 +92,15 @@ impl Element for VBox {
             h: next_y,
             dpi: extent.dpi,
         };
-
-        println!("{:?}", self.bounds);
     }
 
     fn get_bounds(&self) -> properties::Extent {
         self.bounds.clone()
     }
 
-    fn on_primitive_event(&mut self, e: PrimitiveEvent) -> bool {
+    fn on_primitive_event(&mut self, ext_ids:Vec<ItemTag>, e: PrimitiveEvent) -> bool {
         let mut handled = false;
-        for elm in self.children.iter_mut() {
+        /*for elm in self.children.iter_mut() {
             match e.clone() {
                 PrimitiveEvent::Button(p,_b,_s,_m) => {
                     if !handled {
@@ -116,7 +114,7 @@ impl Element for VBox {
                 PrimitiveEvent::Char(_c) => {
                     handled = elm.on_primitive_event(e.clone());
                 },
-                PrimitiveEvent::SetFocus(_f,p) => {
+                /*PrimitiveEvent::SetFocus(_f,p) => {
                     if let Some(p) = p {
                         let _b = elm.get_bounds();
                         if p.x >= _b.x && p.x <= (_b.w + _b.x)
@@ -128,7 +126,7 @@ impl Element for VBox {
                     } else {
                         handled = elm.on_primitive_event(PrimitiveEvent::SetFocus(false, None));
                     }
-                },
+                },*/
                 _ => ()
             }
         }
@@ -142,7 +140,7 @@ impl Element for VBox {
                 },
                 _ => ()
             }
-        }
+        }*/
         return handled;
     }
 

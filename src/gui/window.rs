@@ -21,6 +21,17 @@ impl Into<properties::Position> for winit::dpi::LogicalPosition {
     }
 }
 
+impl Into<properties::Position> for WorldPoint {
+    fn into(self) -> properties::Position {
+        match self {
+            WorldPoint{x,y,_unit} => properties::Position{
+                x: x,
+                y: y,
+            }
+        }
+    }
+}
+
 impl Into<properties::Modifiers> for winit::ModifiersState {
     fn into(self) -> properties::Modifiers {
         properties::Modifiers{
@@ -119,8 +130,8 @@ impl Window {
         }
     }
 
-    #[allow(unused)]
-    fn events(&mut self, mouse_position_cache: Option<properties::Position>) -> Vec<PrimitiveEvent> {
+    /*#[allow(unused)]
+    fn events(&mut self, ext_ids:Vec<ItemTag>) -> Vec<PrimitiveEvent> {
         let mut events = Vec::new();
 
         /*self.events_loop.poll_events(|event|{
@@ -168,7 +179,7 @@ impl Window {
             }
         });*/
         events
-    }
+    }*/
 
     fn render(&mut self, builder:&mut DisplayListBuilder, font_store: &mut font::FontStore, dpi: f32){
         let mut gen = self.id_generator.clone();
@@ -329,7 +340,7 @@ impl Window {
                         api.send_transaction(document_id,_txn);
                         //println!("scrolling {} {}",dx,dy);
                     },
-                    winit::WindowEvent::MouseInput { .. } => {
+                    winit::WindowEvent::MouseInput { state, button, modifiers, .. } => {
                         let mut tags : Vec<ItemTag> = Vec::new();
                         let results = api.hit_test(
                             document_id,
@@ -338,14 +349,27 @@ impl Window {
                             HitTestFlags::FIND_ALL
                         );
 
-                        println!("Hit test results:");
                         for item in &results.items {
                             tags.push(item.tag);
                         }
 
                         tags.reverse();
 
-                        println!("tags: {:?}", tags);
+                        let _pos : properties::Position = self.cursor_position.clone().into();/*match self.cursor_position {
+                            WorldPoint{x,y,_unit} => properties::Position{x:x,y:y},
+                        };*/
+                        let _button = button.into();
+                        let _state = state.into();
+                        let _modifiers = modifiers.into();
+
+                        if tags.len() > 0 {
+                            new_render = self.root.on_primitive_event(tags.clone(),
+                                                                      PrimitiveEvent::Button(_pos,
+                                                                                             _button,
+                                                                                             _state,
+                                                                                             _modifiers));
+                        }
+
                     },
                     _ => {
                         new_render = self.root.on_event(event, &api, document_id);
