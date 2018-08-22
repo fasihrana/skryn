@@ -4,11 +4,13 @@ use std::any::Any;
 use rusttype;
 use webrender::api::*;
 
-use elements::*;
+//use elements::*;
+use elements::element::*;
 use gui::properties;
 use gui::font;
 
 pub struct Button {
+    ext_id: u64,
     value: String,
     props: properties::Properties,
     bounds: properties::Extent,
@@ -22,6 +24,7 @@ impl Button {
         let mut props = properties::Properties::new();
         props.default();
         Button {
+            ext_id:0,
             value:s,
             props,
             bounds: properties::Extent{
@@ -48,6 +51,8 @@ impl Button {
 }
 
 impl Element for Button {
+    fn get_ext_id(&self)->u64{self.ext_id}
+
     fn set(&mut self, prop: properties::Property) {
         self.props.set(prop);
     }
@@ -61,7 +66,10 @@ impl Element for Button {
               extent: properties::Extent,
               font_store: &mut font::FontStore,
               _props: Option<Arc<properties::Properties>>,
-              _gen: &mut properties::IdGenerator) {
+              gen: &mut properties::IdGenerator) {
+
+        let _id = gen.get();
+        self.ext_id = _id;
 
         if self.bounds != extent {
             self.cache.clear();
@@ -142,10 +150,11 @@ impl Element for Button {
             };
         }
 
-        let info = LayoutPrimitiveInfo::new(LayoutRect::new(
+        let mut info = LayoutPrimitiveInfo::new(LayoutRect::new(
             LayoutPoint::new(extent.x, extent.y),
             LayoutSize::new(self.bounds.w, self.bounds.h)
         ));
+        info.tag = Some((_id, 0));
         builder.push_rect(&info, bgcolor);
 
         let info = LayoutPrimitiveInfo::new(LayoutRect::new(

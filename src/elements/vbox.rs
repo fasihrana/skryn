@@ -9,6 +9,7 @@ use gui::properties;
 use gui::font;
 
 pub struct VBox {
+    ext_id: u64,
     children: Vec<Box<Element>>,
     props: properties::Properties,
     bounds: properties::Extent,
@@ -20,6 +21,7 @@ impl VBox {
         let mut props = properties::Properties::new();
         props.default();
         VBox {
+            ext_id:0,
             children:Vec::new(),
             props,
             bounds: properties::Extent{
@@ -35,6 +37,8 @@ impl VBox {
 }
 
 impl Element for VBox {
+    fn get_ext_id(&self)->u64{self.ext_id}
+
     fn set(&mut self, prop: properties::Property) {
         self.props.set(prop);
     }

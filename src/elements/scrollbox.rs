@@ -10,6 +10,7 @@ use gui::properties;
 use gui::font;
 
 pub struct ScrollBox {
+    ext_id: u64,
     child: Option<Box<Element>>,
     props: properties::Properties,
     bounds: properties::Extent,
@@ -22,6 +23,7 @@ impl ScrollBox {
         let mut props = properties::Properties::new();
         props.default();
         ScrollBox {
+            ext_id:0,
             child: None,
             props,
             bounds: properties::Extent{
@@ -44,6 +46,8 @@ impl ScrollBox {
 }
 
 impl Element for ScrollBox {
+    fn get_ext_id(&self)->u64{self.ext_id}
+
     fn render(&mut self,
               builder: &mut DisplayListBuilder,
               extent: properties::Extent,
@@ -54,6 +58,7 @@ impl Element for ScrollBox {
         //let bgcolor = self.props.get_bg_color();
 
         let _id = gen.get();
+        self.ext_id = _id;
 
         let mut bounds = properties::Extent{
             x:  0.0,
