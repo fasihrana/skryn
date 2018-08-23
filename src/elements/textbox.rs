@@ -115,7 +115,7 @@ impl Element for TextBox{
 
                 if _char == '\r' || _char == '\n' {
                     next_y = next_y + size;
-                    next_x = 0.0;
+                    next_x = extent.x;
                     ignore_ws = true;
                     continue;
                 }

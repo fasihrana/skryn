@@ -52,10 +52,9 @@ fn main () {
         true
     });
 
-
     //text boxes begin
 
-    let mut t1 = TextBox::new(String::from("1st box1st box1st box1st box1st box1st box"));
+    let mut t1 = TextBox::new(String::from("1st box 1st box 1st box 1st box 1st box 1st box"));
     t1.set(Property::Color(ColorF::new(1.0,0.5,0.5,1.0)));
     t1.set_handler(ElementEvent::FocusChange,|_elm, _e|{
         let e = _e.downcast_ref::<bool>().unwrap();
@@ -73,7 +72,6 @@ fn main () {
     d2.append(Box::new(t2));
 
     //textboxes end
-
 
     d1.append(Box::new(b1));
     container.append(Box::new(d1));
