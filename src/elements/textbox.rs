@@ -195,7 +195,8 @@ impl Element for TextBox{
                 }
             },*/
             PrimitiveEvent::Button(_p,b,s,m) =>{
-                if  b == properties::Button::Left
+                if  ext_ids.len() > 0 && ext_ids[0].0 == self.ext_id
+                    && b == properties::Button::Left
                     && s == properties::ButtonState::Released
                 {
                     let handler = self.get_handler(ElementEvent::Clicked);

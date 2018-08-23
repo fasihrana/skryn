@@ -101,30 +101,37 @@ impl Element for VBox {
 
     fn on_primitive_event(&mut self, ext_ids:&[ItemTag], e: PrimitiveEvent) -> bool {
         let mut handled = false;
-        if ext_ids[0].0 == self.ext_id {
-            if ext_ids.len() > 1 {
-                for _elm in self.children.iter_mut() {
-                    match e {
-                        PrimitiveEvent::SetFocus(_f) => {
-                            _elm.on_primitive_event(&ext_ids[1..], e.clone());
-                        },
-                        _ => {
-                            if _elm.get_ext_id() == ext_ids[1].0 {
-                                handled = _elm.on_primitive_event(&ext_ids[1..], e.clone());
-                                break;
-                            }
+        for _child_elm in self.children.iter_mut() {
+            match e {
+                PrimitiveEvent::SetFocus(_) => {
+                    if ext_ids.len() > 1
+                        && ext_ids[0].0 == self.ext_id
+                        && ext_ids[1].0 == _child_elm.get_ext_id() {
+                        _child_elm.on_primitive_event(&ext_ids[1..], PrimitiveEvent::SetFocus(true));
+                    } else {
+                        _child_elm.on_primitive_event(&[], PrimitiveEvent::SetFocus(false));
+                    }
+                },
+                _ =>  {
+                    if !handled {
+                        if ext_ids.len() == 1 {
+                            handled = _child_elm.on_primitive_event(&[], e.clone());
+                        } else if ext_ids.len() > 1 {
+                            handled = _child_elm.on_primitive_event(&ext_ids[1..], e.clone());
                         }
                     }
                 }
             }
-            if !handled {
-                match e {
-                    PrimitiveEvent::Button(_p,b,s,m) => {
-                        let handler = self.get_handler(ElementEvent::Clicked);
-                        handled = handler(self, &m);
-                    },
-                    _ => ()
-                }
+        }
+        // if none of the children handled the event
+        // see if you can handle it here
+        if !handled {
+            match e {
+                PrimitiveEvent::Button(_p,b,s,m) => {
+                    let handler = self.get_handler(ElementEvent::Clicked);
+                    handled = handler(self, &m);
+                },
+                _ => ()
             }
         }
         return handled;

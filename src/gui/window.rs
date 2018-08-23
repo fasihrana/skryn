@@ -360,12 +360,15 @@ impl Window {
                         let _modifiers = modifiers.into();
 
                         if tags.len() > 0 {
-                            self.root.on_primitive_event(&tags[0..], PrimitiveEvent::SetFocus(true));
-                            new_render = self.root.on_primitive_event(&tags[0..],
+                            if button == winit::MouseButton::Left && state == winit::ElementState::Released {
+                                self.root.on_primitive_event(&tags[0..], PrimitiveEvent::SetFocus(true));
+                            }
+                            self.root.on_primitive_event(&tags[0..],
                                                                       PrimitiveEvent::Button(_pos,
                                                                                              _button,
                                                                                              _state,
                                                                                              _modifiers));
+                            new_render = true;
                         }
 
                     },

@@ -34,7 +34,7 @@ impl Hash for ElementEvent {
     }
 }
 
-pub type EventFn = fn(&mut Element, &Any) -> bool;
+pub type EventFn = /*FnMut(&mut Element, &Any) -> bool;/ */fn(&mut Element, &Any) -> bool;
 
 pub type EventHandlers = HashMap<ElementEvent,EventFn>;
 

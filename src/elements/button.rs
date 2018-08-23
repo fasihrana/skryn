@@ -176,24 +176,21 @@ impl Element for Button {
 
     fn on_primitive_event(&mut self, ext_ids:&[ItemTag], e: PrimitiveEvent) -> bool {
         let mut handled = false;
+
         match e {
-            PrimitiveEvent::Button(_p,b,s,m) =>{
-                if  b == properties::Button::Left
-                    && s == properties::ButtonState::Released
-                    {
-                        let handler = self.get_handler(ElementEvent::Clicked);
-                        handled = handler(self, &m);
-                    }
-            },
-            /*PrimitiveEvent::SetFocus(f,_p) => {
-                if self.focus != f {
-                    self.focus = f;
-                    let handler = self.get_handler(ElementEvent::FocusChange);
-                    handled = handler(self, &f);
+            PrimitiveEvent::Button(_p, b, s, m) => {
+                if ext_ids.len() == 1 && ext_ids[0].0 == self.ext_id {
+                    if b == properties::Button::Left
+                        && s == properties::ButtonState::Released
+                        {
+                            let handler = self.get_handler(ElementEvent::Clicked);
+                            handled = handler(self, &m);
+                        }
                 }
-            }*/
+            },
             _ => ()
         }
+
         return handled;
     }
 
