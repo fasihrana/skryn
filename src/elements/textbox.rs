@@ -177,7 +177,7 @@ impl Element for TextBox{
     fn on_primitive_event(&mut self, ext_ids:&[ItemTag], e: PrimitiveEvent) -> bool {
         let mut handled = false;
         match e {
-            /*PrimitiveEvent::Char(c) => {
+            PrimitiveEvent::Char(c) => {
                 if self.focus {
                     if c == '\x08' {
                         let mut l = self.value.len();
@@ -192,8 +192,9 @@ impl Element for TextBox{
                         self.value.push(c);
                     }
                     self.cache.clear();
+                    handled = true;
                 }
-            },*/
+            },
             PrimitiveEvent::Button(_p,b,s,m) =>{
                 if  ext_ids.len() > 0 && ext_ids[0].0 == self.ext_id
                     && b == properties::Button::Left

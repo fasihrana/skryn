@@ -241,6 +241,8 @@ impl Window {
         let opts = webrender::RendererOptions {
             device_pixel_ratio,
             clear_color: Some(ColorF::new(1.0, 1.0, 1.0, 1.0)),
+            enable_scrollbars: true,
+            enable_aa:true,
             ..webrender::RendererOptions::default()
         };
 
@@ -371,6 +373,14 @@ impl Window {
                             new_render = true;
                         }
 
+                    },
+                    winit::WindowEvent::ReceivedCharacter(c) => {
+                        if c == '\x1b' {
+                            self.root.on_primitive_event( &[], PrimitiveEvent::SetFocus(false));
+                        } else {
+                            self.root.on_primitive_event(&[],PrimitiveEvent::Char(c));
+                        }
+                        new_render = true;
                     },
                     _ => {
                         new_render = self.root.on_event(event, &api, document_id);

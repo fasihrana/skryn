@@ -128,6 +128,9 @@ impl Element for ScrollBox {
                         _child_elm.on_primitive_event(&[], PrimitiveEvent::SetFocus(false));
                     }
                 },
+                PrimitiveEvent::Char(_c) => {
+                    handled = _child_elm.on_primitive_event(&[],e.clone());
+                },
                 _ =>{
                     if !handled {
                         if ext_ids.len() == 1 {

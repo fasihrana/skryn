@@ -17,8 +17,7 @@ pub enum PrimitiveEvent {
     CursorLeft,
     CursorMoved(properties::Position),*/
     Button(properties::Position, properties::Button, properties::ButtonState, properties::Modifiers),
-    //Char(char),
-    //SetFocus(bool,Option<properties::Position>),
+    Char(char),
     SetFocus(bool),
 }
 
@@ -26,6 +25,7 @@ pub enum PrimitiveEvent {
 pub enum ElementEvent{
     Clicked,
     FocusChange,
+    //Char,
 }
 
 impl Hash for ElementEvent {

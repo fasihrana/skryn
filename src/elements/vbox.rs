@@ -112,6 +112,12 @@ impl Element for VBox {
                         _child_elm.on_primitive_event(&[], PrimitiveEvent::SetFocus(false));
                     }
                 },
+                PrimitiveEvent::Char(_c) => {
+                    handled = _child_elm.on_primitive_event(&[],e.clone());
+                    if handled {
+                        break;
+                    }
+                },
                 _ =>  {
                     if !handled {
                         if ext_ids.len() == 1 {
