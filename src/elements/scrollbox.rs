@@ -156,7 +156,7 @@ impl Element for ScrollBox {
         return handled;
     }
 
-    fn set_handler(&mut self, _e: ElementEvent, _f: EventFn) {
+    fn set_handler(&mut self, _e: ElementEvent, _f:EventFn) {
         self.handlers.insert(_e, _f);
     }
 

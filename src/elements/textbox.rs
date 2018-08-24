@@ -216,7 +216,7 @@ impl Element for TextBox{
         return handled;
     }
 
-    fn set_handler(&mut self, e: ElementEvent, f: EventFn) {
+    fn set_handler(&mut self, e: ElementEvent,f:EventFn) {
         self.event_handlers.insert(e,f);
     }
 

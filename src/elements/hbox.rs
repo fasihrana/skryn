@@ -16,7 +16,7 @@ pub struct HBox {
     handlers: EventHandlers,
 }
 
-impl HBox {
+impl HBox  {
     pub fn new() -> Self{
         let mut props = properties::Properties::new();
         props.default();
@@ -36,7 +36,7 @@ impl HBox {
     }
 }
 
-impl Element for HBox {
+impl  Element for HBox {
     fn get_ext_id(&self)->u64{self.ext_id}
 
     fn set(&mut self, prop: properties::Property) {
@@ -143,7 +143,7 @@ impl Element for HBox {
         return handled;
     }
 
-    fn set_handler(&mut self, _e: ElementEvent, _f: EventFn) {
+    fn set_handler(&mut self, _e: ElementEvent, _f:EventFn) {
         self.handlers.insert(_e, _f);
     }
 
@@ -165,7 +165,7 @@ impl Element for HBox {
     }
 }
 
-impl HasChildren for HBox {
+impl HasChildren for HBox  {
     #[allow(unused)]
     fn get_child(&self, i:u32) -> Option<&Element> {None}
     #[allow(unused)]

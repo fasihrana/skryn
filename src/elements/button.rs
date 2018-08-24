@@ -9,7 +9,8 @@ use elements::element::*;
 use gui::properties;
 use gui::font;
 
-pub struct Button {
+pub struct Button
+{
     ext_id: u64,
     value: String,
     props: properties::Properties,
@@ -194,8 +195,8 @@ impl Element for Button {
         return handled;
     }
 
-    fn set_handler(&mut self, e: ElementEvent, f: EventFn) {
-        self.event_handlers.insert(e,f);
+    fn set_handler(&mut self, _e: ElementEvent, _f:EventFn) {
+        self.event_handlers.insert(_e, _f);
     }
 
     fn get_handler(&mut self, _e: ElementEvent) -> EventFn {

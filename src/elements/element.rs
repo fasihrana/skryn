@@ -34,7 +34,7 @@ impl Hash for ElementEvent {
     }
 }
 
-pub type EventFn = /*FnMut(&mut Element, &Any) -> bool;/ */fn(&mut Element, &Any) -> bool;
+pub type EventFn = fn(&mut Element, &Any) -> bool;
 
 pub type EventHandlers = HashMap<ElementEvent,EventFn>;
 
@@ -53,7 +53,7 @@ pub trait Element {
     fn get_bounds(&self) -> properties::Extent;
     fn on_primitive_event(&mut self, &[ItemTag], e: PrimitiveEvent) -> bool;
     fn set_handler(&mut self, _e: ElementEvent, _f:EventFn){}
-    fn get_handler(&mut self, _e: ElementEvent) -> EventFn{ default_fn }
+    fn get_handler(&mut self, _e: ElementEvent) -> EventFn { default_fn }
     fn as_any(&self) -> &Any;
     fn as_any_mut(&mut self) -> &mut Any;
     #[allow(unused)]
