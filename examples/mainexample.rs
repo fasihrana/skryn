@@ -3,43 +3,71 @@ extern crate skryn;
 extern crate webrender;
 
 use skryn::gui::properties::Property;
-use skryn::elements::{Element, HasChildren, ElementEvent, TextBox, VBox, ScrollBox, HBox, Button};
+//use skryn::elements::{Element, HasChildren, ElementEvent, TextBox, VBox, ScrollBox, HBox, Button};
 
 use webrender::api::ColorF;
 
-fn main () {
 
-    let mut sbox= ScrollBox::new();
+struct Closure <'a> {
+    f: Option<Box<FnMut() -> bool + 'a>>,
+}
+
+trait SaveClosure <'a> {
+    fn save(&mut self, _f: Box<FnMut() -> bool + 'a>);
+}
+
+impl <'a> SaveClosure <'a> for Closure <'a>{
+    fn save(&mut self, _f: Box<FnMut() -> bool + 'a>) {
+        self.f = Some(_f);
+    }
+}
+
+fn main () {
+    let mut x = 5;
+    let mut c = Closure{f:None};
+    c.save(Box::new(||{
+        x == 5
+    }));
+    match c.f {
+        Some(ref mut _f) => {
+            let res = (*_f)();
+            println!("result {:?}", res);
+        },
+        _ => ()
+    }
+    //println!("result {:?}", res);
+
+    /*let mut sbox= ScrollBox::new();
     sbox.set(Property::BgColor(ColorF::new(0.0,0.5,0.5,1.0)));
-    /*sbox.set_handler(ElementEvent::Clicked, |_elm, _e|{
+    sbox.set_handler(ElementEvent::Clicked, |_elm, _e|{
         println!("sbox clicked");
         false
-    });*/
+    });
 
     let mut container = HBox::new();
     container.set(Property::BgColor(ColorF::new(1.0,1.0,0.5,1.0)));
-    /*container.set_handler(ElementEvent::Clicked, |_elm, _e|{
+    container.set_handler(ElementEvent::Clicked, |_elm, _e|{
         println!("container clicked");
         false
-    });*/
+    });
 
 
 
     let mut d1= VBox::new();
     d1.set(Property::BgColor(ColorF::new(1.0,0.8,0.8,1.0)));
-    /*d1.set_handler(ElementEvent::Clicked, |_elm, _e|{
+    d1.set_handler(ElementEvent::Clicked, |_elm, _e|{
         println!("d1 box clicked");
         false
-    });*/
+    });
 
     let mut d2= VBox::new();
     d2.set(Property::BgColor(ColorF::new(0.8,0.8,1.0,1.0)));
-    /*d2.set_handler(ElementEvent::Clicked, |_elm, _e|{
+    d2.set_handler(ElementEvent::Clicked, |_elm, _e|{
         println!("d2 box clicked");
         false
-    });*/
+    });
 
-    let mut bs = 0;
+    let mut bclicks = Cell::new(0);
 
     let mut b1 = Button::new(String::from("I'm a Button. Click me!"));
     b1.set(Property::Size(16));
@@ -80,5 +108,5 @@ fn main () {
 
     let mut w = skryn::gui::window::Window::new( Box::new(sbox),String::from("Main window"), 300.0, 200.0);
 
-    w.start();
+    w.start();*/
 }
