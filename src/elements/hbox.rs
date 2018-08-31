@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::sync::{Arc,Mutex};
 use std::any::Any;
 
 use webrender::api::*;
@@ -10,7 +10,7 @@ use gui::font;
 
 pub struct HBox {
     ext_id:u64,
-    children: Vec<Box<Element>>,
+    children: Vec<Arc<Mutex<Element>>>,
     props: properties::Properties,
     bounds: properties::Extent,
     handlers: EventHandlers,
@@ -75,9 +75,14 @@ impl  Element for HBox {
                 dpi: extent.dpi,
             };
 
-            elm.render(builder,child_extent,font_store,None,gen);
-            let _ex = elm.get_bounds();
-            next_x += _ex.w;
+            match elm.lock() {
+                Ok(ref mut elm) => {
+                    elm.render(builder,child_extent,font_store,None,gen);
+                    let _ex = elm.get_bounds();
+                    next_x += _ex.w;
+                },
+                Err(_err_str) => panic!("unable to lock element : {}",_err_str)
+            }
         }
 
         // TODO: Remove
@@ -102,8 +107,8 @@ impl  Element for HBox {
     fn on_primitive_event(&mut self, ext_ids:&[ItemTag], e: PrimitiveEvent) -> bool {
         let mut handled = false;
         for _child_elm in self.children.iter_mut() {
-            match e {
-                PrimitiveEvent::SetFocus(_) => {
+            match (&e,_child_elm.lock()) {
+                (PrimitiveEvent::SetFocus(_), Ok(ref mut _child_elm)) => {
                     if ext_ids.len() > 1
                         && ext_ids[0].0 == self.ext_id
                         && ext_ids[1].0 == _child_elm.get_ext_id() {
@@ -112,13 +117,13 @@ impl  Element for HBox {
                         _child_elm.on_primitive_event(&[], PrimitiveEvent::SetFocus(false));
                     }
                 },
-                PrimitiveEvent::Char(_c) => {
+                (PrimitiveEvent::Char(_c), Ok(ref mut _child_elm)) => {
                     handled = _child_elm.on_primitive_event(&[],e.clone());
                     if handled {
                         break;
                     }
                 },
-                _ =>  {
+                (_, Ok(ref mut _child_elm)) =>  {
                     if !handled {
                         if ext_ids.len() == 1 {
                             handled = _child_elm.on_primitive_event(&[], e.clone());
@@ -126,6 +131,10 @@ impl  Element for HBox {
                             handled = _child_elm.on_primitive_event(&ext_ids[1..], e.clone());
                         }
                     }
+                },
+                (_,Err(_err_str)) => {
+                    //this should be unreachable
+                    panic!("unable to lock element : {}", _err_str)
                 }
             }
         }
@@ -167,10 +176,10 @@ impl  Element for HBox {
 
 impl HasChildren for HBox  {
     #[allow(unused)]
-    fn get_child(&self, i:u32) -> Option<&Element> {None}
+    fn get_child(&self, i:u32) -> Option<Arc<Mutex<Element>>> {None}
     #[allow(unused)]
-    fn get_child_mut(&mut self, i:u32) -> Option<&mut Element> {None}
-    fn append(&mut self, e:Box<Element>) -> Option<Box<Element>>{
+    //fn get_child_mut(&mut self, i:u32) -> Option<&mut Element> {None}
+    fn append(&mut self, e:Arc<Mutex<Element>>) -> Option<Arc<Mutex<Element>>>{
         self.children.push(e);
         None
     }

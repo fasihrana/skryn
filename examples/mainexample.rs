@@ -2,40 +2,123 @@
 extern crate skryn;
 extern crate webrender;
 
-use skryn::gui::properties::Property;
-//use skryn::elements::{Element, HasChildren, ElementEvent, TextBox, VBox, ScrollBox, HBox, Button};
+use std::sync::{Arc,Mutex};
+use std::any::Any;
 
-use webrender::api::ColorF;
+use skryn::gui::font::FontStore;
+use skryn::gui::properties::{Property, Extent, Properties, IdGenerator};
+use skryn::elements::{Element, HasChildren, ElementEvent, TextBox, VBox, ScrollBox, HBox, Button, PrimitiveEvent};
 
+use webrender::api::{ColorF, DisplayListBuilder};
 
-struct Closure <'a> {
-    f: Option<Box<FnMut() -> bool + 'a>>,
+struct Person{
+    name: String,
+    age: u32,
 }
 
-trait SaveClosure <'a> {
-    fn save(&mut self, _f: Box<FnMut() -> bool + 'a>);
+struct PersonElm{
+    id: u64,
+    person: Arc<Mutex<Person>>,
+    name_elm: Arc<Mutex<TextBox>>,
+    age_elm: Arc<Mutex<TextBox>>,
+    vbox: Arc<Mutex<VBox>>,
+    bounds: Extent
 }
 
-impl <'a> SaveClosure <'a> for Closure <'a>{
-    fn save(&mut self, _f: Box<FnMut() -> bool + 'a>) {
-        self.f = Some(_f);
+impl PersonElm{
+    fn new(p:Arc<Mutex<Person>>) -> PersonElm{
+        let _p = p.lock().unwrap();
+        let t1 = Arc::new(Mutex::new( TextBox::new(_p.name.to_owned())));
+        let t2= Arc::new(Mutex::new( TextBox::new(String::from(format!("{}",_p.age)))));
+        let mut v = Arc::new(Mutex::new( VBox::new()));
+        match v.lock() {
+            Ok(ref mut v) => {
+                v.append(t1.clone());
+                v.append(t2.clone());
+            },
+            Err(_err_str) => panic!("unable to lock element : {}", _err_str)
+        }
+        PersonElm{
+            id:0,
+            person: p.clone(),
+            name_elm: t1,
+            age_elm: t2,
+            vbox: v,
+            bounds: Extent{
+                x: 0.0,
+                y: 0.0,
+                w: 0.0,
+                h: 0.0,
+                dpi: 0.0,
+            },
+        }
     }
 }
+
+impl Element for PersonElm {
+    fn get_ext_id(&self) -> u64 {
+        self.id
+    }
+
+    fn set(&mut self, prop: Property) {
+
+    }
+
+    fn get(&self, prop: &Property) -> Option<&Property> {
+        None
+    }
+
+    fn render(&mut self, builder: &mut DisplayListBuilder, extent: Extent, font_store: &mut FontStore, props: Option<Arc<Properties>>, gen: &mut IdGenerator) {
+        match self.vbox.lock() {
+            Ok(ref mut elm) => {
+                elm.render(builder,extent,font_store,None, gen);
+                self.bounds = elm.get_bounds();
+            },
+            Err(_err_str) => panic!("unable to lock element : {}",_err_str)
+        }
+    }
+
+    fn get_bounds(&self) -> Extent {
+        self.bounds.clone()
+    }
+
+    fn on_primitive_event(&mut self, ext_ids: &[(u64, u16)], e: PrimitiveEvent) -> bool {
+        match self.vbox.lock() {
+            Ok(ref mut elm) => {
+                return elm.on_primitive_event(ext_ids,e);
+            },
+            Err(_err_str) => panic!("unable to lock element : {}",_err_str)
+        }
+        return false;
+    }
+
+    fn set_handler(&mut self, _e: ElementEvent, _f: fn(&mut Element, &Any) -> bool) {
+
+    }
+
+    fn get_handler(&mut self, _e: ElementEvent) -> fn(&mut Element, &Any) -> bool {
+        skryn::elements::default_fn
+    }
+
+    fn as_any(&self) -> &Any {
+        self
+    }
+
+    fn as_any_mut(&mut self) -> &mut Any {
+        self
+    }
+}
+
 
 fn main () {
-    let mut x = 5;
-    let mut c = Closure{f:None};
-    c.save(Box::new(||{
-        x == 5
-    }));
-    match c.f {
-        Some(ref mut _f) => {
-            let res = (*_f)();
-            println!("result {:?}", res);
-        },
-        _ => ()
-    }
-    //println!("result {:?}", res);
+
+    let person = Person{ name: String::from("Fasih Rana"), age: 34 };
+    let form = PersonElm::new(Arc::new(Mutex::new(person)));
+
+    let mut w = skryn::gui::window::Window::new( Box::new(form),String::from("Main window"), 300.0, 200.0);
+
+    w.start();
+
 
     /*let mut sbox= ScrollBox::new();
     sbox.set(Property::BgColor(ColorF::new(0.0,0.5,0.5,1.0)));
@@ -67,7 +150,7 @@ fn main () {
         false
     });
 
-    let mut bclicks = Cell::new(0);
+    //let mut bclicks = Cell::new(0);
 
     let mut b1 = Button::new(String::from("I'm a Button. Click me!"));
     b1.set(Property::Size(16));

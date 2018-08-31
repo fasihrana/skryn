@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::hash::{Hash, Hasher};
 use std::mem;
 use std::collections::HashMap;
@@ -60,13 +60,15 @@ pub trait Element {
     fn on_event(&mut self, event: winit::WindowEvent, api: &RenderApi, document_id: DocumentId) -> bool {false}
 }
 
+pub type ElementObj = Arc<Mutex<Element>>;
+
 pub trait HasChildren : Element {
     #[allow(unused)]
-    fn get_child(&self, i:u32) -> Option<&Element> {None}
+    fn get_child(&self, i:u32) -> Option<Arc<Mutex<Element>>> {None}
+    /*#[allow(unused)]
+    fn get_child_mut(&mut self, i:u32) -> Option<Arc> {None}*/
     #[allow(unused)]
-    fn get_child_mut(&mut self, i:u32) -> Option<&mut Element> {None}
-    #[allow(unused)]
-    fn append(&mut self, e:Box<Element>) -> Option<Box<Element>>{None}
+    fn append(&mut self, e:Arc<Mutex<Element>>) -> Option<Arc<Mutex<Element>>>{None}
 }
 
 
