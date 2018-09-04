@@ -389,7 +389,9 @@ impl Window {
                 _ => (),
             }
 
-            new_render = self.root.is_invalid();
+            if !new_render {
+                new_render = self.root.is_invalid();
+            }
 
             if new_render {
 
