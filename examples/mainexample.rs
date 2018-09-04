@@ -49,8 +49,8 @@ impl Person{
 struct PersonElm{
     id: u64,
     person: Arc<Mutex<Person>>,
-    name_elm: Arc<Mutex<TextBox>>,
-    age_elm: Arc<Mutex<TextBox>>,
+//    name_elm: Arc<Mutex<TextBox>>,
+//    age_elm: Arc<Mutex<TextBox>>,
     vbox: Arc<Mutex<VBox>>,
     bounds: Extent,
     age_observer_id: Option<u64>,
@@ -71,16 +71,16 @@ impl PersonElm{
             Err(_err_str) => panic!("unable to lock element : {}", _err_str)
         }
 
-        let _tmp_age = age.clone();
-        let age_o_id = _p.age.observe(Box::new(move |v|{
-            let _ageelm = _tmp_age.lock().unwrap().set_value(format!("{}",v));
+        //let _tmp_age = age.clone();
+        let age_o_id = _p.on_age_change(Box::new(move |v|{
+            let _ageelm = age.lock().unwrap().set_value(format!("{}",v));
         }));
 
         PersonElm{
             id:0,
             person: p.clone(),
-            name_elm: name,
-            age_elm: age,
+//            name_elm: name,
+//            age_elm: age,
             vbox: v,
             bounds: Extent{
                 x: 0.0,
@@ -170,12 +170,24 @@ fn main () {
     let person = Arc::new(Mutex::new(person));
     let tmp_person = person.clone();
 
+    let exit = Arc::new(Mutex::new(false));
+    let exit_check = exit.clone();
+
     thread::spawn(move ||{
+        let mut t = 0;
         loop {
-            let mut x = tmp_person.lock().unwrap();
-            let t = x.age.get_value();
-            x.age.update(Action::Update(t + 1));
-            thread::sleep(Duration::from_millis(1000));
+            {
+                if *(exit_check.lock().unwrap()) {
+                    break;
+                }
+            }
+            {
+                let mut x = tmp_person.lock().unwrap();
+                //let mut t = x.age.get_value();
+                t = t + 1;
+                x.age.update(Action::Update(t / 10));
+            }
+            thread::sleep(Duration::from_millis(100));
         }
     });
 
@@ -185,4 +197,7 @@ fn main () {
 
     w.start();
 
+    {
+        *(exit.lock().unwrap()) = true;
+    }
 }
