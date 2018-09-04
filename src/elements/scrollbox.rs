@@ -185,6 +185,14 @@ impl Element for ScrollBox {
     fn as_any_mut(&mut self) -> &mut Any{
         self
     }
+
+    fn is_invalid(&self)->bool{
+        if let Some(ref x) = self.child {
+            x.lock().unwrap().is_invalid()
+        } else {
+            false
+        }
+    }
 }
 
 impl HasChildren for ScrollBox {

@@ -4,17 +4,47 @@ extern crate webrender;
 
 use std::sync::{Arc,Mutex};
 use std::any::Any;
+use std::thread;
+use std::time::Duration;
 
+use skryn::data::*;
 use skryn::gui::font::FontStore;
 use skryn::gui::properties::{Property, Extent, Properties, IdGenerator};
 use skryn::elements::{Element, HasChildren, ElementEvent, TextBox, VBox, ScrollBox, HBox, Button, PrimitiveEvent};
 
 use webrender::api::{ColorF, DisplayListBuilder};
 
+
 struct Person{
-    name: String,
-    age: u32,
+    name: ObservableString,
+    age: ObservableU32,
 }
+
+impl Person{
+    fn new(name:String,age:u32) -> Person {
+        Person{
+            name:ObservableString::new(name),
+            age:ObservableU32::new(age),
+        }
+    }
+
+    fn on_name_change(&mut self,listener: Box<FnMut(&String)+Send>) -> u64{
+        self.name.observe(listener)
+    }
+
+    fn on_age_change(&mut self,listener: Box<FnMut(&u32)+Send>) -> u64 {
+        self.age.observe(listener)
+    }
+
+    fn remove_name_listener(&mut self, id: u64){
+        self.name.stop(id);
+    }
+
+    fn remove_age_listener(&mut self,id: u64){
+        self.age.stop(id);
+    }
+}
+
 
 struct PersonElm{
     id: u64,
@@ -22,27 +52,33 @@ struct PersonElm{
     name_elm: Arc<Mutex<TextBox>>,
     age_elm: Arc<Mutex<TextBox>>,
     vbox: Arc<Mutex<VBox>>,
-    bounds: Extent
+    bounds: Extent,
 }
 
 impl PersonElm{
     fn new(p:Arc<Mutex<Person>>) -> PersonElm{
-        let _p = p.lock().unwrap();
-        let t1 = Arc::new(Mutex::new( TextBox::new(_p.name.to_owned())));
-        let t2= Arc::new(Mutex::new( TextBox::new(String::from(format!("{}",_p.age)))));
+        let mut _p = p.lock().unwrap();
+        let name = Arc::new(Mutex::new( TextBox::new(_p.name.get_value())));
+        let age= Arc::new(Mutex::new( TextBox::new(String::from(format!("{}",_p.age.get_value())))));
         let mut v = Arc::new(Mutex::new( VBox::new()));
         match v.lock() {
             Ok(ref mut v) => {
-                v.append(t1.clone());
-                v.append(t2.clone());
+                v.append(name.clone());
+                v.append(age.clone());
             },
             Err(_err_str) => panic!("unable to lock element : {}", _err_str)
         }
+
+        let _tmp_age = age.clone();
+        _p.age.observe(Box::new(move |v|{
+            let _ageelm = _tmp_age.lock().unwrap().set_value(format!("{}",v));
+        }));
+
         PersonElm{
             id:0,
             person: p.clone(),
-            name_elm: t1,
-            age_elm: t2,
+            name_elm: name,
+            age_elm: age,
             vbox: v,
             bounds: Extent{
                 x: 0.0,
@@ -60,9 +96,7 @@ impl Element for PersonElm {
         self.id
     }
 
-    fn set(&mut self, prop: Property) {
-
-    }
+    fn set(&mut self, prop: Property) {}
 
     fn get(&self, prop: &Property) -> Option<&Property> {
         None
@@ -107,13 +141,38 @@ impl Element for PersonElm {
     fn as_any_mut(&mut self) -> &mut Any {
         self
     }
+
+    fn is_invalid(&self)->bool{
+        self.vbox.lock().unwrap().is_invalid()
+    }
 }
 
 
 fn main () {
 
-    let person = Person{ name: String::from("Fasih Rana"), age: 34 };
-    let form = PersonElm::new(Arc::new(Mutex::new(person)));
+    let mut person = Person::new(String::from("Fasih Rana"), 0);
+
+    let person = Arc::new(Mutex::new(person));
+    let tmp_person = person.clone();
+
+    thread::spawn(move ||{
+        loop {
+            let mut x = tmp_person.lock().unwrap();
+            let t = x.age.get_value();
+            x.age.update(Action::Update(t + 1));
+            thread::sleep(Duration::from_millis(1000));
+        }
+    });
+
+    /*person.on_age_change(Box::new(|age|{
+        println!("age has changed to {}", age);
+    }));
+
+    person.age.update(Action::Update(35));*/
+
+
+
+    let form = PersonElm::new(person);
 
     let mut w = skryn::gui::window::Window::new( Box::new(form),String::from("Main window"), 300.0, 200.0);
 

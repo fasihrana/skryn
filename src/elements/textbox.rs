@@ -17,6 +17,7 @@ pub struct TextBox {
     cache:Vec<GlyphInstance>,
     focus: bool,
     event_handlers: EventHandlers,
+    drawn: u8,
 }
 
 impl TextBox{
@@ -37,12 +38,14 @@ impl TextBox{
             cache: Vec::new(),
             focus: false,
             event_handlers: EventHandlers::new(),
+            drawn: 0,
         }
     }
 
     pub fn set_value(&mut self, s: String){
         self.value = s;
         self.cache.clear();
+        self.drawn = 0;
     }
 
     pub fn get_value(&self) -> String {
@@ -235,6 +238,14 @@ impl Element for TextBox{
     }
     fn as_any_mut(&mut self) -> &mut Any{
         self
+    }
+
+    fn is_invalid(&self)->bool{
+        if self.drawn < 2 {
+            true
+        } else {
+            false
+        }
     }
 }
 

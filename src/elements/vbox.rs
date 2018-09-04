@@ -172,6 +172,16 @@ impl Element for VBox {
     fn as_any_mut(&mut self) -> &mut Any{
         self
     }
+
+    fn is_invalid(&self)->bool{
+        for elm in self.children.iter(){
+            if elm.lock().unwrap().is_invalid() {
+                return true;
+            }
+        }
+
+        false
+    }
 }
 
 impl HasChildren for VBox {

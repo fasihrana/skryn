@@ -18,6 +18,7 @@ pub struct Button
     cache:Vec<GlyphInstance>,
     focus: bool,
     event_handlers: EventHandlers,
+    drawn: u8,
 }
 
 impl Button {
@@ -39,12 +40,14 @@ impl Button {
             cache: Vec::new(),
             focus: false,
             event_handlers: EventHandlers::new(),
+            drawn:0,
         }
     }
 
     pub fn set_value(&mut self, s: String){
         self.value = s;
         self.cache.clear();
+        self.drawn = 0;
     }
 
     pub fn get_value(&self) -> String {
@@ -150,6 +153,8 @@ impl Element for Button {
                 h: next_y - extent.y,
                 dpi: extent.dpi,
             };
+
+            self.drawn += 1;
         }
 
         let mut info = LayoutPrimitiveInfo::new(LayoutRect::new(
@@ -214,6 +219,14 @@ impl Element for Button {
     }
     fn as_any_mut(&mut self) -> &mut Any{
         self
+    }
+
+    fn is_invalid(&self) -> bool {
+        if self.drawn < 2 {
+            true
+        } else {
+            false
+        }
     }
 }
 

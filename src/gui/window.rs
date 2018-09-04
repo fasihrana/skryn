@@ -389,6 +389,8 @@ impl Window {
                 _ => (),
             }
 
+            new_render = self.root.is_invalid();
+
             if new_render {
 
                 //do two passes of render for all the bounds to be properly calculated.

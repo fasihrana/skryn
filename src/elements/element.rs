@@ -58,6 +58,7 @@ pub trait Element {
     fn as_any_mut(&mut self) -> &mut Any;
     #[allow(unused)]
     fn on_event(&mut self, event: winit::WindowEvent, api: &RenderApi, document_id: DocumentId) -> bool {false}
+    fn is_invalid(&self) -> bool;
 }
 
 pub type ElementObj = Arc<Mutex<Element>>;
