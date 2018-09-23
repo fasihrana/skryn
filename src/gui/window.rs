@@ -106,8 +106,6 @@ impl RenderNotifier for WindowNotifier {
     }
 }
 
-
-
 pub struct Window {
     width: f64,
     height: f64,
@@ -115,11 +113,74 @@ pub struct Window {
     name: String,
     cursor_position: WorldPoint,
     id_generator: properties::IdGenerator,
+    gl_window: glutin::GlWindow,
+    events_loop: glutin::EventsLoop,
+    font_store: font::FontStore,
+    api: RenderApi,
+    document_id: DocumentId,
+    pipeline_id: PipelineId,
+    epoch: Epoch,
 }
 
 impl Window {
     pub fn new(root: Box<Element>, name: String, width: f64, height: f64) -> Window {
         let id_generator = properties::IdGenerator::new(0);
+
+        let mut events_loop = winit::EventsLoop::new();
+        let context_builder = glutin::ContextBuilder::new()
+            .with_gl(glutin::GlRequest::GlThenGles {
+                opengl_version: (3, 2),
+                opengles_version: (3, 0),
+            });
+        let window_builder = winit::WindowBuilder::new()
+            .with_title(name.clone())
+            .with_multitouch()
+            .with_dimensions(winit::dpi::LogicalSize::new(width, height));
+        let window = glutin::GlWindow::new(window_builder, context_builder, &events_loop)
+            .unwrap();
+
+        unsafe {
+            window.make_current().ok();
+        }
+
+        let gl = match window.get_api() {
+            glutin::Api::OpenGl => unsafe {
+                gl::GlFns::load_with(|symbol| window.get_proc_address(symbol) as *const _)
+            },
+            glutin::Api::OpenGlEs => unsafe {
+                gl::GlesFns::load_with(|symbol| window.get_proc_address(symbol) as *const _)
+            },
+            glutin::Api::WebGl => unimplemented!(),
+        };
+
+        let mut device_pixel_ratio = window.get_hidpi_factor() as f32;
+
+        let opts = webrender::RendererOptions {
+            device_pixel_ratio,
+            clear_color: Some(ColorF::new(1.0, 1.0, 1.0, 1.0)),
+            enable_scrollbars: true,
+            enable_aa:true,
+            ..webrender::RendererOptions::default()
+        };
+
+        let mut framebuffer_size = {
+            let size = window
+                .get_inner_size()
+                .unwrap()
+                .to_physical(device_pixel_ratio as f64);
+            DeviceUintSize::new(size.width as u32, size.height as u32)
+        };
+
+        let notifier = Box::new(WindowNotifier::new(events_loop.create_proxy()));
+        let (mut renderer, sender) = webrender::Renderer::new(gl.clone(), notifier, opts).unwrap();
+        let api = sender.create_api();
+        let document_id = api.add_document(framebuffer_size, 0);
+
+        let mut font_store = font::FontStore::new(api.clone_sender().create_api(),document_id.clone());
+
+        let epoch = Epoch(0);
+        let pipeline_id = PipelineId(0, 0);
+
         Window {
             width,
             height,
@@ -127,7 +188,35 @@ impl Window {
             name,
             cursor_position: WorldPoint::new(0.0,0.0),
             id_generator,
+            gl_window: window,
+            events_loop,
+            font_store,
+            api,
+            document_id,
+            pipeline_id,
+            epoch,
         }
+    }
+
+    pub fn tick(&mut self) -> bool{
+        let mut exit = false;
+        self.events_loop.poll_events(|_e|{
+            match _e {
+                glutin::Event::WindowEvent {event,..} => {
+                    match event {
+                        glutin::WindowEvent::CloseRequested => {
+                            exit = true;
+                        },
+                        _ => ()
+                    }
+                },
+                _ => ()
+            }
+        });
+        if !exit {
+
+        }
+        exit
     }
 
     /*#[allow(unused)]

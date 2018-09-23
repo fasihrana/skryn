@@ -171,6 +171,12 @@ fn main () {
     let tmp_person = person.clone();
 
     let exit = Arc::new(Mutex::new(false));
+
+
+    let form = PersonElm::new(person);
+
+    let mut w = skryn::gui::window::Window::new( Box::new(form),String::from("Main window"), 300.0, 200.0);
+
     let exit_check = exit.clone();
 
     thread::spawn(move ||{
@@ -191,11 +197,11 @@ fn main () {
         }
     });
 
-    let form = PersonElm::new(person);
-
-    let mut w = skryn::gui::window::Window::new( Box::new(form),String::from("Main window"), 300.0, 200.0);
-
-    w.start();
+    loop {
+        if w.tick() {
+            break;
+        }
+    }
 
     {
         *(exit.lock().unwrap()) = true;
