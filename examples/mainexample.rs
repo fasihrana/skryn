@@ -201,7 +201,9 @@ fn main () {
         if w.tick() {
             break;
         }
+        thread::sleep(Duration::from_millis(5));
     }
+    w.deinit();
 
     {
         *(exit.lock().unwrap()) = true;

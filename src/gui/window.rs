@@ -120,13 +120,14 @@ pub struct Window {
     document_id: DocumentId,
     pipeline_id: PipelineId,
     epoch: Epoch,
+    renderer: webrender::Renderer
 }
 
 impl Window {
     pub fn new(root: Box<Element>, name: String, width: f64, height: f64) -> Window {
         let id_generator = properties::IdGenerator::new(0);
 
-        let mut events_loop = winit::EventsLoop::new();
+        let events_loop = winit::EventsLoop::new();
         let context_builder = glutin::ContextBuilder::new()
             .with_gl(glutin::GlRequest::GlThenGles {
                 opengl_version: (3, 2),
@@ -153,13 +154,13 @@ impl Window {
             glutin::Api::WebGl => unimplemented!(),
         };
 
-        let mut device_pixel_ratio = window.get_hidpi_factor() as f32;
+        let mut dpi = window.get_hidpi_factor();
 
         let opts = webrender::RendererOptions {
-            device_pixel_ratio,
+            device_pixel_ratio: dpi as f32,
             clear_color: Some(ColorF::new(1.0, 1.0, 1.0, 1.0)),
-            enable_scrollbars: true,
-            enable_aa:true,
+            //enable_scrollbars: true,
+            //enable_aa:true,
             ..webrender::RendererOptions::default()
         };
 
@@ -167,19 +168,25 @@ impl Window {
             let size = window
                 .get_inner_size()
                 .unwrap()
-                .to_physical(device_pixel_ratio as f64);
+                .to_physical(dpi);
             DeviceUintSize::new(size.width as u32, size.height as u32)
         };
 
         let notifier = Box::new(WindowNotifier::new(events_loop.create_proxy()));
-        let (mut renderer, sender) = webrender::Renderer::new(gl.clone(), notifier, opts).unwrap();
+        let (renderer, sender) = webrender::Renderer::new(gl.clone(), notifier, opts).unwrap();
         let api = sender.create_api();
         let document_id = api.add_document(framebuffer_size, 0);
 
-        let mut font_store = font::FontStore::new(api.clone_sender().create_api(),document_id.clone());
-
         let epoch = Epoch(0);
         let pipeline_id = PipelineId(0, 0);
+
+        let mut font_store = font::FontStore::new(api.clone_sender().create_api(),document_id.clone());
+
+        font_store.get_font_instance_key(&String::from("Arial"), 12);
+
+        let mut txn = Transaction::new();
+
+
 
         Window {
             width,
@@ -195,10 +202,12 @@ impl Window {
             document_id,
             pipeline_id,
             epoch,
+            renderer
         }
     }
 
     pub fn tick(&mut self) -> bool{
+        //let mut events = Vec::new();
         let mut exit = false;
         self.events_loop.poll_events(|_e|{
             match _e {
@@ -214,9 +223,52 @@ impl Window {
             }
         });
         if !exit {
+            unsafe {
+                self.gl_window.make_current().ok();
+            }
 
+            let mut txn = Transaction::new();
+
+            let mut dpi = self.gl_window.get_hidpi_factor();
+            let mut framebuffer_size = {
+                let size = self.gl_window
+                    .get_inner_size()
+                    .unwrap()
+                    .to_physical(dpi);
+                DeviceUintSize::new(size.width as u32, size.height as u32)
+            };
+            let layout_size = framebuffer_size.to_f32() / euclid::TypedScale::new(dpi as f32);
+            let mut txn = Transaction::new();
+            let mut builder = DisplayListBuilder::new(self.pipeline_id, layout_size);
+
+            //let font_store = &mut self.font_store;
+
+            self.render(&mut builder/*,font_store*/,dpi as f32);
+
+            txn.set_display_list(
+                self.epoch,
+                None,
+                layout_size,
+                builder.finalize(),
+                true,
+            );
+            txn.set_root_pipeline(self.pipeline_id);
+            txn.generate_frame();
+            self.api.send_transaction(self.document_id, txn);
+
+            self.renderer.update();
+            self.renderer.render(framebuffer_size).unwrap();
+            let _ = self.renderer.flush_pipeline_info();
+            self.gl_window.swap_buffers().ok();
         }
         exit
+    }
+
+    pub fn deinit(self) -> Box<Element> {
+        let x = self.renderer;
+        x.deinit();
+        let x = self.root;
+        x
     }
 
     /*#[allow(unused)]
@@ -270,7 +322,7 @@ impl Window {
         events
     }*/
 
-    fn render(&mut self, builder:&mut DisplayListBuilder, font_store: &mut font::FontStore, dpi: f32){
+    fn render(&mut self, builder:&mut DisplayListBuilder, /*font_store: &mut font::FontStore,*/ dpi: f32){
         let mut gen = self.id_generator.clone();
         gen.zero();
 
@@ -292,7 +344,7 @@ impl Window {
             w: self.width as f32,
             h: self.height as f32,
             dpi,
-        }, font_store, None, &mut gen);
+        }, &mut self.font_store, None, &mut gen);
 
         builder.pop_stacking_context();
     }
@@ -358,7 +410,7 @@ impl Window {
 
 
         self.render(&mut builder,
-                    &mut font_store,
+                    /*&mut font_store,*/
                     device_pixel_ratio);
 
         txn.set_display_list(
@@ -487,7 +539,7 @@ impl Window {
                 //do two passes of render for all the bounds to be properly calculated.
                 let mut builder = DisplayListBuilder::new(pipeline_id, layout_size);
                 self.render(&mut builder,
-                            &mut font_store,
+                            /*&mut font_store,*/
                             device_pixel_ratio);
 
                 txn.set_display_list(
@@ -503,7 +555,7 @@ impl Window {
                 txn = Transaction::new();
                 builder = DisplayListBuilder::new(pipeline_id, layout_size);
                 self.render(&mut builder,
-                            &mut font_store,
+                            /*&mut font_store,*/
                             device_pixel_ratio);
 
                 txn.set_display_list(
