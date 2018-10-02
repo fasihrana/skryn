@@ -106,13 +106,7 @@ impl RenderNotifier for WindowNotifier {
     }
 }
 
-pub struct Window {
-    width: f64,
-    height: f64,
-    root: Box<Element>,
-    name: String,
-    cursor_position: WorldPoint,
-    id_generator: properties::IdGenerator,
+struct Internals {
     gl_window: glutin::GlWindow,
     events_loop: glutin::EventsLoop,
     font_store: font::FontStore,
@@ -120,13 +114,12 @@ pub struct Window {
     document_id: DocumentId,
     pipeline_id: PipelineId,
     epoch: Epoch,
-    renderer: webrender::Renderer
+    renderer: webrender::Renderer,
+    cursor_position: WorldPoint,
 }
 
-impl Window {
-    pub fn new(root: Box<Element>, name: String, width: f64, height: f64) -> Window {
-        let id_generator = properties::IdGenerator::new(0);
-
+impl Internals{
+    fn new(name: String, width: f64, height:f64) -> Internals {
         let events_loop = winit::EventsLoop::new();
         let context_builder = glutin::ContextBuilder::new()
             .with_gl(glutin::GlRequest::GlThenGles {
@@ -184,17 +177,7 @@ impl Window {
 
         font_store.get_font_instance_key(&String::from("Arial"), 12);
 
-        let mut txn = Transaction::new();
-
-
-
-        Window {
-            width,
-            height,
-            root,
-            name,
-            cursor_position: WorldPoint::new(0.0,0.0),
-            id_generator,
+        Internals{
             gl_window: window,
             events_loop,
             font_store,
@@ -202,13 +185,214 @@ impl Window {
             document_id,
             pipeline_id,
             epoch,
-            renderer
+            renderer,
+            cursor_position: WorldPoint::new(0.0,0.0),
         }
     }
 
+    fn events(&mut self, tags: Vec<ItemTag>) -> Vec<PrimitiveEvent> {
+        let mut events = Vec::new();
+
+        self.events_loop.poll_events(|event|{
+            match event {
+                winit::Event::WindowEvent { event: winit::WindowEvent::CloseRequested, .. } => {
+                    events.push(PrimitiveEvent::Exit);
+                },
+                winit::Event::WindowEvent {event: winit::WindowEvent::CursorEntered {device_id}, .. } => {
+                    events.push(PrimitiveEvent::CursorEntered);
+                },
+                winit::Event::WindowEvent {event: winit::WindowEvent::CursorMoved {device_id, position, modifiers}, .. } => {
+                    events.push(PrimitiveEvent::CursorMoved(position.into()));
+                },
+                winit::Event::WindowEvent {event: winit::WindowEvent::CursorLeft {device_id}, .. } => {
+                    events.push(PrimitiveEvent::CursorLeft);
+                },
+                /*winit::Event::WindowEvent {event: winit::WindowEvent::MouseInput {device_id, state, button, modifiers}, ..} => {
+                    //let _tmp = mouse_position_cache.clone();
+                    //if let Some(mp) = _tmp {
+                        events.push(PrimitiveEvent::SetFocus(true/*,Some(mp.clone())*/));
+                        events.push(PrimitiveEvent::Button(self.cursor_position.into(),button.into(), state.into(), modifiers.into()));
+                    //}
+                },*/
+                /*winit::Event::WindowEvent {event: winit::WindowEvent::MouseWheel {device_id, delta, phase, modifiers},..} => {
+                    const LINE_HEIGHT:f32 = 40.0;
+
+                    let (dx,dy) = match delta {
+                        winit::MouseScrollDelta::LineDelta(dx,dy) => (dx, dy*LINE_HEIGHT),
+                        winit::MouseScrollDelta::PixelDelta(pos) => (pos.x as f32, pos.y as f32),
+                    };
+
+                    events.push(PrimitiveEvent::Scroll(dx,dy));
+                },*/
+                /*winit::Event::WindowEvent {event: winit::WindowEvent::KeyboardInput {device_id,input}, ..} => {
+                    println!("{:?}", input);
+                },*/
+                /*winit::Event::WindowEvent {event: winit::WindowEvent::ReceivedCharacter(c), ..} => {
+                    if c == '\x1b' {
+                        events.push(PrimitiveEvent::SetFocus(false/*,None*/));
+                    } else {
+                        events.push(PrimitiveEvent::Char(c));
+                    }
+                },*/
+                _ => ()
+            }
+        });
+
+        events
+    }
+}
+
+pub struct Window {
+    width: f64,
+    height: f64,
+    root: Box<Element>,
+    name: String,
+    //cursor_position: WorldPoint,
+    id_generator: properties::IdGenerator,
+    /*gl_window: glutin::GlWindow,
+    events_loop: glutin::EventsLoop,
+    font_store: font::FontStore,
+    api: RenderApi,
+    document_id: DocumentId,
+    pipeline_id: PipelineId,
+    epoch: Epoch,
+    renderer: webrender::Renderer*/
+    internals: Option<Internals>,
+}
+
+impl Window {
+    pub fn new(root: Box<Element>, name: String, width: f64, height: f64) -> Window {
+        let id_generator = properties::IdGenerator::new(0);
+
+        /*let events_loop = winit::EventsLoop::new();
+        let context_builder = glutin::ContextBuilder::new()
+            .with_gl(glutin::GlRequest::GlThenGles {
+                opengl_version: (3, 2),
+                opengles_version: (3, 0),
+            });
+        let window_builder = winit::WindowBuilder::new()
+            .with_title(name.clone())
+            .with_multitouch()
+            .with_dimensions(winit::dpi::LogicalSize::new(width, height));
+        let window = glutin::GlWindow::new(window_builder, context_builder, &events_loop)
+            .unwrap();
+
+        unsafe {
+            window.make_current().ok();
+        }
+
+        let gl = match window.get_api() {
+            glutin::Api::OpenGl => unsafe {
+                gl::GlFns::load_with(|symbol| window.get_proc_address(symbol) as *const _)
+            },
+            glutin::Api::OpenGlEs => unsafe {
+                gl::GlesFns::load_with(|symbol| window.get_proc_address(symbol) as *const _)
+            },
+            glutin::Api::WebGl => unimplemented!(),
+        };
+
+        let mut dpi = window.get_hidpi_factor();
+
+        let opts = webrender::RendererOptions {
+            device_pixel_ratio: dpi as f32,
+            clear_color: Some(ColorF::new(1.0, 1.0, 1.0, 1.0)),
+            //enable_scrollbars: true,
+            //enable_aa:true,
+            ..webrender::RendererOptions::default()
+        };
+
+        let mut framebuffer_size = {
+            let size = window
+                .get_inner_size()
+                .unwrap()
+                .to_physical(dpi);
+            DeviceUintSize::new(size.width as u32, size.height as u32)
+        };
+
+        let notifier = Box::new(WindowNotifier::new(events_loop.create_proxy()));
+        let (renderer, sender) = webrender::Renderer::new(gl.clone(), notifier, opts).unwrap();
+        let api = sender.create_api();
+        let document_id = api.add_document(framebuffer_size, 0);
+
+        let epoch = Epoch(0);
+        let pipeline_id = PipelineId(0, 0);
+
+        let mut font_store = font::FontStore::new(api.clone_sender().create_api(),document_id.clone());
+
+        font_store.get_font_instance_key(&String::from("Arial"), 12);*/
+
+        //let mut txn = Transaction::new();
+
+
+
+        let mut _w = Window {
+            width,
+            height,
+            root,
+            name,
+            //cursor_position: WorldPoint::new(0.0,0.0),
+            id_generator,
+            internals: None,
+            /*gl_window: window,
+            events_loop,
+            font_store,
+            api,
+            document_id,
+            pipeline_id,
+            epoch,
+            renderer*/
+        };
+
+        _w.start_window();
+
+        _w
+    }
+
+    fn start_window(&mut self){
+        self.internals = Some(Internals::new(self.name.clone(),self.width,self.height));
+    }
+
+    fn get_tags(&mut self) -> Vec<ItemTag>{
+        let mut tags : Vec<ItemTag> = Vec::new();
+        if let Some(ref mut i) = self.internals
+        {
+            let results = i.api.hit_test(
+                i.document_id,
+                None,
+                i.cursor_position,
+                HitTestFlags::FIND_ALL
+            );
+            let mut ind = results.items.len();
+            while ind > 0 {
+                ind -= 1;
+                tags.push(results.items[ind].tag);
+            }
+        }
+
+        tags
+    }
+
+
+
     pub fn tick(&mut self) -> bool{
-        //let mut events = Vec::new();
+        let tags = self.get_tags();
+        let mut events: Vec<PrimitiveEvent> = {
+            if let Some (ref mut i) = self.internals{
+                i.events(tags)
+            } else {
+                Vec::new()
+            }
+        };
+
+        println!("{:?}", events);
+
+        let mut render = false;
         let mut exit = false;
+        /*let mut device_pixel_ratio = self.gl_window.get_hidpi_factor();
+        let mut cursor_position = self.cursor_position.clone();
+        let mut api = self.api.clone_sender().create_api();
+        let document_id = self.document_id.clone();
+
         self.events_loop.poll_events(|_e|{
             match _e {
                 glutin::Event::WindowEvent {event,..} => {
@@ -216,13 +400,61 @@ impl Window {
                         glutin::WindowEvent::CloseRequested => {
                             exit = true;
                         },
+                        glutin::WindowEvent::Resized(..) => {
+                            render = true;
+                        },
+                        glutin::WindowEvent::HiDpiFactorChanged(factor) => {
+                            device_pixel_ratio = factor;
+                            render = true;
+                        },
+                        glutin::WindowEvent::CursorMoved { position: winit::dpi::LogicalPosition { x, y }, .. } => {
+                            cursor_position = WorldPoint::new((x as f32) * (device_pixel_ratio as f32) , (y as f32) * (device_pixel_ratio as f32));
+                        },
+                        glutin::WindowEvent::MouseInput {state, button, modifiers, ..} => {
+                            let mut tags : Vec<ItemTag> = Vec::new();
+                            let results = api.hit_test(
+                                document_id,
+                                None,
+                                cursor_position,
+                                HitTestFlags::FIND_ALL
+                            );
+                            let mut ind= results.items.len();
+                            while ind > 0 {
+                                ind -=1;
+                                tags.push(results.items[ind].tag);
+                            }
+
+                            let _pos : properties::Position = cursor_position.clone().into();
+                            let _button = button.into();
+                            let _state = state.into();
+                            let _modifiers = modifiers.into();
+
+                            if tags.len() > 0 {
+                                if button == winit::MouseButton::Left && state == winit::ElementState::Released {
+                                    _root.on_primitive_event(&tags[0..], PrimitiveEvent::SetFocus(true));
+                                }
+                                _root.on_primitive_event(&tags[0..],
+                                                             PrimitiveEvent::Button(_pos,
+                                                                                    _button,
+                                                                                    _state,
+                                                                                    _modifiers));
+                                render = true;
+                            }
+                        },
                         _ => ()
                     }
                 },
                 _ => ()
             }
-        });
-        if !exit {
+        });*/
+
+        /*/self.cursor_position = WorldPoint::new((_x as f32) * (device_pixel_ratio as f32) , (_y as f32) * (device_pixel_ratio as f32));
+        self.cursor_position = cursor_position.clone();
+
+        if !render {
+            render = self.root.is_invalid();
+        }
+        if !exit && render {
             unsafe {
                 self.gl_window.make_current().ok();
             }
@@ -260,69 +492,18 @@ impl Window {
             self.renderer.render(framebuffer_size).unwrap();
             let _ = self.renderer.flush_pipeline_info();
             self.gl_window.swap_buffers().ok();
-        }
+        }*/
         exit
     }
 
     pub fn deinit(self) -> Box<Element> {
-        let x = self.renderer;
-        x.deinit();
+        /*let x = self.renderer;
+        x.deinit();*/
         let x = self.root;
         x
     }
 
-    /*#[allow(unused)]
-    fn events(&mut self, ext_ids:Vec<ItemTag>) -> Vec<PrimitiveEvent> {
-        let mut events = Vec::new();
-
-        /*self.events_loop.poll_events(|event|{
-            match event {
-                winit::Event::WindowEvent { event: winit::WindowEvent::CloseRequested, .. /*window_id*/ } => {
-                    events.push(PrimitiveEvent::Exit);
-                },
-                winit::Event::WindowEvent {event: winit::WindowEvent::CursorEntered {device_id}, .. } => {
-                    events.push(PrimitiveEvent::CursorEntered);
-                },
-                winit::Event::WindowEvent {event: winit::WindowEvent::CursorMoved {device_id, position, modifiers}, .. } => {
-                    events.push(PrimitiveEvent::CursorMoved(position.into()));
-                },
-                winit::Event::WindowEvent {event: winit::WindowEvent::CursorLeft {device_id}, .. } => {
-                    events.push(PrimitiveEvent::CursorLeft);
-                },
-                winit::Event::WindowEvent {event: winit::WindowEvent::MouseInput {device_id, state, button, modifiers}, ..} => {
-                    let _tmp = mouse_position_cache.clone();
-                    if let Some(mp) = _tmp {
-                        events.push(PrimitiveEvent::SetFocus(true,Some(mp.clone())));
-                        events.push(PrimitiveEvent::Button(mp,button.into(), state.into(), modifiers.into()));
-                    }
-                },
-                winit::Event::WindowEvent {event: winit::WindowEvent::MouseWheel {device_id, delta, phase, modifiers},..} => {
-                    const LINE_HEIGHT:f32 = 40.0;
-
-                    let (dx,dy) = match delta {
-                        winit::MouseScrollDelta::LineDelta(dx,dy) => (dx, dy*LINE_HEIGHT),
-                        winit::MouseScrollDelta::PixelDelta(pos) => (pos.x as f32, pos.y as f32),
-                    };
-
-                    events.push(PrimitiveEvent::Scroll(dx,dy));
-                },
-                /*winit::Event::WindowEvent {event: winit::WindowEvent::KeyboardInput {device_id,input}, ..} => {
-                    println!("{:?}", input);
-                },*/
-                winit::Event::WindowEvent {event: winit::WindowEvent::ReceivedCharacter(c), ..} => {
-                    if c == '\x1b' {
-                        events.push(PrimitiveEvent::SetFocus(false,None));
-                    } else {
-                        events.push(PrimitiveEvent::Char(c));
-                    }
-                },
-                _ => ()
-            }
-        });*/
-        events
-    }*/
-
-    fn render(&mut self, builder:&mut DisplayListBuilder, /*font_store: &mut font::FontStore,*/ dpi: f32){
+    fn render(&mut self, builder:&mut DisplayListBuilder, font_store:&mut font::FontStore, dpi: f32){
         let mut gen = self.id_generator.clone();
         gen.zero();
 
@@ -338,18 +519,23 @@ impl Window {
             GlyphRasterSpace::Screen,
         );
 
+        /*let font_store;
+        if let Some(i) = self.internals {
+            font_store = &mut i.font_store;
+        }*/
+
         self.root.render(builder, properties::Extent {
             x: 0.0,
             y: 0.0,
             w: self.width as f32,
             h: self.height as f32,
             dpi,
-        }, &mut self.font_store, None, &mut gen);
+        }, font_store, None, &mut gen);
 
         builder.pop_stacking_context();
     }
 
-    pub fn start(&mut self) {
+    /*pub fn start(&mut self) {
         let mut events_loop = winit::EventsLoop::new();
         let context_builder = glutin::ContextBuilder::new()
             .with_gl(glutin::GlRequest::GlThenGles {
@@ -579,5 +765,5 @@ impl Window {
         });
 
         renderer.deinit();
-    }
+    }*/
 }

@@ -12,10 +12,10 @@ use gui::properties;
 
 #[derive(Debug, Clone)]
 pub enum PrimitiveEvent {
-    /*Exit,
+    Exit,
     CursorEntered,
     CursorLeft,
-    CursorMoved(properties::Position),*/
+    CursorMoved(properties::Position),
     Button(properties::Position, properties::Button, properties::ButtonState, properties::Modifiers),
     Char(char),
     SetFocus(bool),

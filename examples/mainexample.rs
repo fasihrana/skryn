@@ -165,7 +165,7 @@ impl Drop for PersonElm {
 
 fn main () {
 
-    let mut person = Person::new(String::from("Fasih Rana"), 0);
+    let person = Person::new(String::from("Fasih Rana"), 0);
 
     let person = Arc::new(Mutex::new(person));
     let tmp_person = person.clone();
@@ -201,7 +201,7 @@ fn main () {
         if w.tick() {
             break;
         }
-        thread::sleep(Duration::from_millis(5));
+        thread::sleep(Duration::from_millis(50));
     }
     w.deinit();
 
