@@ -12,6 +12,9 @@ use elements::{Element, PrimitiveEvent};
 use gui::font;
 use gui::properties;
 
+use std::sync::{Arc, Mutex};
+use std::ops::DerefMut;
+
 impl Into<properties::Position> for winit::dpi::LogicalPosition {
     fn into(self) -> properties::Position {
         properties::Position{
@@ -109,7 +112,7 @@ impl RenderNotifier for WindowNotifier {
 struct Internals {
     gl_window: glutin::GlWindow,
     events_loop: glutin::EventsLoop,
-    font_store: font::FontStore,
+    font_store: Arc<Mutex<font::FontStore>>,
     api: RenderApi,
     document_id: DocumentId,
     pipeline_id: PipelineId,
@@ -173,9 +176,9 @@ impl Internals{
         let epoch = Epoch(0);
         let pipeline_id = PipelineId(0, 0);
 
-        let mut font_store = font::FontStore::new(api.clone_sender().create_api(),document_id.clone());
+        let mut font_store = Arc::new(Mutex::new(font::FontStore::new(api.clone_sender().create_api(),document_id.clone())));
 
-        font_store.get_font_instance_key(&String::from("Arial"), 12);
+        font_store.lock().unwrap().get_font_instance_key(&String::from("Arial"), 12);
 
         Internals{
             gl_window: window,
@@ -376,18 +379,36 @@ impl Window {
 
     pub fn tick(&mut self) -> bool{
         let tags = self.get_tags();
-        let mut events: Vec<PrimitiveEvent> = {
-            if let Some (ref mut i) = self.internals{
-                i.events(tags)
-            } else {
-                Vec::new()
-            }
-        };
+        let mut xy = WorldPoint::new(0.0,0.0);
+
+        let mut events = vec![];
+
+        if let Some (ref mut i) = self.internals{
+            events = i.events(tags);
+            xy = i.cursor_position.clone();
+        }
+
 
         println!("{:?}", events);
 
         let mut render = false;
         let mut exit = false;
+
+        for e in events.iter(){
+            if exit {
+                return true;
+            }
+            match e {
+                PrimitiveEvent::Exit => {
+                    exit = true;
+                },
+                /*PrimitiveEvent::CursorMoved(p) => {
+
+                },*/
+                _ => ()
+            }
+        }
+
         /*let mut device_pixel_ratio = self.gl_window.get_hidpi_factor();
         let mut cursor_position = self.cursor_position.clone();
         let mut api = self.api.clone_sender().create_api();
@@ -449,12 +470,72 @@ impl Window {
         });*/
 
         /*/self.cursor_position = WorldPoint::new((_x as f32) * (device_pixel_ratio as f32) , (_y as f32) * (device_pixel_ratio as f32));
-        self.cursor_position = cursor_position.clone();
+        self.cursor_position = cursor_position.clone();*/
 
         if !render {
             render = self.root.is_invalid();
         }
-        if !exit && render {
+
+        if render {
+            let mut dpi = 1.0;
+
+            let mut txn = Transaction::new();
+            let mut builder = None;
+            let mut font_store = None;
+
+            let (layout_size, framebuffer_size) = if let Some (ref mut i) = self.internals {
+                unsafe {
+                    i.gl_window.make_current().ok();
+                }
+
+                dpi = i.gl_window.get_hidpi_factor();
+                let framebuffer_size = {
+                    let size = i.gl_window
+                        .get_inner_size()
+                        .unwrap()
+                        .to_physical(dpi);
+                    DeviceUintSize::new(size.width as u32, size.height as u32)
+                };
+                let layout_size = framebuffer_size.to_f32() / euclid::TypedScale::new(dpi as f32);
+
+                builder = Some(DisplayListBuilder::new(i.pipeline_id, layout_size));
+
+                font_store = Some(i.font_store.clone());
+
+                (Some(layout_size), Some(framebuffer_size))
+            } else {
+                (None,None)
+            };
+
+            let mut builder = builder.unwrap();
+            let font_store = font_store.unwrap();
+            let mut font_store = font_store.lock().unwrap();
+            let mut font_store = font_store.deref_mut();
+            let framebuffer_size= framebuffer_size.unwrap();
+            let layout_size = layout_size.unwrap();
+
+            self.render(&mut builder,font_store,dpi as f32);
+
+            if let Some(ref mut i) = self.internals{
+                txn.set_display_list(
+                    i.epoch,
+                    None,
+                    layout_size,
+                    builder.finalize(),
+                    true,
+                );
+                txn.set_root_pipeline(i.pipeline_id);
+                txn.generate_frame();
+                i.api.send_transaction(i.document_id, txn);
+
+                i.renderer.update();
+                i.renderer.render(framebuffer_size).unwrap();
+                let _ = i.renderer.flush_pipeline_info();
+                i.gl_window.swap_buffers().ok();
+            }
+        }
+
+        /*if render {
             unsafe {
                 self.gl_window.make_current().ok();
             }
@@ -475,7 +556,7 @@ impl Window {
 
             //let font_store = &mut self.font_store;
 
-            self.render(&mut builder/*,font_store*/,dpi as f32);
+            self.render(&mut builder,font_store,dpi as f32);
 
             txn.set_display_list(
                 self.epoch,
@@ -518,11 +599,6 @@ impl Window {
             Vec::new(),
             GlyphRasterSpace::Screen,
         );
-
-        /*let font_store;
-        if let Some(i) = self.internals {
-            font_store = &mut i.font_store;
-        }*/
 
         self.root.render(builder, properties::Extent {
             x: 0.0,
