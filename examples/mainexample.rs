@@ -67,6 +67,7 @@ impl PersonElm{
             Ok(ref mut v) => {
                 v.append(name.clone());
                 v.append(age.clone());
+                v.set(skryn::gui::properties::Property::BgColor(ColorF::new(1.0,0.5,0.5,1.0)));
             },
             Err(_err_str) => panic!("unable to lock element : {}", _err_str)
         }
@@ -201,7 +202,7 @@ fn main () {
         if w.tick() {
             break;
         }
-        thread::sleep(Duration::from_millis(50));
+        thread::sleep(Duration::from_millis(1000/120));
     }
     w.deinit();
 
