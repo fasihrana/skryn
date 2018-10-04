@@ -163,9 +163,7 @@ impl Drop for PersonElm {
     }
 }
 
-
 fn main () {
-
     let person = Person::new(String::from("Fasih Rana"), 0);
 
     let person = Arc::new(Mutex::new(person));
@@ -192,9 +190,9 @@ fn main () {
                 let mut x = tmp_person.lock().unwrap();
                 //let mut t = x.age.get_value();
                 t = t + 1;
-                x.age.update(Action::Update(t / 10));
+                x.age.update(Action::Update(t / 100));
             }
-            thread::sleep(Duration::from_millis(100));
+            thread::sleep(Duration::from_millis(10));
         }
     });
 

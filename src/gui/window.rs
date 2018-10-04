@@ -24,6 +24,15 @@ impl Into<properties::Position> for glutin::dpi::LogicalPosition {
     }
 }
 
+impl Into<properties::Position> for glutin::dpi::PhysicalPosition {
+    fn into(self) -> properties::Position {
+        properties::Position{
+            x:self.x as f32,
+            y:self.y as f32,
+        }
+    }
+}
+
 impl Into<properties::Position> for WorldPoint {
     fn into(self) -> properties::Position {
         match self {
@@ -119,6 +128,7 @@ struct Internals {
     epoch: Epoch,
     renderer: webrender::Renderer,
     cursor_position: WorldPoint,
+    dpi: f64,
 }
 
 impl Internals{
@@ -190,6 +200,7 @@ impl Internals{
             epoch,
             renderer,
             cursor_position: WorldPoint::new(0.0,0.0),
+            dpi,
         }
     }
 
@@ -197,7 +208,7 @@ impl Internals{
         let mut events = Vec::new();
 
         let mut cursor_position = self.cursor_position.clone();
-
+        let mut dpi = self.dpi;
         let mut txn = None;
 
         self.events_loop.poll_events(|event|{
@@ -205,20 +216,21 @@ impl Internals{
                 glutin::Event::WindowEvent { event: glutin::WindowEvent::CloseRequested, .. } => {
                     events.push(PrimitiveEvent::Exit);
                 },
-                glutin::Event::WindowEvent {event: glutin::WindowEvent::CursorEntered {device_id}, .. } => {
+                glutin::Event::WindowEvent {event: glutin::WindowEvent::CursorEntered {..}, .. } => {
                     events.push(PrimitiveEvent::CursorEntered);
                 },
                 glutin::Event::WindowEvent {event: glutin::WindowEvent::CursorMoved {device_id, position, modifiers}, .. } => {
                     cursor_position = WorldPoint::new(position.x as f32, position.y as f32);
                     events.push(PrimitiveEvent::CursorMoved(position.into()));
                 },
-                glutin::Event::WindowEvent {event: glutin::WindowEvent::CursorLeft {device_id}, .. } => {
+                glutin::Event::WindowEvent {event: glutin::WindowEvent::CursorLeft {..}, .. } => {
                     events.push(PrimitiveEvent::CursorLeft);
                 },
                 glutin::Event::WindowEvent {event:glutin::WindowEvent::Resized(size),..} => {
                     events.push(PrimitiveEvent::Resized(size));
                 },
                 glutin::Event::WindowEvent {event: glutin::WindowEvent::HiDpiFactorChanged(factor),..} => {
+                    dpi = factor;
                     events.push(PrimitiveEvent::DPI(factor));
                 },
                 glutin::Event::WindowEvent {event: glutin::WindowEvent::MouseInput {state, button, modifiers, ..}, ..} => {
@@ -231,8 +243,8 @@ impl Internals{
                         if button == glutin::MouseButton::Left && state == glutin::ElementState::Released {
                             events.push(PrimitiveEvent::SetFocus(true));
                         }
-                        events.push(PrimitiveEvent::Button(_pos,_button,_state,_modifiers));
                     }
+                    events.push(PrimitiveEvent::Button(_pos,_button,_state,_modifiers));
                 },
                 glutin::Event::WindowEvent {event: glutin::WindowEvent::MouseWheel { delta, modifiers, ..}, ..} => {
                     if txn.is_none() {
@@ -273,6 +285,8 @@ impl Internals{
                 _ => ()
             }
         });
+
+        self.dpi = dpi;
 
         if let Some(mut _txn) = txn {
             self.api.send_transaction(self.document_id, _txn);
@@ -342,10 +356,12 @@ impl Window {
         let mut xy = WorldPoint::new(0.0,0.0);
 
         let mut events = vec![];
+        let mut dpi = 1.0;
 
         if let Some (ref mut i) = self.internals{
             events = i.events(&tags);
             xy = i.cursor_position.clone();
+            dpi = i.dpi;
         }
 
         //only for debug. take out later?
@@ -368,10 +384,14 @@ impl Window {
                     render = true;
                 },
                 PrimitiveEvent::CursorMoved(p) => {
-                    xy = WorldPoint::new(p.x,p.y);
+                    xy = WorldPoint::new(p.x * (dpi as f32),p.y * (dpi as f32));
                 },
-                PrimitiveEvent::SetFocus(_) => {
-                    self.root.on_primitive_event(&tags, e.clone());
+                PrimitiveEvent::SetFocus(b) => {
+                    if !*b {
+                        self.root.on_primitive_event(&[], e.clone());
+                    } else {
+                        self.root.on_primitive_event(&tags, e.clone());
+                    }
                     render = true;
                 },
                 PrimitiveEvent::Char(_) => {
@@ -390,8 +410,6 @@ impl Window {
         }
 
         if render {
-            let mut dpi = 1.0;
-
             let mut txn = Transaction::new();
             let mut builder = None;
             let mut font_store = None;
@@ -430,6 +448,13 @@ impl Window {
             self.render_root(&mut builder,font_store,dpi as f32);
 
             if let Some(ref mut i) = self.internals{
+
+                txn.set_window_parameters(
+                    framebuffer_size,
+                    DeviceUintRect::new(DeviceUintPoint::zero(), framebuffer_size),
+                    dpi as f32
+                );
+
                 txn.set_display_list(
                     i.epoch,
                     None,
