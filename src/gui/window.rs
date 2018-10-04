@@ -15,7 +15,7 @@ use gui::properties;
 use std::sync::{Arc, Mutex};
 use std::ops::DerefMut;
 
-impl Into<properties::Position> for winit::dpi::LogicalPosition {
+impl Into<properties::Position> for glutin::dpi::LogicalPosition {
     fn into(self) -> properties::Position {
         properties::Position{
             x:self.x as f32,
@@ -35,7 +35,7 @@ impl Into<properties::Position> for WorldPoint {
     }
 }
 
-impl Into<properties::Modifiers> for winit::ModifiersState {
+impl Into<properties::Modifiers> for glutin::ModifiersState {
     fn into(self) -> properties::Modifiers {
         properties::Modifiers{
             shift: self.shift,
@@ -46,32 +46,32 @@ impl Into<properties::Modifiers> for winit::ModifiersState {
     }
 }
 
-impl Into<properties::Button> for winit::MouseButton{
+impl Into<properties::Button> for glutin::MouseButton{
     fn into(self) -> properties::Button{
         match self {
-            winit::MouseButton::Left => {
+            glutin::MouseButton::Left => {
                 properties::Button::Left
             },
-            winit::MouseButton::Right => {
+            glutin::MouseButton::Right => {
                 properties::Button::Right
             },
-            winit::MouseButton::Middle => {
+            glutin::MouseButton::Middle => {
                 properties::Button::Middle
             },
-            winit::MouseButton::Other(_)=> {
+            glutin::MouseButton::Other(_)=> {
                 properties::Button::Other
             },
         }
     }
 }
 
-impl Into<properties::ButtonState> for winit::ElementState{
+impl Into<properties::ButtonState> for glutin::ElementState{
     fn into (self) -> properties::ButtonState{
         match self {
-            winit::ElementState::Pressed => {
+            glutin::ElementState::Pressed => {
                 properties::ButtonState::Pressed
             },
-            winit::ElementState::Released => {
+            glutin::ElementState::Released => {
                 properties::ButtonState::Released
             },
         }
@@ -79,11 +79,11 @@ impl Into<properties::ButtonState> for winit::ElementState{
 }
 
 struct WindowNotifier {
-    events_proxy: winit::EventsLoopProxy,
+    events_proxy: glutin::EventsLoopProxy,
 }
 
 impl WindowNotifier {
-    fn new(events_proxy: winit::EventsLoopProxy) -> WindowNotifier {
+    fn new(events_proxy: glutin::EventsLoopProxy) -> WindowNotifier {
         WindowNotifier { events_proxy }
     }
 }
@@ -123,16 +123,16 @@ struct Internals {
 
 impl Internals{
     fn new(name: String, width: f64, height:f64) -> Internals {
-        let events_loop = winit::EventsLoop::new();
+        let events_loop = glutin::EventsLoop::new();
         let context_builder = glutin::ContextBuilder::new()
             .with_gl(glutin::GlRequest::GlThenGles {
                 opengl_version: (3, 2),
                 opengles_version: (3, 0),
             });
-        let window_builder = winit::WindowBuilder::new()
+        let window_builder = glutin::WindowBuilder::new()
             .with_title(name.clone())
             .with_multitouch()
-            .with_dimensions(winit::dpi::LogicalSize::new(width, height));
+            .with_dimensions(glutin::dpi::LogicalSize::new(width, height));
         let window = glutin::GlWindow::new(window_builder, context_builder, &events_loop)
             .unwrap();
 
@@ -218,23 +218,23 @@ impl Internals{
                 glutin::Event::WindowEvent {event:glutin::WindowEvent::Resized(size),..} => {
                     events.push(PrimitiveEvent::Resized(size));
                 },
-                glutin::Event::WindowEvent {event: winit::WindowEvent::HiDpiFactorChanged(factor),..} => {
+                glutin::Event::WindowEvent {event: glutin::WindowEvent::HiDpiFactorChanged(factor),..} => {
                     events.push(PrimitiveEvent::DPI(factor));
                 },
-                winit::Event::WindowEvent {event: winit::WindowEvent::MouseInput {state, button, modifiers, ..}, ..} => {
+                glutin::Event::WindowEvent {event: glutin::WindowEvent::MouseInput {state, button, modifiers, ..}, ..} => {
                     let _pos : properties::Position = cursor_position.clone().into();
                     let _button = button.into();
                     let _state = state.into();
                     let _modifiers = modifiers.into();
 
                     if tags.len() > 0 {
-                        if button == winit::MouseButton::Left && state == winit::ElementState::Released {
+                        if button == glutin::MouseButton::Left && state == glutin::ElementState::Released {
                             events.push(PrimitiveEvent::SetFocus(true));
                         }
                         events.push(PrimitiveEvent::Button(_pos,_button,_state,_modifiers));
                     }
                 },
-                winit::Event::WindowEvent {event: winit::WindowEvent::MouseWheel { delta, modifiers, ..}, ..} => {
+                glutin::Event::WindowEvent {event: glutin::WindowEvent::MouseWheel { delta, modifiers, ..}, ..} => {
                     if txn.is_none() {
                         txn = Some(Transaction::new());
                     }
@@ -242,14 +242,14 @@ impl Internals{
                     let (dx, dy) = match modifiers.alt {
                         true => {
                             match delta {
-                                winit::MouseScrollDelta::LineDelta(_, dy) => (dy * LINE_HEIGHT, 0.0),
-                                winit::MouseScrollDelta::PixelDelta(pos) => (pos.y as f32, 0.0),
+                                glutin::MouseScrollDelta::LineDelta(_, dy) => (dy * LINE_HEIGHT, 0.0),
+                                glutin::MouseScrollDelta::PixelDelta(pos) => (pos.y as f32, 0.0),
                             }
                         },
                         _ => {
                             match delta {
-                                winit::MouseScrollDelta::LineDelta(_, dy) => (0.0, dy * LINE_HEIGHT),
-                                winit::MouseScrollDelta::PixelDelta(pos) => (0.0, pos.y as f32),
+                                glutin::MouseScrollDelta::LineDelta(_, dy) => (0.0, dy * LINE_HEIGHT),
+                                glutin::MouseScrollDelta::PixelDelta(pos) => (0.0, pos.y as f32),
                             }
                         }
                     };
@@ -263,7 +263,7 @@ impl Internals{
 
                     //println!("scrolling {} {}",dx,dy);
                 },
-                winit::Event::WindowEvent {event: winit::WindowEvent::ReceivedCharacter(c), ..} => {
+                glutin::Event::WindowEvent {event: glutin::WindowEvent::ReceivedCharacter(c), ..} => {
                     if c == '\x1b' {
                         events.push(PrimitiveEvent::SetFocus(false));
                     } else {
