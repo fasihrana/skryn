@@ -6,6 +6,7 @@ use std::any::Any;
 
 use winit;
 use webrender::api::*;
+use glutin;
 
 use gui::font;
 use gui::properties;
@@ -19,6 +20,8 @@ pub enum PrimitiveEvent {
     Button(properties::Position, properties::Button, properties::ButtonState, properties::Modifiers),
     Char(char),
     SetFocus(bool),
+    Resized(glutin::dpi::LogicalSize),
+    DPI(f64)
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]
