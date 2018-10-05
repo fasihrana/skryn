@@ -74,89 +74,11 @@ impl Element for TextBox{
         let _id = gen.get();
         self.ext_id = _id;
 
-        let size = self.props.get_size() as f32;
-        let family = self.props.get_family();
-        let mut color = self.props.get_color();
-        let mut bgcolor = self.props.get_bg_color();
-
-        if self.focus {
-            color = self.props.get_focus_color();
-            bgcolor = self.props.get_focus_bg_color();
-        }
-
-        let fi_key = font_store.get_font_instance_key(&family, size as i32);
-
-        let mut glyphs = vec![];
-
-        let mut next_x = extent.x;
-        let mut next_y = extent.y + size;
-
-        let mut ignore_ws = true;
-
-        let font_type = font_store.get_font_type(&family);
-        let v_metrics = font_type.v_metrics(rusttype::Scale { x: 1.0, y: 1.0 });
-        let baseline = (size * v_metrics.ascent) - size;
-
-        let mut mappings = font_type.glyphs_for(self.value.chars());
-        let mut text_iter = self.value.chars();
-
-        let mut max_x: f32 = 0.0;
-
-        loop {
-            let _char = text_iter.next();
-            if _char.is_none() {
-                break;
-            }
-
-            let _char = _char.unwrap();
-            let _glyph = mappings.next().unwrap();
-
-            let _scaled = _glyph.scaled(rusttype::Scale { x: 1.0, y: 1.0 });
-            let h_metrics = _scaled.h_metrics();
-
-            glyphs.push(GlyphInstance {
-                index: _scaled.id().0,
-                point: LayoutPoint::new(next_x, next_y + baseline)
-            });
-
-            next_x = next_x + ((h_metrics.advance_width + h_metrics.left_side_bearing) * size);
-            if max_x < next_x {
-                max_x = next_x;
-            }
-        }
-
-        self.bounds = properties::Extent{
-            x: extent.x,
-            y: extent.y,
-            w: max_x,
-            h: next_y - extent.y,
-            dpi: extent.dpi,
-        };
-
-        let mut info = LayoutPrimitiveInfo::new(LayoutRect::new(
-            LayoutPoint::new(extent.x, extent.y),
-            LayoutSize::new(self.bounds.w,  self.bounds.h )
-        ));
-        info.tag = Some((_id, 0));
-        builder.push_rect(&info, bgcolor);
-
-        let info = LayoutPrimitiveInfo::new(LayoutRect::new(
-            LayoutPoint::new(extent.x, extent.y),
-            LayoutSize::new(self.bounds.w, self.bounds.h)
-        ));
-        builder.push_text(&info,
-                          &glyphs,
-                          fi_key.clone(),
-                          color.clone(),
-                          Some(GlyphOptions::default()));
-
-
-
-        /*if self.bounds != extent {
+        if self.bounds != extent {
             self.cache.clear();
         }
         let glyphs = &mut self.cache;
-        let size = (self.props.get_size() as f32) * extent.dpi;
+        let size = self.props.get_size() as f32;
         let family = self.props.get_family();
         let mut color = self.props.get_color();
         let mut bgcolor = self.props.get_bg_color();
@@ -247,7 +169,7 @@ impl Element for TextBox{
                       fi_key.clone(),
                       color.clone(),
                       Some(GlyphOptions::default()));
-        */
+
     }
 
     fn get_bounds(&self) -> properties::Extent {
