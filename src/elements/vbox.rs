@@ -86,7 +86,7 @@ impl Element for VBox {
         }
 
         // TODO: Remove
-        // only her for debugging.
+        // only here for debugging.
         if next_y == 0.0 {
             next_y = extent.h;
         }

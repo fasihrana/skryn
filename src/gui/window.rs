@@ -380,8 +380,10 @@ impl Window {
                 PrimitiveEvent::Exit => {
                     exit = true;
                 },
-                PrimitiveEvent::Resized(_) => {
+                PrimitiveEvent::Resized(size) => {
                     render = true;
+                    self.width = size.width;
+                    self.height = size.height;
                 },
                 PrimitiveEvent::CursorMoved(p) => {
                     xy = WorldPoint::new(p.x * (dpi as f32),p.y * (dpi as f32));
