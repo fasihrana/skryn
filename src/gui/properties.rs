@@ -23,6 +23,7 @@ pub enum Overflow{
 
 #[derive(Clone, Debug)]
 pub enum Unit{
+    Natural,
     Extent,
     Pixel(f32),
     Stretch(f32),

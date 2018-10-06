@@ -60,19 +60,25 @@ struct PersonElm{
 impl PersonElm{
     fn new(p:Arc<Mutex<Person>>) -> PersonElm{
         let mut _p = p.lock().unwrap();
-        let name = Arc::new(Mutex::new( TextBox::new(_p.name.get_value())));
-        let age= Arc::new(Mutex::new( TextBox::new(String::from(format!("{}",_p.age.get_value())))));
+        let mut name = Arc::new(Mutex::new( TextBox::new(_p.name.get_value())));
+        let mut age= Arc::new(Mutex::new( TextBox::new(String::from(format!("{}",_p.age.get_value())))));
+        let mut alert_button = Arc::new(Mutex::new(Button::new(format!("Press here!"))));
+
+        name.lock().unwrap().set(skryn::gui::properties::Property::Height(skryn::gui::properties::Unit::Stretch(0.4)));
+        age.lock().unwrap().set(skryn::gui::properties::Property::Height(skryn::gui::properties::Unit::Stretch(0.4)));
+        alert_button.lock().unwrap().set(skryn::gui::properties::Property::Height(skryn::gui::properties::Unit::Stretch(0.2)));
+
         let mut v = Arc::new(Mutex::new( VBox::new()));
         match v.lock() {
             Ok(ref mut v) => {
                 v.append(name.clone());
                 v.append(age.clone());
+                v.append(alert_button.clone());
                 v.set(skryn::gui::properties::Property::BgColor(ColorF::new(1.0,0.5,0.5,1.0)));
             },
             Err(_err_str) => panic!("unable to lock element : {}", _err_str)
         }
 
-        //let _tmp_age = age.clone();
         let age_o_id = _p.on_age_change(Box::new(move |v|{
             let _ageelm = age.lock().unwrap().set_value(format!("{}",v));
         }));
@@ -80,8 +86,6 @@ impl PersonElm{
         PersonElm{
             id:0,
             person: p.clone(),
-//            name_elm: name,
-//            age_elm: age,
             vbox: v,
             bounds: Extent{
                 x: 0.0,

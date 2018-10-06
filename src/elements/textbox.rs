@@ -24,6 +24,7 @@ impl TextBox{
     pub fn new(s: String) -> Self{
         let mut props = properties::Properties::new();
         props.default();
+        props.set(properties::Property::Height(properties::Unit::Natural));
         TextBox{
             ext_id: 0,
             value:s,
@@ -82,6 +83,8 @@ impl Element for TextBox{
         let family = self.props.get_family();
         let mut color = self.props.get_color();
         let mut bgcolor = self.props.get_bg_color();
+        let width = self.props.get_width();
+        let height = self.props.get_height();
 
         if self.focus {
             color = self.props.get_focus_color();
@@ -144,11 +147,28 @@ impl Element for TextBox{
                 }
             }
 
+            let mut calc_w = max_x;
+            let mut calc_h = next_y - extent.y;
+
+            calc_w = match width {
+                properties::Unit::Extent => extent.w,
+                properties::Unit::Pixel(px) => px,
+                properties::Unit::Stretch(s) => s*extent.w,
+                properties::Unit::Natural => calc_w,
+            };
+
+            calc_h = match height {
+                properties::Unit::Extent => extent.h,
+                properties::Unit::Pixel(px) => px,
+                properties::Unit::Stretch(s) => s*extent.h,
+                properties::Unit::Natural => calc_h,
+            };
+
             self.bounds = properties::Extent{
                 x: extent.x,
                 y: extent.y,
-                w: max_x,
-                h: next_y - extent.y,
+                w: calc_w,
+                h: calc_h,
                 dpi: extent.dpi,
             };
         }
@@ -208,7 +228,6 @@ impl Element for TextBox{
             },
             PrimitiveEvent::SetFocus(f) => {
                 if self.focus != f {
-                    println!("focusing ... {}", self.value);
                     self.focus = f;
                     let handler = self.get_handler(ElementEvent::FocusChange);
                     handled = handler(self, &f);

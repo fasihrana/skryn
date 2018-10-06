@@ -80,10 +80,12 @@ impl Element for Button {
             self.cache.clear();
         }
         let glyphs = &mut self.cache;
-        let size = (self.props.get_size() as f32) * extent.dpi;
+        let size = self.props.get_size() as f32;
         let family = self.props.get_family();
         let mut color = self.props.get_color();
         let mut bgcolor = self.props.get_bg_color();
+        let width = self.props.get_width();
+        let height = self.props.get_height();
 
         if self.focus {
             color = self.props.get_focus_color();
@@ -146,15 +148,35 @@ impl Element for Button {
                 }
             }
 
+            let mut calc_w = max_x;
+            let mut calc_h = next_y - extent.y;
+
+            calc_w = match width {
+                properties::Unit::Extent => extent.w,
+                properties::Unit::Pixel(px) => px,
+                properties::Unit::Stretch(s) => s*extent.w,
+                properties::Unit::Natural => calc_w,
+            };
+
+            calc_h = match height {
+                properties::Unit::Extent => extent.h,
+                properties::Unit::Pixel(px) => px,
+                properties::Unit::Stretch(s) => s*extent.h,
+                properties::Unit::Natural => calc_h,
+            };
+
             self.bounds = properties::Extent{
                 x: extent.x,
                 y: extent.y,
-                w: max_x,
-                h: next_y - extent.y,
+                w: calc_w,
+                h: calc_h,
                 dpi: extent.dpi,
             };
 
             self.drawn += 1;
+            if self.drawn > 2 {
+                self.drawn = 2;
+            }
         }
 
         let mut info = LayoutPrimitiveInfo::new(LayoutRect::new(
@@ -185,6 +207,7 @@ impl Element for Button {
 
         match e {
             PrimitiveEvent::Button(_p, b, s, m) => {
+                self.drawn = 0;
                 if ext_ids.len() == 1 && ext_ids[0].0 == self.ext_id {
                     if b == properties::Button::Left
                         && s == properties::ButtonState::Released
