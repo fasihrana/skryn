@@ -180,7 +180,7 @@ impl Internals{
         };
 
         let notifier = Box::new(WindowNotifier::new(events_loop.create_proxy()));
-        let (renderer, sender) = webrender::Renderer::new(gl.clone(), notifier, opts).unwrap();
+        let (renderer, sender) = webrender::Renderer::new(gl.clone(), notifier, opts, None).unwrap();
         let api = sender.create_api();
         let document_id = api.add_document(framebuffer_size, 0);
 
@@ -501,7 +501,7 @@ impl Window {
             TransformStyle::Flat,
             MixBlendMode::Normal,
             Vec::new(),
-            GlyphRasterSpace::Screen,
+            RasterSpace::Screen,
         );
 
         self.root.lock().unwrap().render(builder, properties::Extent {

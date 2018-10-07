@@ -4,7 +4,6 @@ use std::any::Any;
 use rusttype;
 use webrender::api::*;
 
-//use elements::*;
 use elements::element::*;
 use gui::properties;
 use gui::font;
