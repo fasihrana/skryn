@@ -2,7 +2,7 @@
 
 ## What is skryn?
 
-skryn is a GUI framework based on [servo/webrender](https://github.com/servo/webrender). It's aim is to have a pure rust implementation of a framework that is easy to use and extend.
+skryn is a (work-in-progress) Desktop GUI framework based on [servo/webrender](https://github.com/servo/webrender). It's aim is to have a pure rust implementation of a framework that is easy to use and extend. The motivation behind starting skryn was to get a simple hardware based rendered GUI without having any other web technologies be in the way.
 
 ## Goals/Features
 
@@ -11,6 +11,7 @@ skryn is a GUI framework based on [servo/webrender](https://github.com/servo/web
 3. Use implemented elements to create complex elements.
 4. Library provided minimalistic `Observable`s. 
 5. Multithreading safe.
+6. Simplified length Units (Natural, Extent, Stretch, Pixel).
 
 ## Project Status (Limitations/Features planned)
 
