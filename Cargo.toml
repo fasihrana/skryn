@@ -1,6 +1,6 @@
 [package]
 name = "skryn"
-version = "0.1"
+version = "0.0.1"
 authors = ["Fasih Rana <fasih.rana@apparicion.com>"]
 exclude = [
 	".idea",
