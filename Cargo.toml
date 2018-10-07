@@ -1,6 +1,6 @@
 [package]
 name = "skryn"
-version = "0.1.0"
+version = "0.1"
 authors = ["Fasih Rana <fasih.rana@apparicion.com>"]
 
 [dependencies]
@@ -14,3 +14,9 @@ scan-rules = "*"
 rusttype = "*"
 font-loader = "*"
 lazy_static = "*"
+
+[package]
+exclude = [
+	".idea",
+	"Skryn.iml"
+]
