@@ -2,6 +2,10 @@
 name = "skryn"
 version = "0.1"
 authors = ["Fasih Rana <fasih.rana@apparicion.com>"]
+exclude = [
+	".idea",
+	"Skryn.iml"
+]
 
 [dependencies]
 winit = "^0.17"
@@ -15,8 +19,3 @@ rusttype = "*"
 font-loader = "*"
 lazy_static = "*"
 
-[package]
-exclude = [
-	".idea",
-	"Skryn.iml"
-]
