@@ -14,11 +14,26 @@ use skryn::elements::*;
 
 use webrender::api::{ColorF, DisplayListBuilder};
 
+/*
+    Lets start with a Person struct. A
+    Person has a name and age. Both can change
+    so we will use the Observable<T> struct.
+    For convenience ObservableString and
+    ObservableU32 already exist as types.
+*/
 
 struct Person{
     name: ObservableString,
     age: ObservableU32,
 }
+
+/*
+    The Observables fire events when their value changes.
+    So we must have a way for adding event functions for
+    both the name and age. Also, we must have functions
+    so that we remove the listeners when they are
+    not needed.
+*/
 
 impl Person{
     fn new(name:String,age:u32) -> Person {
@@ -46,27 +61,56 @@ impl Person{
     }
 }
 
+/*
+    Now that we have our Person with two
+    Obsevable fields, we need to create an
+    Element to encapsulate the view.
+*/
 
 struct PersonElm{
+    //Every element is given an id. This
+    //is used in referencing the main bounding
+    //box of Elements
     id: u64,
+    //Have a reference to Person. As you'll see
+    //below, the age is incremented every second
+    //by another thread
     person: Arc<Mutex<Person>>,
+    //For ease, we will use a built in Element
+    //VBox (Vertical growing box). There is also
+    //HBox.
     vbox: Arc<Mutex<VBox>>,
+    //Every element must know what area it takes.
+    //This is used in the rendering and must be
+    //updated if the underlying views change in
+    //value or bound
     bounds: Extent,
+    //The following ids will be used to remove
+    //Observable listeners when the PersonElm
+    //is removed
     age_observer_id: Option<u64>,
     name_observer_id: Option<u64>,
 }
 
 impl PersonElm{
     fn new(p:Arc<Mutex<Person>>) -> PersonElm{
+        //Create two TextBoxes and display their initial value
         let mut _p = p.lock().unwrap();
         let name = Arc::new(Mutex::new( TextBox::new(_p.name.get_value())));
         let age= Arc::new(Mutex::new( TextBox::new(String::from(format!("{}",_p.age.get_value())))));
+        //This is an alert button just to show how easy it is to spawn new windows.
         let alert_button = Arc::new(Mutex::new(Button::new(format!("Press here!"))));
 
+        //skryn has 4 Length Units at the moment.
+        //This is to simplify the rendering of boxes
+        //  -> Natural means what ever the natural space an element takes based on the components inside it.
+        //  -> Extent means the extent (bounding box) of parent element
+        //  -> Stretch means use a percentage of the parent's extent (bounding box)
+        //  -> Pixel is the static length
         name.lock().unwrap().set(skryn::gui::properties::Property::Height(skryn::gui::properties::Unit::Stretch(0.4)));
         age.lock().unwrap().set(skryn::gui::properties::Property::Height(skryn::gui::properties::Unit::Stretch(0.4)));
         alert_button.lock().unwrap().set(skryn::gui::properties::Property::Height(skryn::gui::properties::Unit::Stretch(0.2)));
-
+        //Here we have used the Stretch unit for elements above to make sure our VBox below is utilized to the full.
         let v = Arc::new(Mutex::new( VBox::new()));
         match v.lock() {
             Ok(ref mut v) => {
@@ -78,15 +122,21 @@ impl PersonElm{
             Err(_err_str) => panic!("unable to lock element : {}", _err_str)
         }
 
+        //The following is a simple action taken when our button is clicked.
+        //An alert window is created.
         alert_button.lock().unwrap().set_handler(ElementEvent::Clicked, |_, _| -> bool{
             Alert::show("This is an Alert Box".to_owned(),"Alert".to_owned());
             true
         });
 
+        // make sure you sae the observer id for age
+        // so that we can remove the listener when
+        // this Element is no longer required.
         let age_o_id = _p.on_age_change(Box::new(move |v|{
             let _ageelm = age.lock().unwrap().set_value(format!("{}",v));
         }));
 
+        //finally return the constructed element
         PersonElm{
             id:0,
             person: p.clone(),
@@ -104,7 +154,12 @@ impl PersonElm{
     }
 }
 
+/*
+    Implementing Element trait is the minimum requirement
+    for creating a custom element
+*/
 impl Element for PersonElm {
+
     fn get_ext_id(&self) -> u64 {
         self.id
     }
@@ -129,6 +184,16 @@ impl Element for PersonElm {
         self.bounds.clone()
     }
 
+    /*
+        Simply pass the events to VBox, which is our container in PersonElm.
+
+        The ext_ids, is a trace of the id part of Elements where the event
+        is relevant. For example, if you click the button, the ids passed
+        will be that of vbox and alert_button.
+
+        There are certain events where ext_ids are empty, but passing the
+        event to the children is still required for e.g., SetFocus
+    */
     fn on_primitive_event(&mut self, ext_ids: &[(u64, u16)], e: PrimitiveEvent) -> bool {
         match self.vbox.lock() {
             Ok(ref mut elm) => {
@@ -138,9 +203,7 @@ impl Element for PersonElm {
         }
     }
 
-    fn set_handler(&mut self, _e: ElementEvent, _f: fn(&mut Element, &Any) -> bool) {
-
-    }
+    fn set_handler(&mut self, _e: ElementEvent, _f: fn(&mut Element, &Any) -> bool) {}
 
     fn get_handler(&mut self, _e: ElementEvent) -> fn(&mut Element, &Any) -> bool {
         skryn::elements::default_fn
@@ -170,6 +233,11 @@ impl Drop for PersonElm {
     }
 }
 
+/*
+    Simpler implementation.
+    Here we just have an Alert builder to show
+    an alert message.
+*/
 struct Alert;
 impl Alert{
     fn show(message: String, heading: String){
@@ -179,13 +247,19 @@ impl Alert{
 }
 
 fn main () {
+    //create the person.
     let person = Person::new(String::from("<Insert name here>"), 0);
 
     let person = Arc::new(Mutex::new(person));
+
+    //will move this into its separate thread to update the age every second.
     let tmp_person = person.clone();
+
+    //create an Instance of PersonElm and add it to the window manager.
     let form = PersonElm::new(person);
     skryn::gui::window::Manager::add(Arc::new(Mutex::new(form)),String::from("Main window"), 300.0, 200.0);
 
+    //spawn a worker thread to update the age
     thread::spawn(move ||{
         let mut t = 0;
         loop {
@@ -198,5 +272,6 @@ fn main () {
         }
     });
 
-    skryn::gui::window::Manager::start(120);
+    //start the window manager at 60 fps
+    skryn::gui::window::Manager::start(60);
 }
