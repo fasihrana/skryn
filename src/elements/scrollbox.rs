@@ -155,7 +155,7 @@ impl Element for ScrollBox {
         // see if you can handle it here
         if !handled {
             match e {
-                PrimitiveEvent::Button(_p,b,s,m) => {
+                PrimitiveEvent::Button(_p,_b,_s,m) => {
                     let handler = self.get_handler(ElementEvent::Clicked);
                     handled = handler(self, &m);
                 },

@@ -10,7 +10,7 @@ use std::time::Duration;
 use skryn::data::*;
 use skryn::gui::font::FontStore;
 use skryn::gui::properties::{Property, Extent, Properties, IdGenerator};
-use skryn::elements::{Element, HasChildren, ElementEvent, TextBox, VBox, ScrollBox, HBox, Button, PrimitiveEvent};
+use skryn::elements::*;
 
 use webrender::api::{ColorF, DisplayListBuilder};
 
@@ -28,6 +28,7 @@ impl Person{
         }
     }
 
+    #[allow(unused)]
     fn on_name_change(&mut self,listener: Box<FnMut(&String)+Send>) -> u64{
         self.name.observe(listener)
     }
@@ -49,8 +50,6 @@ impl Person{
 struct PersonElm{
     id: u64,
     person: Arc<Mutex<Person>>,
-//    name_elm: Arc<Mutex<TextBox>>,
-//    age_elm: Arc<Mutex<TextBox>>,
     vbox: Arc<Mutex<VBox>>,
     bounds: Extent,
     age_observer_id: Option<u64>,
@@ -60,15 +59,15 @@ struct PersonElm{
 impl PersonElm{
     fn new(p:Arc<Mutex<Person>>) -> PersonElm{
         let mut _p = p.lock().unwrap();
-        let mut name = Arc::new(Mutex::new( TextBox::new(_p.name.get_value())));
-        let mut age= Arc::new(Mutex::new( TextBox::new(String::from(format!("{}",_p.age.get_value())))));
-        let mut alert_button = Arc::new(Mutex::new(Button::new(format!("Press here!"))));
+        let name = Arc::new(Mutex::new( TextBox::new(_p.name.get_value())));
+        let age= Arc::new(Mutex::new( TextBox::new(String::from(format!("{}",_p.age.get_value())))));
+        let alert_button = Arc::new(Mutex::new(Button::new(format!("Press here!"))));
 
         name.lock().unwrap().set(skryn::gui::properties::Property::Height(skryn::gui::properties::Unit::Stretch(0.4)));
         age.lock().unwrap().set(skryn::gui::properties::Property::Height(skryn::gui::properties::Unit::Stretch(0.4)));
         alert_button.lock().unwrap().set(skryn::gui::properties::Property::Height(skryn::gui::properties::Unit::Stretch(0.2)));
 
-        let mut v = Arc::new(Mutex::new( VBox::new()));
+        let v = Arc::new(Mutex::new( VBox::new()));
         match v.lock() {
             Ok(ref mut v) => {
                 v.append(name.clone());
@@ -78,6 +77,11 @@ impl PersonElm{
             },
             Err(_err_str) => panic!("unable to lock element : {}", _err_str)
         }
+
+        alert_button.lock().unwrap().set_handler(ElementEvent::Clicked, |_, _| -> bool{
+            Alert::show("This is an Alert Box".to_owned(),"Alert".to_owned());
+            true
+        });
 
         let age_o_id = _p.on_age_change(Box::new(move |v|{
             let _ageelm = age.lock().unwrap().set_value(format!("{}",v));
@@ -105,13 +109,13 @@ impl Element for PersonElm {
         self.id
     }
 
-    fn set(&mut self, prop: Property) {}
+    fn set(&mut self, _prop: Property) {}
 
-    fn get(&self, prop: &Property) -> Option<&Property> {
+    fn get(&self, _prop: &Property) -> Option<&Property> {
         None
     }
 
-    fn render(&mut self, builder: &mut DisplayListBuilder, extent: Extent, font_store: &mut FontStore, props: Option<Arc<Properties>>, gen: &mut IdGenerator) {
+    fn render(&mut self, builder: &mut DisplayListBuilder, extent: Extent, font_store: &mut FontStore, _props: Option<Arc<Properties>>, gen: &mut IdGenerator) {
         match self.vbox.lock() {
             Ok(ref mut elm) => {
                 elm.render(builder,extent,font_store,None, gen);
@@ -128,11 +132,10 @@ impl Element for PersonElm {
     fn on_primitive_event(&mut self, ext_ids: &[(u64, u16)], e: PrimitiveEvent) -> bool {
         match self.vbox.lock() {
             Ok(ref mut elm) => {
-                return elm.on_primitive_event(ext_ids,e);
+                return elm.on_primitive_event(ext_ids, e);
             },
-            Err(_err_str) => panic!("unable to lock element : {}",_err_str)
+            Err(_err_str) => panic!("unable to lock element : {}", _err_str)
         }
-        return false;
     }
 
     fn set_handler(&mut self, _e: ElementEvent, _f: fn(&mut Element, &Any) -> bool) {
@@ -167,32 +170,27 @@ impl Drop for PersonElm {
     }
 }
 
+struct Alert;
+impl Alert{
+    fn show(message: String, heading: String){
+        let msg_box = TextBox::new(message);
+        skryn::gui::window::Manager::add(Arc::new(Mutex::new(msg_box)),heading,400.0,100.0);
+    }
+}
+
 fn main () {
-    let person = Person::new(String::from("Fasih Rana"), 0);
+    let person = Person::new(String::from("<Insert name here>"), 0);
 
     let person = Arc::new(Mutex::new(person));
     let tmp_person = person.clone();
-
-    let exit = Arc::new(Mutex::new(false));
-
-
     let form = PersonElm::new(person);
-
-    let mut w = skryn::gui::window::Window::new( Box::new(form),String::from("Main window"), 300.0, 200.0);
-
-    let exit_check = exit.clone();
+    skryn::gui::window::Manager::add(Arc::new(Mutex::new(form)),String::from("Main window"), 300.0, 200.0);
 
     thread::spawn(move ||{
         let mut t = 0;
         loop {
             {
-                if *(exit_check.lock().unwrap()) {
-                    break;
-                }
-            }
-            {
                 let mut x = tmp_person.lock().unwrap();
-                //let mut t = x.age.get_value();
                 t = t + 1;
                 x.age.update(Action::Update(t / 100));
             }
@@ -200,15 +198,5 @@ fn main () {
         }
     });
 
-    loop {
-        if w.tick() {
-            break;
-        }
-        thread::sleep(Duration::from_millis(1000/120));
-    }
-    w.deinit();
-
-    {
-        *(exit.lock().unwrap()) = true;
-    }
+    skryn::gui::window::Manager::start(120);
 }

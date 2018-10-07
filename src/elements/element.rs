@@ -43,7 +43,7 @@ pub type EventHandlers = HashMap<ElementEvent,EventFn>;
 
 pub fn default_fn(_e:&mut Element, _d: &Any)->bool{false}
 
-pub trait Element {
+pub trait Element:Send+Sync {
     fn get_ext_id(&self) -> u64;
     fn set(&mut self, prop: properties::Property);
     fn get(&self, prop: &properties::Property) -> Option<&properties::Property>;

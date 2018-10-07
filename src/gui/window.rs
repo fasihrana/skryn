@@ -2,7 +2,6 @@
 use gleam::gl;
 use glutin;
 use glutin::GlContext;
-use winit;
 use webrender;
 use webrender::api::*;
 use euclid;
@@ -14,6 +13,8 @@ use gui::properties;
 
 use std::sync::{Arc, Mutex};
 use std::ops::DerefMut;
+use std::thread;
+use std::time::Duration;
 
 impl Into<properties::Position> for glutin::dpi::LogicalPosition {
     fn into(self) -> properties::Position {
@@ -160,7 +161,7 @@ impl Internals{
             glutin::Api::WebGl => unimplemented!(),
         };
 
-        let mut dpi = window.get_hidpi_factor();
+        let dpi = window.get_hidpi_factor();
 
         let opts = webrender::RendererOptions {
             device_pixel_ratio: dpi as f32,
@@ -170,7 +171,7 @@ impl Internals{
             ..webrender::RendererOptions::default()
         };
 
-        let mut framebuffer_size = {
+        let framebuffer_size = {
             let size = window
                 .get_inner_size()
                 .unwrap()
@@ -186,7 +187,7 @@ impl Internals{
         let epoch = Epoch(0);
         let pipeline_id = PipelineId(0, 0);
 
-        let mut font_store = Arc::new(Mutex::new(font::FontStore::new(api.clone_sender().create_api(),document_id.clone())));
+        let font_store = Arc::new(Mutex::new(font::FontStore::new(api.clone_sender().create_api(),document_id.clone())));
 
         font_store.lock().unwrap().get_font_instance_key(&String::from("Arial"), 12);
 
@@ -219,7 +220,7 @@ impl Internals{
                 glutin::Event::WindowEvent {event: glutin::WindowEvent::CursorEntered {..}, .. } => {
                     events.push(PrimitiveEvent::CursorEntered);
                 },
-                glutin::Event::WindowEvent {event: glutin::WindowEvent::CursorMoved {device_id, position, modifiers}, .. } => {
+                glutin::Event::WindowEvent {event: glutin::WindowEvent::CursorMoved {position, ..}, .. } => {
                     cursor_position = WorldPoint::new(position.x as f32, position.y as f32);
                     events.push(PrimitiveEvent::CursorMoved(position.into()));
                 },
@@ -301,14 +302,14 @@ impl Internals{
 pub struct Window {
     width: f64,
     height: f64,
-    root: Box<Element>,
+    root: Arc<Mutex<Element>>,
     name: String,
     id_generator: properties::IdGenerator,
     internals: Option<Internals>,
 }
 
 impl Window {
-    pub fn new(root: Box<Element>, name: String, width: f64, height: f64) -> Window {
+    pub fn new(root: Arc<Mutex<Element>>, name: String, width: f64, height: f64) -> Window {
         let id_generator = properties::IdGenerator::new(0);
 
         let mut _w = Window {
@@ -353,14 +354,12 @@ impl Window {
 
     pub fn tick(&mut self) -> bool{
         let tags = self.get_tags();
-        let mut xy = WorldPoint::new(0.0,0.0);
 
         let mut events = vec![];
         let mut dpi = 1.0;
 
         if let Some (ref mut i) = self.internals{
             events = i.events(&tags);
-            xy = i.cursor_position.clone();
             dpi = i.dpi;
         }
 
@@ -385,19 +384,19 @@ impl Window {
                     self.width = size.width;
                     self.height = size.height;
                 },
-                PrimitiveEvent::CursorMoved(p) => {
-                    xy = WorldPoint::new(p.x * (dpi as f32),p.y * (dpi as f32));
-                },
                 PrimitiveEvent::SetFocus(b) => {
                     if !*b {
-                        self.root.on_primitive_event(&[], e.clone());
+                        self.root.lock().unwrap().on_primitive_event(&[], e.clone());
                     } else {
-                        self.root.on_primitive_event(&tags, e.clone());
+                        self.root.lock().unwrap().on_primitive_event(&tags, e.clone());
                     }
                     render = true;
                 },
+                PrimitiveEvent::Button(_,_,_,_) => {
+                    self.root.lock().unwrap().on_primitive_event(&tags, e.clone());
+                }
                 PrimitiveEvent::Char(_) => {
-                    self.root.on_primitive_event(&tags, e.clone());
+                    self.root.lock().unwrap().on_primitive_event(&tags, e.clone());
                     render = true;
                 },
                 PrimitiveEvent::DPI(_) => {
@@ -408,7 +407,7 @@ impl Window {
         }
 
         if !render {
-            render = self.root.is_invalid();
+            render = self.root.lock().unwrap().is_invalid();
         }
 
         if render {
@@ -443,7 +442,7 @@ impl Window {
             let mut builder = builder.unwrap();
             let font_store = font_store.unwrap();
             let mut font_store = font_store.lock().unwrap();
-            let mut font_store = font_store.deref_mut();
+            let font_store = font_store.deref_mut();
             let framebuffer_size= framebuffer_size.unwrap();
             let layout_size = layout_size.unwrap();
 
@@ -477,11 +476,16 @@ impl Window {
         exit
     }
 
-    pub fn deinit(self) -> Box<Element> {
+    pub fn deinit(self) -> Arc<Mutex<Element>> {
         /*let x = self.renderer;
         x.deinit();*/
-        let x = self.root;
-        x
+        let ex = self.internals;
+        if let Some(i) = ex {
+            let r = i.renderer;
+            r.deinit();
+        }
+        let ex = self.root;
+        ex
     }
 
     fn render_root(&mut self, builder:&mut DisplayListBuilder, font_store:&mut font::FontStore, dpi: f32){
@@ -500,7 +504,7 @@ impl Window {
             GlyphRasterSpace::Screen,
         );
 
-        self.root.render(builder, properties::Extent {
+        self.root.lock().unwrap().render(builder, properties::Extent {
             x: 0.0,
             y: 0.0,
             w: self.width as f32,
@@ -509,5 +513,80 @@ impl Window {
         }, font_store, None, &mut gen);
 
         builder.pop_stacking_context();
+    }
+}
+
+lazy_static!(
+    //static ref WINDOWLOCK : Mutex<bool> = Mutex::new(false);
+    //static ref TOADDLOCK: Mutex<bool> = Mutex::new(false);
+
+    //static ref WINDOWS: Vec<Window> = vec![];
+    static ref TOADD: Mutex<Vec<(Arc<Mutex<Element>>,String,f64,f64)>> = Mutex::new(vec![]);
+);
+
+pub struct Manager{
+    windows: Vec<Window>
+}
+
+impl Manager{
+    fn get() -> Option<Arc<Mutex<Manager>>> {
+        static mut MANAGER:Option<Arc<Mutex<Manager>>> = None;
+
+        unsafe {
+            if MANAGER.is_none() {
+                MANAGER = Some(Arc::new(Mutex::new(Manager{
+                    windows: vec![]
+                })));
+            }
+
+            MANAGER.clone()
+        }
+    }
+
+    pub fn add(elem: Arc<Mutex<Element>>, name: String, width:f64, height:f64){
+        if let Ok(ref mut to_add) = TOADD.lock(){
+            to_add.push((elem,name,width,height));
+        }
+        /*let mut wmo = Manager::get();
+        if let Some(ref mut wm) = wmo {
+            if let Ok (ref mut _wm) =  wm.lock()
+            {
+                let w = Window::new(elem,name,width,height);
+                _wm.windows.push(w);
+            }
+        }*/
+    }
+
+    pub fn start(fps: u64){
+        loop{
+            let mut i = 0;
+            let mut wmo = Manager::get();
+            if let Some(ref mut _wmo) = wmo {
+
+                if let Ok(ref mut wm) = _wmo.lock() {
+                    //add the windows to be added
+                    if let Ok(ref mut to_add) = TOADD.lock() {
+                        while to_add.len() > 0 {
+                            let _t = to_add.remove(0);
+                            wm.windows.push(Window::new(_t.0,_t.1,_t.2,_t.3));
+                        }
+                    }
+                    //render the windows
+                    while i < wm.windows.len() {
+                        if wm.windows[i].tick() {
+                            let w = wm.windows.remove(i);
+                            w.deinit();
+                        } else {
+                            i += 1;
+                        }
+                    }
+                    //if all windows done, then exit the app
+                    if wm.windows.len() == 0 {
+                        return;
+                    }
+                }
+            }
+            thread::sleep(Duration::from_millis(1000/fps));
+        }
     }
 }
