@@ -517,10 +517,6 @@ impl Window {
 }
 
 lazy_static!(
-    //static ref WINDOWLOCK : Mutex<bool> = Mutex::new(false);
-    //static ref TOADDLOCK: Mutex<bool> = Mutex::new(false);
-
-    //static ref WINDOWS: Vec<Window> = vec![];
     static ref TOADD: Mutex<Vec<(Arc<Mutex<Element>>,String,f64,f64)>> = Mutex::new(vec![]);
 );
 
@@ -547,14 +543,6 @@ impl Manager{
         if let Ok(ref mut to_add) = TOADD.lock(){
             to_add.push((elem,name,width,height));
         }
-        /*let mut wmo = Manager::get();
-        if let Some(ref mut wm) = wmo {
-            if let Ok (ref mut _wm) =  wm.lock()
-            {
-                let w = Window::new(elem,name,width,height);
-                _wm.windows.push(w);
-            }
-        }*/
     }
 
     pub fn start(fps: u64){

@@ -17,6 +17,8 @@ pub struct TextBox {
     focus: bool,
     event_handlers: EventHandlers,
     drawn: u8,
+    editable: bool,
+    enabled: bool,
 }
 
 impl TextBox{
@@ -39,6 +41,8 @@ impl TextBox{
             focus: false,
             event_handlers: EventHandlers::new(),
             drawn: 0,
+            editable: false,
+            enabled: true,
         }
     }
 
@@ -50,6 +54,14 @@ impl TextBox{
 
     pub fn get_value(&self) -> String {
         self.value.clone()
+    }
+
+    pub fn set_enabled(&mut self, enabled: bool){
+        self.enabled = enabled;
+        self.drawn = 0;
+        if !enabled {
+            self.focus = false;
+        }
     }
 }
 
@@ -85,7 +97,7 @@ impl Element for TextBox{
         let width = self.props.get_width();
         let height = self.props.get_height();
 
-        if self.focus {
+        if self.focus && self.enabled {
             color = self.props.get_focus_color();
             bgcolor = self.props.get_focus_bg_color();
         }
@@ -226,10 +238,12 @@ impl Element for TextBox{
                 }
             },
             PrimitiveEvent::SetFocus(f) => {
-                if self.focus != f {
-                    self.focus = f;
-                    let handler = self.get_handler(ElementEvent::FocusChange);
-                    handled = handler(self, &f);
+                if self.enabled {
+                    if self.focus != f {
+                        self.focus = f;
+                        let handler = self.get_handler(ElementEvent::FocusChange);
+                        handled = handler(self, &f);
+                    }
                 }
             }
             _ => ()
