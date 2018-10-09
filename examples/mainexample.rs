@@ -109,7 +109,7 @@ impl PersonElm{
         //  -> Pixel is the static length
         name.lock().unwrap().set(skryn::gui::properties::Property::Height(skryn::gui::properties::Unit::Stretch(0.4)));
         age.lock().unwrap().set(skryn::gui::properties::Property::Height(skryn::gui::properties::Unit::Stretch(0.4)));
-        age.lock().unwrap().set_enabled(false);
+        age.lock().unwrap().set_editable(false);
         alert_button.lock().unwrap().set(skryn::gui::properties::Property::Height(skryn::gui::properties::Unit::Stretch(0.2)));
         //Here we have used the Stretch unit for elements above to make sure our VBox below is utilized to the full.
         let v = Arc::new(Mutex::new( VBox::new()));

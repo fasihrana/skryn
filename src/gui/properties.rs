@@ -58,7 +58,7 @@ pub enum Property{
     DisabledBgColor(ColorF),
     OverflowX(Overflow),
     OverflowY(Overflow),
-    Editable(bool),
+    Enabled(bool),
 }
 
 lazy_static!{
@@ -108,7 +108,7 @@ lazy_static!{
     });
     pub static ref OVERFLOW_X: Property = Property::OverflowX(Overflow::Hidden);
     pub static ref OVERFLOW_Y: Property = Property::OverflowY(Overflow::Hidden);
-    pub static ref EDITABLE: Property = Property::Editable(true);
+    pub static ref ENABLED: Property = Property::Enabled(true);
 }
 
 impl PartialEq for Property {
@@ -149,7 +149,7 @@ impl Properties {
             .set(Property::DisabledBgColor(ColorF::new(0.8,0.8,0.8,1.0)))
             .set(Property::OverflowX(Overflow::Hidden))
             .set(Property::OverflowY(Overflow::Hidden))
-            .set(Property::Editable(true))
+            .set(Property::Enabled(true))
     }
 
     pub fn set(&mut self, property: Property) -> &mut Properties {
@@ -228,8 +228,8 @@ impl Properties {
         if let Some(Property::OverflowY(y)) = self.get(&OVERFLOW_Y) {y.clone()} else {panic!("Overflow Y not found")}
     }
 
-    pub fn get_editable(&self) -> bool {
-        if let Some(Property::Editable(b)) = self.get(&EDITABLE) {b.clone()} else {panic!("Editable not found")}
+    pub fn get_enabled(&self) -> bool {
+        if let Some(Property::Enabled(b)) = self.get(&ENABLED) {b.clone()} else {panic!("Enabled not found")}
     }
 }
 

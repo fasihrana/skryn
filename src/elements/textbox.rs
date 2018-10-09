@@ -41,7 +41,7 @@ impl TextBox{
             focus: false,
             event_handlers: EventHandlers::new(),
             drawn: 0,
-            editable: false,
+            editable: true,
             enabled: true,
         }
     }
@@ -56,10 +56,10 @@ impl TextBox{
         self.value.clone()
     }
 
-    pub fn set_enabled(&mut self, enabled: bool){
-        self.enabled = enabled;
+    pub fn set_editable(&mut self, editable: bool){
+        self.editable = editable;
         self.drawn = 0;
-        if !enabled {
+        if !editable {
             self.focus = false;
         }
     }
@@ -97,7 +97,7 @@ impl Element for TextBox{
         let width = self.props.get_width();
         let height = self.props.get_height();
 
-        if self.focus && self.enabled {
+        if self.focus && self.enabled && self.editable {
             color = self.props.get_focus_color();
             bgcolor = self.props.get_focus_bg_color();
         }
@@ -211,7 +211,7 @@ impl Element for TextBox{
         let mut handled = false;
         match e {
             PrimitiveEvent::Char(c) => {
-                if self.focus {
+                if self.focus && self.enabled && self.editable {
                     if c == '\x08' {
                         let mut l = self.value.len();
                         if l > 0 {
