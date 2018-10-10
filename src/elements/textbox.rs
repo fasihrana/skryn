@@ -19,6 +19,7 @@ pub struct TextBox {
     drawn: u8,
     editable: bool,
     enabled: bool,
+    singleline: bool,
 }
 
 impl TextBox{
@@ -43,6 +44,7 @@ impl TextBox{
             drawn: 0,
             editable: true,
             enabled: true,
+            singleline: false,
         }
     }
 
@@ -62,6 +64,10 @@ impl TextBox{
         if !editable {
             self.focus = false;
         }
+    }
+
+    pub fn set_singleline(&mut self, singleline: bool){
+        self.singleline = singleline;
     }
 }
 
@@ -129,7 +135,7 @@ impl Element for TextBox{
                 let _char = _char.unwrap();
                 let _glyph = mappings.next().unwrap();
 
-                if _char == '\r' || _char == '\n' {
+                if !self.singleline && (_char == '\r' || _char == '\n') {
                     next_y = next_y + size;
                     next_x = extent.x;
                     ignore_ws = true;
