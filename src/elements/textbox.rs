@@ -16,6 +16,7 @@ pub struct TextBox {
     props: properties::Properties,
     bounds: properties::Extent,
     cache:Vec<GlyphInstance>,
+    char_ext:Vec<(f32,f32)>,
     focus: bool,
     event_handlers: EventHandlers,
     drawn: u8,
@@ -41,7 +42,8 @@ impl TextBox{
                 h: 0.0,
                 dpi: 0.0,
             },
-            cache: Vec::new(),
+            cache: vec![],
+            char_ext: vec![],
             focus: false,
             event_handlers: EventHandlers::new(),
             drawn: 0,
@@ -55,6 +57,7 @@ impl TextBox{
     pub fn set_value(&mut self, s: String){
         self.value = s;
         self.cache.clear();
+        self.char_ext.clear();
         self.drawn = 0;
     }
 
@@ -72,6 +75,19 @@ impl TextBox{
 
     pub fn set_singleline(&mut self, singleline: bool){
         self.singleline = singleline;
+    }
+
+    pub fn get_index_at(&self, p:properties::Position) -> i64 {
+        let mut i: i64 = 0;
+        let mut cursor = -1;
+        while i < self.char_ext.len() as i64 {
+            if p.x > self.char_ext[i as usize].0 || p.y > self.char_ext[i as usize].1 {
+                cursor = i;
+            }
+            i += 1;
+        }
+
+        cursor
     }
 }
 
@@ -100,6 +116,7 @@ impl Element for TextBox{
 
         if self.bounds != extent {
             self.cache.clear();
+            self.char_ext.clear();
         }
         let glyphs = &mut self.cache;
         let size = self.props.get_size() as f32;
@@ -165,14 +182,12 @@ impl Element for TextBox{
                     point: LayoutPoint::new(next_x, next_y + baseline)
                 });
 
-                if c_indx == cursor_i {
-                    cursor_x = next_x;
-                }
-
                 next_x = next_x + ((h_metrics.advance_width + h_metrics.left_side_bearing) * size);
                 if max_x < next_x {
                     max_x = next_x;
                 }
+
+                self.char_ext.push((next_x,next_y));
 
                 cursor_y = next_y + baseline;
 
@@ -265,6 +280,7 @@ impl Element for TextBox{
                         self.value.push(c);
                     }
                     self.cache.clear();
+                    self.char_ext.clear();
                     handled = true;
                 }
             },
@@ -273,6 +289,7 @@ impl Element for TextBox{
                     && b == properties::Button::Left
                     && s == properties::ButtonState::Released
                 {
+                    self.cursor = self.get_index_at(_p.clone());
                     let handler = self.get_handler(ElementEvent::Clicked);
                     handled = handler(self, &m);
                 }
@@ -286,7 +303,7 @@ impl Element for TextBox{
                     }
                 }
             },
-            PrimitiveEvent::KeyInput(vkc,sc,s,m) => {
+            PrimitiveEvent::KeyInput(vkc,_sc,s,_m) => {
                 match vkc {
                     Some(VirtualKeyCode::Right) => {
                         if self.cursor < self.value.len() as i64 - 1 && s == properties::ButtonState::Pressed {
