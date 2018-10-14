@@ -18,4 +18,5 @@ scan-rules = "*"
 rusttype = "*"
 font-loader = "*"
 lazy_static = "*"
+clipboard = "*"
 

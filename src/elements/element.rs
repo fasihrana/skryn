@@ -7,6 +7,7 @@ use std::any::Any;
 use winit;
 use webrender::api::*;
 use glutin;
+use glutin::{VirtualKeyCode,ScanCode};
 
 use gui::font;
 use gui::properties;
@@ -19,6 +20,7 @@ pub enum PrimitiveEvent {
     CursorMoved(properties::Position),
     Button(properties::Position, properties::Button, properties::ButtonState, properties::Modifiers),
     Char(char),
+    KeyInput(Option<VirtualKeyCode>,ScanCode,properties::ButtonState,properties::Modifiers),
     SetFocus(bool),
     Resized(glutin::dpi::LogicalSize),
     DPI(f64)

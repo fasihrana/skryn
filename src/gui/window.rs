@@ -276,6 +276,10 @@ impl Internals{
 
                     //println!("scrolling {} {}",dx,dy);
                 },
+                glutin::Event::WindowEvent{event: glutin::WindowEvent::KeyboardInput{input: glutin::KeyboardInput{scancode, state, virtual_keycode, modifiers}, ..}, ..} => {
+                    //println!("scancode {}", scancode);
+                    events.push(PrimitiveEvent::KeyInput(virtual_keycode,scancode, state.into(), modifiers.into()));
+                },
                 glutin::Event::WindowEvent {event: glutin::WindowEvent::ReceivedCharacter(c), ..} => {
                     if c == '\x1b' {
                         events.push(PrimitiveEvent::SetFocus(false));
@@ -368,7 +372,6 @@ impl Window {
             println!("{:?}", events);
         }
 
-        let mut render = false;
         let mut exit = false;
 
         for e in events.iter(){
@@ -380,7 +383,6 @@ impl Window {
                     exit = true;
                 },
                 PrimitiveEvent::Resized(size) => {
-                    render = true;
                     self.width = size.width;
                     self.height = size.height;
                 },
@@ -390,27 +392,24 @@ impl Window {
                     } else {
                         self.root.lock().unwrap().on_primitive_event(&tags, e.clone());
                     }
-                    render = true;
                 },
                 PrimitiveEvent::Button(_,_,_,_) => {
                     self.root.lock().unwrap().on_primitive_event(&tags, e.clone());
                 }
                 PrimitiveEvent::Char(_) => {
                     self.root.lock().unwrap().on_primitive_event(&tags, e.clone());
-                    render = true;
                 },
-                PrimitiveEvent::DPI(_) => {
-                    render = true;
+                PrimitiveEvent::CursorMoved(_) => {
+                    self.root.lock().unwrap().on_primitive_event( &tags, e.clone());
                 },
+                PrimitiveEvent::KeyInput(_,_,_,_) => {
+                    self.root.lock().unwrap().on_primitive_event(&tags, e.clone());
+                }
                 _ => ()
             }
         }
 
-        if !render {
-            render = self.root.lock().unwrap().is_invalid();
-        }
 
-        if render {
             let mut txn = Transaction::new();
             let mut builder = None;
             let mut font_store = None;
@@ -472,7 +471,7 @@ impl Window {
                 let _ = i.renderer.flush_pipeline_info();
                 i.gl_window.swap_buffers().ok();
             }
-        }
+
         exit
     }
 

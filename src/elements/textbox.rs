@@ -1,8 +1,10 @@
 use std::sync::Arc;
 use std::any::Any;
 
+use glutin::VirtualKeyCode;
 use rusttype;
 use webrender::api::*;
+use clipboard::{ClipboardProvider, ClipboardContext};
 
 use elements::element::*;
 use gui::properties;
@@ -20,6 +22,7 @@ pub struct TextBox {
     editable: bool,
     enabled: bool,
     singleline: bool,
+    cursor: i64,
 }
 
 impl TextBox{
@@ -45,6 +48,7 @@ impl TextBox{
             editable: true,
             enabled: true,
             singleline: false,
+            cursor: -1,
         }
     }
 
@@ -92,6 +96,8 @@ impl Element for TextBox{
         let _id = gen.get();
         self.ext_id = _id;
 
+        let (mut cursor_x, mut cursor_y, cursor_i) = (0.0,0.0,self.cursor + 1);
+
         if self.bounds != extent {
             self.cache.clear();
         }
@@ -117,7 +123,6 @@ impl Element for TextBox{
 
             let mut ignore_ws = true;
 
-
             let font_type = font_store.get_font_type(&family);
             let v_metrics = font_type.v_metrics(rusttype::Scale { x: 1.0, y: 1.0 });
             let baseline = (size * v_metrics.ascent) - size;
@@ -126,6 +131,8 @@ impl Element for TextBox{
             let mut text_iter = self.value.chars();
 
             let mut max_x: f32 = 0.0;
+
+            let mut c_indx = 0;
 
             loop {
                 let _char = text_iter.next();
@@ -158,9 +165,21 @@ impl Element for TextBox{
                     point: LayoutPoint::new(next_x, next_y + baseline)
                 });
 
+                if c_indx == cursor_i {
+                    cursor_x = next_x;
+                }
+
                 next_x = next_x + ((h_metrics.advance_width + h_metrics.left_side_bearing) * size);
                 if max_x < next_x {
                     max_x = next_x;
+                }
+
+                cursor_y = next_y + baseline;
+
+                c_indx += 1;
+
+                if c_indx == cursor_i {
+                    cursor_x = next_x;
                 }
             }
 
@@ -207,6 +226,14 @@ impl Element for TextBox{
                       color.clone(),
                       Some(GlyphOptions::default()));
 
+        //add the cursor
+        if self.focus && self.enabled && self.editable {
+            let info = LayoutPrimitiveInfo::new(LayoutRect::new(
+                    LayoutPoint::new(cursor_x, cursor_y - size),
+                    LayoutSize::new(1.0, size)
+                ));
+            builder.push_rect(&info, color.clone());
+        }
     }
 
     fn get_bounds(&self) -> properties::Extent {
@@ -227,6 +254,13 @@ impl Element for TextBox{
                             }
                             self.value = self.value.split_at(l).0.to_owned();
                         }
+                    } else if c == '\u{3}' {
+                        let mut ctx: ClipboardContext = ClipboardProvider::new().unwrap();
+                        ctx.set_contents(self.value.clone()).unwrap();
+                    } else if c == '\u{16}' {
+                        let mut ctx: ClipboardContext = ClipboardProvider::new().unwrap();
+                        let vstr = ctx.get_contents().unwrap();
+                        self.value.push_str(&vstr[0..]);
                     } else {
                         self.value.push(c);
                     }
@@ -251,7 +285,22 @@ impl Element for TextBox{
                         handled = handler(self, &f);
                     }
                 }
-            }
+            },
+            PrimitiveEvent::KeyInput(vkc,sc,s,m) => {
+                match vkc {
+                    Some(VirtualKeyCode::Right) => {
+                        if self.cursor < self.value.len() as i64 - 1 && s == properties::ButtonState::Pressed {
+                            self.cursor += 1;
+                        }
+                    },
+                    Some(VirtualKeyCode::Left) => {
+                        if self.cursor > -1 && s == properties::ButtonState::Pressed {
+                            self.cursor -= 1;
+                        }
+                    },
+                    _ => ()
+                }
+            },
             _ => ()
         }
         return handled;

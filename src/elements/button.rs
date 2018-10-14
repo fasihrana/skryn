@@ -24,7 +24,8 @@ impl Button {
     pub fn new(s: String) -> Self{
         let mut props = properties::Properties::new();
         props.default();
-        props.set(properties::Property::BgColor(ColorF::new(0.8,0.9,0.9,1.0)));
+        props.set(properties::Property::BgColor(ColorF::new(0.8,0.9,0.9,1.0)))
+            .set(properties::Property::HoverBgColor(ColorF::new(0.7,0.8,0.8,1.0)));
         Button {
             ext_id:0,
             value:s,
