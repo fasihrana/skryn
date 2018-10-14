@@ -23,7 +23,7 @@ pub struct TextBox {
     editable: bool,
     enabled: bool,
     singleline: bool,
-    cursor: i64,
+    cursor: usize,
 }
 
 impl TextBox{
@@ -50,7 +50,7 @@ impl TextBox{
             editable: true,
             enabled: true,
             singleline: false,
-            cursor: -1,
+            cursor: 0,
         }
     }
 
@@ -77,11 +77,15 @@ impl TextBox{
         self.singleline = singleline;
     }
 
-    pub fn get_index_at(&self, p:properties::Position) -> i64 {
-        let mut i: i64 = 0;
-        let mut cursor = -1;
-        while i < self.char_ext.len() as i64 {
-            if p.x > self.char_ext[i as usize].0 || p.y > self.char_ext[i as usize].1 {
+    pub fn get_index_at(&self, p:properties::Position) -> usize {
+        let size = self.props.get_size() as f32;
+        let mut i = 0;
+        let mut cursor = 0;
+        while i < self.char_ext.len() {
+            let pmin = self.cache[i as usize].point;
+            let pmax = self.char_ext[i as usize];
+            println!("cursor {} {:?} {:?}", cursor, pmax, pmin);
+            if p.x < pmax.0 && p.y < pmax.1 &&  p.x > pmin.x_typed().get() && p.y > (pmax.1 - size)  {
                 cursor = i;
             }
             i += 1;
@@ -112,7 +116,7 @@ impl Element for TextBox{
         let _id = gen.get();
         self.ext_id = _id;
 
-        let (mut cursor_x, mut cursor_y, cursor_i) = (0.0,0.0,self.cursor + 1);
+        let (mut cursor_x, mut cursor_y, cursor_i) = (0.0,0.0,self.cursor);
 
         if self.bounds != extent {
             self.cache.clear();
@@ -182,6 +186,11 @@ impl Element for TextBox{
                     point: LayoutPoint::new(next_x, next_y + baseline)
                 });
 
+                if c_indx == cursor_i {
+                    cursor_x = next_x;
+                    cursor_y = next_y;
+                }
+
                 next_x = next_x + ((h_metrics.advance_width + h_metrics.left_side_bearing) * size);
                 if max_x < next_x {
                     max_x = next_x;
@@ -189,12 +198,11 @@ impl Element for TextBox{
 
                 self.char_ext.push((next_x,next_y));
 
-                cursor_y = next_y + baseline;
-
                 c_indx += 1;
 
                 if c_indx == cursor_i {
                     cursor_x = next_x;
+                    cursor_y = next_y;
                 }
             }
 
@@ -261,13 +269,16 @@ impl Element for TextBox{
             PrimitiveEvent::Char(c) => {
                 if self.focus && self.enabled && self.editable {
                     if c == '\x08' {
-                        let mut l = self.value.len();
+                        let mut l = self.cursor;
                         if l > 0 {
                             l = l - 1;
                             while !self.value.is_char_boundary(l) && l > 0 {
                                 l = l - 1;
                             }
-                            self.value = self.value.split_at(l).0.to_owned();
+                            //let tmp = self.value.clone();
+                            //let tmp = tmp.split_at(l);
+                            self.value = format!("{}{}",&self.value[0..l],&self.value[self.cursor..]);
+                            self.cursor = l;
                         }
                     } else if c == '\u{3}' {
                         let mut ctx: ClipboardContext = ClipboardProvider::new().unwrap();
@@ -277,7 +288,18 @@ impl Element for TextBox{
                         let vstr = ctx.get_contents().unwrap();
                         self.value.push_str(&vstr[0..]);
                     } else {
-                        self.value.push(c);
+                        //self.value.push(c);
+                        //
+                        if self.cursor == 0 {
+                            let mut newstr = format!("{}",c);
+                            newstr.push_str(&self.value[0..]);
+                            self.value = newstr;
+                        } else if self.cursor < self.value.len() {
+                            self.value = format!("{}{}{}",&self.value[0..self.cursor],c,&self.value[self.cursor..]);;
+                        } else {
+                            self.value.push(c);
+                        }
+                        self.cursor += 1;
                     }
                     self.cache.clear();
                     self.char_ext.clear();
@@ -306,12 +328,12 @@ impl Element for TextBox{
             PrimitiveEvent::KeyInput(vkc,_sc,s,_m) => {
                 match vkc {
                     Some(VirtualKeyCode::Right) => {
-                        if self.cursor < self.value.len() as i64 - 1 && s == properties::ButtonState::Pressed {
+                        if self.cursor < self.value.len() && s == properties::ButtonState::Pressed {
                             self.cursor += 1;
                         }
                     },
                     Some(VirtualKeyCode::Left) => {
-                        if self.cursor > -1 && s == properties::ButtonState::Pressed {
+                        if self.cursor > 0 && s == properties::ButtonState::Pressed {
                             self.cursor -= 1;
                         }
                     },
