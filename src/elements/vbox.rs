@@ -34,6 +34,25 @@ impl VBox {
             handlers: EventHandlers::new(),
         }
     }
+
+    fn get_height_sums(&mut self) -> (f32,f32) {
+        let mut stretchy:f32 = 0.0;
+        let mut pixel:f32 = 0.0;
+        for elm in self.children.iter_mut() {
+            if let Ok(_e) = elm.lock() {
+                let _h = _e.get(&properties::HEIGHT).unwrap().clone();
+                match _h {
+                    properties::Property::Height(properties::Unit::Stretch(_s)) => stretchy += _s,
+                    _ => {
+                        let t_b = _e.get_bounds();
+                        pixel += t_b.h;
+                    }
+                }
+            }
+        }
+
+        (pixel,stretchy)
+    }
 }
 
 impl Element for VBox {
@@ -56,6 +75,11 @@ impl Element for VBox {
 
         let bgcolor = self.props.get_bg_color();
 
+        let (pixel_sum, stretchy_sum )= self.get_height_sums();
+        let mut remaining_height = extent.h - pixel_sum;
+        if remaining_height < 0.0 {remaining_height = 0.0;}
+        let stretchy_factor = remaining_height / stretchy_sum;
+
         let _id = gen.get();
         self.ext_id = _id;
 
@@ -67,7 +91,7 @@ impl Element for VBox {
         let mut next_y = 0.0;
 
         for elm in self.children.iter_mut(){
-            let child_extent = properties::Extent{
+            let mut child_extent = properties::Extent{
                 x: next_x + extent.x,
                 y: next_y + extent.y,
                 w: extent.w,
@@ -77,6 +101,18 @@ impl Element for VBox {
 
             match elm.lock() {
                 Ok(ref mut elm) => {
+                    let e_height = elm.get(&properties::HEIGHT).unwrap().clone();
+
+                    match e_height {
+                        properties::Property::Height(properties::Unit::Pixel(_p)) => {
+                            child_extent.h = _p;
+                        },
+                        properties::Property::Height(properties::Unit::Stretch(_s)) => {
+                            child_extent.h = stretchy_factor;
+                        },
+                        _ => ()
+                    }
+
                     elm.render(builder, child_extent, font_store, None, gen);
                     let _ex = elm.get_bounds();
                     next_y += _ex.h;

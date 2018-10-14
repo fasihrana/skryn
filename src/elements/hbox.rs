@@ -34,6 +34,25 @@ impl HBox  {
             handlers: EventHandlers::new(),
         }
     }
+
+    fn get_width_sums(&mut self) -> (f32,f32) {
+        let mut stretchy:f32 = 0.0;
+        let mut pixel:f32 = 0.0;
+        for elm in self.children.iter_mut() {
+            if let Ok(_e) = elm.lock() {
+                let _w = _e.get(&properties::WIDTH).unwrap().clone();
+                match _w {
+                    properties::Property::Width(properties::Unit::Stretch(_s)) => stretchy += _s,
+                    _ => {
+                        let t_b = _e.get_bounds();
+                        pixel += t_b.w;
+                    }
+                }
+            }
+        }
+
+        (pixel,stretchy)
+    }
 }
 
 impl  Element for HBox {
@@ -56,6 +75,11 @@ impl  Element for HBox {
 
         let bgcolor = self.props.get_bg_color();
 
+        let (pixel_sum, stretchy_sum )= self.get_width_sums();
+        let mut remaining_width = extent.w - pixel_sum;
+        if remaining_width < 0.0 {remaining_width = 0.0;}
+        let stretchy_factor = remaining_width / stretchy_sum;
+
         let _id = gen.get();
         self.ext_id = _id;
 
@@ -67,7 +91,7 @@ impl  Element for HBox {
         let next_y = 0.0;
 
         for elm in self.children.iter_mut(){
-            let child_extent = properties::Extent{
+            let mut child_extent = properties::Extent{
                 x: next_x + extent.x,
                 y: next_y + extent.y,
                 w: extent.w,
@@ -77,6 +101,18 @@ impl  Element for HBox {
 
             match elm.lock() {
                 Ok(ref mut elm) => {
+                    let e_width = elm.get(&properties::WIDTH).unwrap().clone();
+
+                    match e_width {
+                        properties::Property::Width(properties::Unit::Pixel(_p)) => {
+                            child_extent.w = _p;
+                        },
+                        properties::Property::Width(properties::Unit::Stretch(_s)) => {
+                            child_extent.w = stretchy_factor;
+                        },
+                        _ => ()
+                    }
+
                     elm.render(builder,child_extent,font_store,None,gen);
                     let _ex = elm.get_bounds();
                     next_x += _ex.w;

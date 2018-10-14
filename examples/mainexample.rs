@@ -100,6 +100,16 @@ impl PersonElm{
         let age= Arc::new(Mutex::new( TextBox::new(String::from(format!("{}",_p.age.get_value())))));
         //This is an alert button just to show how easy it is to spawn new windows.
         let alert_button = Arc::new(Mutex::new(Button::new(format!("Press here!"))));
+        let cancel_button = Arc::new(Mutex::new(Button::new(format!("Cancel"))));
+        let h = Arc::new(Mutex::new(HBox::new()));
+        match h.lock() {
+            Ok(ref mut h) => {
+                h.append(alert_button.clone());
+                h.append(cancel_button.clone());
+                h.set(skryn::gui::properties::Property::Height(skryn::gui::properties::Unit::Pixel(25.0)));
+            },
+            Err(_err_str) => panic!("unable to lock element : {}", _err_str)
+        }
 
         //skryn has 4 Length Units at the moment.
         //This is to simplify the rendering of boxes
@@ -110,14 +120,15 @@ impl PersonElm{
         name.lock().unwrap().set(skryn::gui::properties::Property::Height(skryn::gui::properties::Unit::Stretch(0.4)));
         age.lock().unwrap().set(skryn::gui::properties::Property::Height(skryn::gui::properties::Unit::Stretch(0.4)));
         age.lock().unwrap().set_editable(false);
-        alert_button.lock().unwrap().set(skryn::gui::properties::Property::Height(skryn::gui::properties::Unit::Stretch(0.2)));
+        alert_button.lock().unwrap().set(skryn::gui::properties::Property::Width(skryn::gui::properties::Unit::Stretch(1.0)));
+        cancel_button.lock().unwrap().set(skryn::gui::properties::Property::Width(skryn::gui::properties::Unit::Stretch(1.0)));
         //Here we have used the Stretch unit for elements above to make sure our VBox below is utilized to the full.
         let v = Arc::new(Mutex::new( VBox::new()));
         match v.lock() {
             Ok(ref mut v) => {
                 v.append(name.clone());
                 v.append(age.clone());
-                v.append(alert_button.clone());
+                v.append(h.clone());
                 v.set(skryn::gui::properties::Property::BgColor(ColorF::new(1.0,0.5,0.5,1.0)));
             },
             Err(_err_str) => panic!("unable to lock element : {}", _err_str)
