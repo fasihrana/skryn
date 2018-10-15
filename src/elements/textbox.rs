@@ -16,7 +16,7 @@ pub struct TextBox {
     props: properties::Properties,
     bounds: properties::Extent,
     cache:Vec<GlyphInstance>,
-    char_ext:Vec<(f32,f32)>,
+    char_ext:Vec<((f32,f32),(f32,f32))>,
     focus: bool,
     event_handlers: EventHandlers,
     drawn: u8,
@@ -82,11 +82,17 @@ impl TextBox{
         let mut i = 0;
         let mut cursor = 0;
         while i < self.char_ext.len() {
-            let pmin = self.cache[i as usize].point;
-            let pmax = self.char_ext[i as usize];
-            println!("cursor {} {:?} {:?}", cursor, pmax, pmin);
-            if p.x < pmax.0 && p.y < pmax.1 &&  p.x > pmin.x_typed().get() && p.y > (pmax.1 - size)  {
-                cursor = i;
+            let pmin = self.char_ext[i as usize].0;
+            let pmax = self.char_ext[i as usize].1;
+            if p.y < pmax.1 && p.y > (pmax.1 - size) && p.x > pmin.0 {
+                //if the click is before half-x of the character, assin i
+                //otherwise assign i+1
+                let mid_x = ((pmax.0 - pmin.0)/2.0) + pmin.0;
+                if p.x <  mid_x {
+                    cursor = i;
+                } else {
+                    cursor = i+1;
+                }
             }
             i += 1;
         }
@@ -148,6 +154,8 @@ impl Element for TextBox{
             let v_metrics = font_type.v_metrics(rusttype::Scale { x: 1.0, y: 1.0 });
             let baseline = (size * v_metrics.ascent) - size;
 
+            let space_glyph = font_type.glyphs_for(" ".chars()).next().unwrap();
+
             let mut mappings = font_type.glyphs_for(self.value.chars());
             let mut text_iter = self.value.chars();
 
@@ -155,48 +163,58 @@ impl Element for TextBox{
 
             let mut c_indx = 0;
 
+            let mut skip = false;
+
             loop {
+                skip = false;
                 let _char = text_iter.next();
                 if _char.is_none() {
                     break;
                 }
                 let _char = _char.unwrap();
-                let _glyph = mappings.next().unwrap();
+                let mut _glyph = mappings.next().unwrap();
 
                 if !self.singleline && (_char == '\r' || _char == '\n') {
                     next_y = next_y + size;
                     next_x = extent.x;
                     ignore_ws = true;
-                    continue;
+                    skip = true;
                 }
                 if ignore_ws && (_char == ' ' || _char == '\t') {
-                    continue;
+                    skip = true;
                 }
                 if _glyph.id().0 == 0 {
-                    continue;
+                    skip = true;
                 }
 
-                ignore_ws = false;
+                let (start_x, start_y) = (next_x,next_y);
 
-                let _scaled = _glyph.scaled(rusttype::Scale { x: 1.0, y: 1.0 });
-                let h_metrics = _scaled.h_metrics();
+                if !skip {
+                    ignore_ws = false;
 
-                glyphs.push(GlyphInstance {
-                    index: _scaled.id().0,
-                    point: LayoutPoint::new(next_x, next_y + baseline)
-                });
+                    let _scaled = _glyph.scaled(rusttype::Scale { x: 1.0, y: 1.0 });
+                    let h_metrics = _scaled.h_metrics();
 
-                if c_indx == cursor_i {
-                    cursor_x = next_x;
-                    cursor_y = next_y;
+                    let scaled_id = _scaled.id().0;
+
+
+                    glyphs.push(GlyphInstance {
+                        index: scaled_id,
+                        point: LayoutPoint::new(next_x, next_y + baseline)
+                    });
+
+                    if c_indx == cursor_i {
+                        cursor_x = next_x;
+                        cursor_y = next_y;
+                    }
+
+                    next_x = next_x + ((h_metrics.advance_width + h_metrics.left_side_bearing) * size);
+                    if max_x < next_x {
+                        max_x = next_x;
+                    }
                 }
 
-                next_x = next_x + ((h_metrics.advance_width + h_metrics.left_side_bearing) * size);
-                if max_x < next_x {
-                    max_x = next_x;
-                }
-
-                self.char_ext.push((next_x,next_y));
+                self.char_ext.push(((start_x,start_y),(next_x,next_y)));
 
                 c_indx += 1;
 
