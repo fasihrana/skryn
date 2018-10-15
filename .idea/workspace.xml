@@ -54,8 +54,8 @@
       <file leaf-file-name="textbox.rs" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/elements/textbox.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="344">
-              <caret line="306" column="118" selection-start-line="306" selection-start-column="118" selection-end-line="306" selection-end-column="118" />
+            <state relative-caret-position="280">
+              <caret line="86" column="15" selection-start-line="86" selection-start-column="15" selection-end-line="86" selection-end-column="15" />
               <folding>
                 <element signature="e#1507#1508#0" expanded="true" />
                 <element signature="e#1540#1541#0" expanded="true" />
@@ -481,7 +481,8 @@
     <MESSAGE value="Partial Cursor implementation in the textbox." />
     <MESSAGE value="Partial Cursor implementation in the textbox.&#10;Can now click to focus on a particular index of text." />
     <MESSAGE value="Cursor is now clickable anywhere in the text box and it will go to the nearest character.&#10;&#10;Closes #10" />
-    <option name="LAST_COMMIT_MESSAGE" value="Cursor is now clickable anywhere in the text box and it will go to the nearest character.&#10;&#10;Closes #10" />
+    <MESSAGE value="Now supports copy paste support from clipboard.&#10;&#10;Selection copy/paste will be implement by #11.&#10;&#10;Closes #2" />
+    <option name="LAST_COMMIT_MESSAGE" value="Now supports copy paste support from clipboard.&#10;&#10;Selection copy/paste will be implement by #11.&#10;&#10;Closes #2" />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/src/gui/window.rs">
@@ -758,8 +759,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/elements/textbox.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="344">
-          <caret line="306" column="118" selection-start-line="306" selection-start-column="118" selection-end-line="306" selection-end-column="118" />
+        <state relative-caret-position="280">
+          <caret line="86" column="15" selection-start-line="86" selection-start-column="15" selection-end-line="86" selection-end-column="15" />
           <folding>
             <element signature="e#1507#1508#0" expanded="true" />
             <element signature="e#1540#1541#0" expanded="true" />

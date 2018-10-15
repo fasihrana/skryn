@@ -84,7 +84,7 @@ impl TextBox{
         while i < self.char_ext.len() {
             let pmin = self.char_ext[i as usize].0;
             let pmax = self.char_ext[i as usize].1;
-            if p.y < pmax.1 && p.y > (pmax.1 - size) && p.x > pmin.0 {
+            if p.y > (pmax.1 - size) && p.x > pmin.0 {
                 //if the click is before half-x of the character, assin i
                 //otherwise assign i+1
                 let mid_x = ((pmax.0 - pmin.0)/2.0) + pmin.0;
@@ -154,8 +154,6 @@ impl Element for TextBox{
             let v_metrics = font_type.v_metrics(rusttype::Scale { x: 1.0, y: 1.0 });
             let baseline = (size * v_metrics.ascent) - size;
 
-            let space_glyph = font_type.glyphs_for(" ".chars()).next().unwrap();
-
             let mut mappings = font_type.glyphs_for(self.value.chars());
             let mut text_iter = self.value.chars();
 
@@ -163,7 +161,7 @@ impl Element for TextBox{
 
             let mut c_indx = 0;
 
-            let mut skip = false;
+            let mut skip;
 
             loop {
                 skip = false;
