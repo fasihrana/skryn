@@ -553,9 +553,13 @@ impl Manager{
                 if let Ok(ref mut wm) = _wmo.lock() {
                     //add the windows to be added
                     if let Ok(ref mut to_add) = TOADD.lock() {
-                        while to_add.len() > 0 {
-                            let _t = to_add.remove(0);
-                            wm.windows.push(Window::new(_t.0,_t.1,_t.2,_t.3));
+                        loop {
+                            if to_add.len() > 0 {
+                                let _t = to_add.remove(0);
+                                wm.windows.push(Window::new(_t.0,_t.1,_t.2,_t.3));
+                            } else {
+                                break;
+                            }
                         }
                     }
                     //render the windows
