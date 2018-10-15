@@ -304,7 +304,8 @@ impl Element for TextBox{
                     } else if c == '\u{16}' {
                         let mut ctx: ClipboardContext = ClipboardProvider::new().unwrap();
                         let vstr = ctx.get_contents().unwrap();
-                        self.value.push_str(&vstr[0..]);
+                        self.value = format!("{}{}{}",&self.value[0..self.cursor],&vstr[0..],&self.value[self.cursor..]);
+                        self.cursor += vstr.len();
                     } else {
                         //self.value.push(c);
                         //

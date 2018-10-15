@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="5c32dbd9-0b30-470b-ab9f-bc177063d9e8" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/skryn.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/skryn.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/elements/textbox.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/elements/textbox.rs" afterDir="false" />
     </list>
@@ -55,8 +54,8 @@
       <file leaf-file-name="textbox.rs" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/elements/textbox.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="384">
-              <caret line="224" column="13" selection-start-line="224" selection-start-column="13" selection-end-line="224" selection-end-column="13" />
+            <state relative-caret-position="344">
+              <caret line="306" column="118" selection-start-line="306" selection-start-column="118" selection-end-line="306" selection-end-column="118" />
               <folding>
                 <element signature="e#1507#1508#0" expanded="true" />
                 <element signature="e#1540#1541#0" expanded="true" />
@@ -73,6 +72,15 @@
                 <element signature="e#12794#12795#0" expanded="true" />
                 <element signature="e#12813#12814#0" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Cargo.toml" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Cargo.toml">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="320">
+              <caret line="20" column="15" lean-forward="true" selection-start-line="20" selection-start-column="15" selection-end-line="20" selection-end-column="15" />
             </state>
           </provider>
         </entry>
@@ -426,7 +434,7 @@
       <window_info anchor="right" id="Palette&#9;" order="4" />
       <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.5005208" side_tool="true" weight="0.46014878" />
       <window_info anchor="right" id="Maven Projects" order="5" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.49947917" visible="true" weight="0.31754875" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.49947917" visible="true" weight="0.33983287" />
       <window_info anchor="bottom" id="Version Control" order="8" />
       <window_info anchor="bottom" id="Terminal" order="7" />
       <window_info id="Designer" order="2" />
@@ -472,7 +480,8 @@
     <MESSAGE value="Added minheight/minwidth property to properties enum.&#10;&#10;Closes #7" />
     <MESSAGE value="Partial Cursor implementation in the textbox." />
     <MESSAGE value="Partial Cursor implementation in the textbox.&#10;Can now click to focus on a particular index of text." />
-    <option name="LAST_COMMIT_MESSAGE" value="Partial Cursor implementation in the textbox.&#10;Can now click to focus on a particular index of text." />
+    <MESSAGE value="Cursor is now clickable anywhere in the text box and it will go to the nearest character.&#10;&#10;Closes #10" />
+    <option name="LAST_COMMIT_MESSAGE" value="Cursor is now clickable anywhere in the text box and it will go to the nearest character.&#10;&#10;Closes #10" />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/src/gui/window.rs">
@@ -673,13 +682,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Cargo.toml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="340">
-          <caret line="20" column="14" selection-start-line="20" selection-start-column="14" selection-end-line="20" selection-end-column="14" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/lib.rs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="170">
@@ -747,10 +749,17 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/Cargo.toml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="320">
+          <caret line="20" column="15" lean-forward="true" selection-start-line="20" selection-start-column="15" selection-end-line="20" selection-end-column="15" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/elements/textbox.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="384">
-          <caret line="224" column="13" selection-start-line="224" selection-start-column="13" selection-end-line="224" selection-end-column="13" />
+        <state relative-caret-position="344">
+          <caret line="306" column="118" selection-start-line="306" selection-start-column="118" selection-end-line="306" selection-end-column="118" />
           <folding>
             <element signature="e#1507#1508#0" expanded="true" />
             <element signature="e#1540#1541#0" expanded="true" />
