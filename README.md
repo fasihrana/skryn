@@ -12,6 +12,8 @@ skryn is a (work-in-progress) Desktop GUI framework based on [servo/webrender](h
 4. Library provided minimalistic `Observable`s. 
 5. Multithreading safe.
 6. Simplified length Units (Natural, Extent, Stretch, Pixel).
+7. Show a cursor in `TextBox` element.
+8. Paste into and Copy from `TextBox`.
 
 ## Project Status (Limitations/Features planned)
 
@@ -19,9 +21,8 @@ There are many limitations in the project. Following is the known list of these 
 
 1. Cross Element communication
 2. Observables need a better implementation.
-3. Show a cursor in `TextBox` element and use [pilcrow](https://github.com/pcwalton/pilcrow) for paragraph rendering.
+3. Use [pilcrow](https://github.com/pcwalton/pilcrow) for paragraph rendering.
 4. There are no animations at the moment. (Possible through implementation of own Element).
 5. `ElementEvent` needs more events like HoverBegin,HoverEnd.
 6. Needs z-index like concept.
 7. Depends on `rusttype` at the moment which will be replaced with [font-kit](https://github.com/pcwalton/font-kit) when it is ready.
-8. Copy/Paste into textboxes.
