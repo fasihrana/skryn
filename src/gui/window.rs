@@ -15,6 +15,7 @@ use std::sync::{Arc, Mutex};
 use std::ops::DerefMut;
 use std::thread;
 use std::time::Duration;
+use std::mem;
 
 impl Into<properties::Position> for glutin::dpi::LogicalPosition {
     fn into(self) -> properties::Position {
@@ -214,7 +215,9 @@ impl Internals{
 
         self.events_loop.poll_events(|event|{
             match event {
-                glutin::Event::WindowEvent { event: glutin::WindowEvent::CloseRequested, .. } => {
+                glutin::Event::WindowEvent { event: glutin::WindowEvent::CloseRequested, window_id } => {
+                    println!("close requested {:?}", window_id);
+                    {TODEL.lock().unwrap().push(window_id);}
                     events.push(PrimitiveEvent::Exit);
                 },
                 glutin::Event::WindowEvent {event: glutin::WindowEvent::CursorEntered {..}, .. } => {
@@ -301,6 +304,14 @@ impl Internals{
 
         events
     }
+
+    fn get_window_id (&self) -> glutin::WindowId{
+        self.gl_window.id().clone()
+    }
+
+    fn deinit(self){
+        self.renderer.deinit();
+    }
 }
 
 pub struct Window {
@@ -380,7 +391,7 @@ impl Window {
             }
             match e {
                 PrimitiveEvent::Exit => {
-                    exit = true;
+                    //exit = true;
                 },
                 PrimitiveEvent::Resized(size) => {
                     self.width = size.width;
@@ -475,18 +486,6 @@ impl Window {
         exit
     }
 
-    pub fn deinit(self) -> Arc<Mutex<Element>> {
-        /*let x = self.renderer;
-        x.deinit();*/
-        let ex = self.internals;
-        if let Some(i) = ex {
-            let r = i.renderer;
-            r.deinit();
-        }
-        let ex = self.root;
-        ex
-    }
-
     fn render_root(&mut self, builder:&mut DisplayListBuilder, font_store:&mut font::FontStore, dpi: f32){
         let mut gen = self.id_generator.clone();
         gen.zero();
@@ -515,8 +514,18 @@ impl Window {
     }
 }
 
+impl Drop for Window{
+    fn drop(&mut self) {
+        let mut x = None;
+        mem::swap(&mut x, &mut self.internals);
+        let x = x.unwrap();
+        x.deinit();
+    }
+}
+
 lazy_static!(
     static ref TOADD: Mutex<Vec<(Arc<Mutex<Element>>,String,f64,f64)>> = Mutex::new(vec![]);
+    static ref TODEL: Mutex<Vec<glutin::WindowId>> = Mutex::new(vec![]);
 );
 
 pub struct Manager{
@@ -564,11 +573,32 @@ impl Manager{
                     }
                     //render the windows
                     while i < wm.windows.len() {
-                        if wm.windows[i].tick() {
-                            let w = wm.windows.remove(i);
-                            w.deinit();
-                        } else {
+                        //if
+                        wm.windows[i].tick();// {
+                        //    let w = wm.windows.remove(i);
+                        //    w.deinit();
+                        //} else {
                             i += 1;
+                        //}
+                    }
+                    //Remove Windows not required
+                    if let Ok(ref mut to_del) = TODEL.lock() {
+                        loop {
+                            if to_del.len() > 0 {
+                                let wid = to_del.remove(0);
+                                wm.windows.retain(|elm|{
+                                    let mut keep = true;
+                                    if let Some(ref int) = elm.internals {
+                                        let _tid = int.get_window_id();
+                                        if wid == _tid {
+                                            keep = false;
+                                        }
+                                    }
+                                    keep
+                                });
+                            } else {
+                                break;
+                            }
                         }
                     }
                     //if all windows done, then exit the app
