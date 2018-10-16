@@ -216,7 +216,6 @@ impl Internals{
         self.events_loop.poll_events(|event|{
             match event {
                 glutin::Event::WindowEvent { event: glutin::WindowEvent::CloseRequested, window_id } => {
-                    println!("close requested {:?}", window_id);
                     {TODEL.lock().unwrap().push(window_id);}
                     events.push(PrimitiveEvent::Exit);
                 },
@@ -280,7 +279,6 @@ impl Internals{
                     //println!("scrolling {} {}",dx,dy);
                 },
                 glutin::Event::WindowEvent{event: glutin::WindowEvent::KeyboardInput{input: glutin::KeyboardInput{scancode, state, virtual_keycode, modifiers}, ..}, ..} => {
-                    //println!("scancode {}", scancode);
                     events.push(PrimitiveEvent::KeyInput(virtual_keycode,scancode, state.into(), modifiers.into()));
                 },
                 glutin::Event::WindowEvent {event: glutin::WindowEvent::ReceivedCharacter(c), ..} => {
