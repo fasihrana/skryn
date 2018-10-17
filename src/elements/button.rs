@@ -69,7 +69,7 @@ impl Element for Button {
     fn render(&mut self,
               builder: &mut DisplayListBuilder,
               extent: properties::Extent,
-              font_store: &mut font::FontStore,
+              //font_store: &mut font::FontStore,
               _props: Option<Arc<properties::Properties>>,
               gen: &mut properties::IdGenerator) {
 
@@ -87,7 +87,7 @@ impl Element for Button {
         let width = self.props.get_width();
         let height = self.props.get_height();
 
-        if self.focus {
+        /*if self.focus {
             color = self.props.get_focus_color();
             bgcolor = self.props.get_focus_bg_color();
         }
@@ -177,7 +177,15 @@ impl Element for Button {
             if self.drawn > 2 {
                 self.drawn = 2;
             }
-        }
+        }*/
+
+        self.bounds = properties::Extent{
+            x: extent.x,
+            y: extent.y,
+            w: 30.0,
+            h: 30.0,
+            dpi: extent.dpi,
+        };
 
         let mut info = LayoutPrimitiveInfo::new(LayoutRect::new(
             LayoutPoint::new(extent.x, extent.y),
@@ -186,7 +194,7 @@ impl Element for Button {
         info.tag = Some((_id, 0));
         builder.push_rect(&info, bgcolor);
 
-        let info = LayoutPrimitiveInfo::new(LayoutRect::new(
+        /*let info = LayoutPrimitiveInfo::new(LayoutRect::new(
             LayoutPoint::new(extent.x, extent.y),
             LayoutSize::new(extent.w, extent.h)
         ));
@@ -194,7 +202,7 @@ impl Element for Button {
                           &glyphs,
                           fi_key.clone(),
                           color.clone(),
-                          Some(GlyphOptions::default()));
+                          Some(GlyphOptions::default()));*/
 
     }
 

@@ -116,7 +116,7 @@ impl Element for TextBox{
     fn render(&mut self,
               builder: &mut DisplayListBuilder,
               extent: properties::Extent,
-              font_store: &mut font::FontStore,
+              //font_store: &mut font::FontStore,
               _props: Option<Arc<properties::Properties>>,
               gen: &mut properties::IdGenerator) {
         let _id = gen.get();
@@ -136,7 +136,7 @@ impl Element for TextBox{
         let width = self.props.get_width();
         let height = self.props.get_height();
 
-        if self.focus && self.enabled && self.editable {
+        /*if self.focus && self.enabled && self.editable {
             color = self.props.get_focus_color();
             bgcolor = self.props.get_focus_bg_color();
         }
@@ -246,7 +246,7 @@ impl Element for TextBox{
                 h: calc_h,
                 dpi: extent.dpi,
             };
-        }
+        }*/
 
         let mut info = LayoutPrimitiveInfo::new(LayoutRect::new(
             LayoutPoint::new(extent.x, extent.y),
@@ -255,7 +255,7 @@ impl Element for TextBox{
         info.tag = Some((_id, 0));
         builder.push_rect(&info, bgcolor);
 
-        let info = LayoutPrimitiveInfo::new(LayoutRect::new(
+        /*let info = LayoutPrimitiveInfo::new(LayoutRect::new(
             LayoutPoint::new(extent.x, extent.y),
             LayoutSize::new(extent.w, extent.h)
         ));
@@ -272,7 +272,7 @@ impl Element for TextBox{
                     LayoutSize::new(1.0, size)
                 ));
             builder.push_rect(&info, color.clone());
-        }
+        }*/
     }
 
     fn get_bounds(&self) -> properties::Extent {

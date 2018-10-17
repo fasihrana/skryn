@@ -1,5 +1,4 @@
-
-
+/*
 use std::sync::{Arc,Mutex};
 use std::collections::HashMap;
 
@@ -63,6 +62,7 @@ impl InstanceKeys{
         if x.is_some(){
             return x.unwrap().clone();
         }
+
         let ikey = api.generate_font_instance_key();
 
         let mut txn = Transaction::new();
@@ -73,6 +73,7 @@ impl InstanceKeys{
                               None,
                               Vec::new());
         api.send_transaction(document_id,txn);
+
         return ikey;
     }
 }
@@ -120,3 +121,18 @@ impl FontStore {
         get_font(family).1
     }
 }
+
+impl Drop for FontStore {
+    fn drop(&mut self) {
+        let mut txn = Transaction::new();
+        for (_,ik) in &self.store {
+            let _k = ik.key.clone();
+            for (_,_ik) in &ik.instances {
+                txn.delete_font_instance(_ik.clone());
+            }
+            txn.delete_font(_k);
+        }
+        self.api.send_transaction(self.document_id,txn);
+    }
+}
+*/
