@@ -9,8 +9,9 @@ use webrender::api::*;
 use glutin;
 use glutin::{VirtualKeyCode,ScanCode};
 
-use gui::font;
 use gui::properties;
+use gui::font;
+
 
 #[derive(Debug, Clone)]
 pub enum PrimitiveEvent {

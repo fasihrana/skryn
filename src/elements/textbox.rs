@@ -2,8 +2,9 @@ use std::sync::Arc;
 use std::any::Any;
 
 use glutin::VirtualKeyCode;
-use rusttype;
+//use rusttype;
 use webrender::api::*;
+use webrender;
 use clipboard::{ClipboardProvider, ClipboardContext};
 
 use elements::element::*;
@@ -135,6 +136,8 @@ impl Element for TextBox{
         let mut bgcolor = self.props.get_bg_color();
         let width = self.props.get_width();
         let height = self.props.get_height();
+
+
 
         /*if self.focus && self.enabled && self.editable {
             color = self.props.get_focus_color();

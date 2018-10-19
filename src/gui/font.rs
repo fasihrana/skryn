@@ -136,3 +136,36 @@ impl Drop for FontStore {
     }
 }
 */
+
+use euclid;
+use gui;
+use lazy_static;
+use font_kit::{canvas::Canvas, canvas::Format, source::SystemSource, properties, font::Font };
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
+
+lazy_static!(
+    static ref FONTDIRECTORY :Arc<Mutex<HashMap<String,Font>>> = Arc::new(Mutex::new(HashMap::new()));
+);
+
+fn load(name: String){
+    let font = SystemSource::new().select_by_postscript_name(&name[0..])
+        .unwrap()
+        .load()
+        .unwrap();
+
+    if let Ok(ref mut dict) = FONTDIRECTORY.lock() {
+        dict.insert(name, font);
+    }
+}
+
+fn get(name: String) {
+    let f = {
+        if let Ok(dict) = FONTDIRECTORY.lock() {
+            let e = dict.get(&name).unwrap();
+            e.copy_font_data()
+        } else {
+            None
+        }
+    };
+}
