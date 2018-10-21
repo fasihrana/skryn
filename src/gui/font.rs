@@ -2,7 +2,7 @@ use euclid;
 use gui;
 use lazy_static;
 use font_kit;
-use font_kit::{source::SystemSource, font::Font, family_name::FamilyName, };
+use font_kit::{source::SystemSource, font::Font, family_name::FamilyName};
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, Mutex};
 use webrender::api::*;
@@ -12,26 +12,25 @@ lazy_static!(
     static ref FONTDIRECTORY :Arc<Mutex<HashMap<String,Font>>> = Arc::new(Mutex::new(HashMap::new()));
 );
 
-fn load_font_by_name(name: &String){
-
+fn load_font_by_name(name: &String) -> Font {
     let mut props = font_kit::properties::Properties::new();
 
     props.weight = font_kit::properties::Weight::NORMAL;
     props.stretch = font_kit::properties::Stretch::NORMAL;
     props.style = font_kit::properties::Style::Normal;
 
-    let source  = SystemSource::new();
+    let source = SystemSource::new();
 
-    let font = source
+    source
         .select_best_match(&[FamilyName::Title(name.clone())], &props)
-        .unwrap().load().unwrap();
+        .unwrap().load().unwrap()
 
-    if let Ok(ref mut dict) = FONTDIRECTORY.lock() {
+    /*if let Ok(ref mut dict) = FONTDIRECTORY.lock() {
         dict.insert(name.clone(), font);
-    }
+    }*/
 }
 
-fn get_font(name: &String) -> Option<Arc<Vec<u8>>>{
+fn get_font(name: &String) -> Option<Arc<Vec<u8>>> {
     let mut load_font = false;
     let mut f = {
         if let Ok(dict) = FONTDIRECTORY.lock() {
@@ -55,9 +54,9 @@ fn get_font(name: &String) -> Option<Arc<Vec<u8>>>{
 }
 
 
-
 fn add_font(name: &String, api: &RenderApi, document_id: DocumentId) -> FontKey {
-    let f = get_font(name).unwrap();
+    let font = load_font_by_name(name);
+    let f = font.copy_font_data().unwrap();//get_font(name).unwrap();
     let key = api.generate_font_key();
 
     let mut txn = Transaction::new();
@@ -69,20 +68,20 @@ fn add_font(name: &String, api: &RenderApi, document_id: DocumentId) -> FontKey 
 
 struct InstanceKeys {
     key: FontKey,
-    instances: HashMap<i32,FontInstanceKey>
+    instances: HashMap<i32, FontInstanceKey>,
 }
 
-impl InstanceKeys{
-    fn new(_key:FontKey) -> InstanceKeys {
-        InstanceKeys{
+impl InstanceKeys {
+    fn new(_key: FontKey) -> InstanceKeys {
+        InstanceKeys {
             key: _key.clone(),
             instances: HashMap::new(),
         }
     }
 
-    fn get_instance_key(&mut self, size: i32, api: &RenderApi, document_id: DocumentId) -> FontInstanceKey{
+    fn get_instance_key(&mut self, size: i32, api: &RenderApi, document_id: DocumentId) -> FontInstanceKey {
         let x = self.instances.get(&size);
-        if x.is_some(){
+        if x.is_some() {
             return x.unwrap().clone();
         }
 
@@ -95,28 +94,28 @@ impl InstanceKeys{
                               None,
                               None,
                               Vec::new());
-        api.send_transaction(document_id,txn);
+        api.send_transaction(document_id, txn);
 
         return ikey;
     }
 }
 
-pub struct FontStore{
+pub struct FontStore {
     store: HashMap<String, InstanceKeys>,
     api: RenderApi,
     document_id: DocumentId,
 }
 
 impl FontStore {
-    pub fn new (api: RenderApi, document_id: DocumentId) -> FontStore {
-        FontStore{
+    pub fn new(api: RenderApi, document_id: DocumentId) -> FontStore {
+        FontStore {
             api,
             document_id,
             store: HashMap::new(),
         }
     }
 
-    pub fn get_font_instance_key(&mut self, family: &String, size: i32) -> (FontKey,FontInstanceKey) {
+    pub fn get_font_instance_key(&mut self, family: &String, size: i32) -> (FontKey, FontInstanceKey) {
         {
             let ikeys = self.store.get_mut(family);
             if let Some(mut _keys) = ikeys {
@@ -125,7 +124,6 @@ impl FontStore {
             }
         }
         {
-
             let fkey = add_font(family, &self.api, self.document_id);
 
             let mut _keys = InstanceKeys::new(fkey);
@@ -133,33 +131,41 @@ impl FontStore {
 
             self.store.insert(family.clone(), _keys);
 
-            return (fkey.clone(),_ikey);
+            return (fkey.clone(), _ikey);
         }
     }
 
-    pub fn get_glyphs(&self, f_key: FontKey, fi_key: FontInstanceKey, val: &HashSet<char>) -> HashMap<char,(GlyphIndex, GlyphDimensions)>{
+    pub fn get_glyphs(&self, f_key: FontKey, fi_key: FontInstanceKey, val: &HashSet<char>) -> HashMap<char, (GlyphIndex, GlyphDimensions)> {
         let mut name = "".to_owned();
-        for ( family,  _f) in &self.store {
+        for (family, _f) in &self.store {
             if _f.key == f_key {
                 name = family.clone();
                 break;
             }
         }
 
-        let mut map:HashMap<char, (GlyphIndex, GlyphDimensions)> = HashMap::new();
+        let mut map: HashMap<char, (GlyphIndex, GlyphDimensions)> = HashMap::new();
 
-        if let Ok(fd) = FONTDIRECTORY.lock() {
-            let font = fd.get(&name).unwrap();
-            for c in val.iter().cloned() {
-                let tmp = font.glyph_for_char(c);
-                if let Some(g) = tmp {
-                    //TODO improve this line to create the vetor of all glyphs first and then get the dimension
-                    let dim = self.api.get_glyph_dimensions(fi_key,vec![g.clone()]);
-                    if let Some(d) = dim[0] {
-                        map.insert(c, (g, d));
-                    }
-                }
+        let mut str_val = "".to_owned();
+        for _c in val.iter() {
+            str_val = format!("{}{}", str_val, _c);
+        };
+
+        let gi = self.api.get_glyph_indices(f_key, &str_val);
+        let gi: Vec<u32> = gi.iter().map(|_gi| {
+            match _gi {
+                Some(v) => v.clone(),
+                _ => 0
             }
+        }).collect();
+        let gd = self.api.get_glyph_dimensions(fi_key, gi.clone());
+
+        let mut i = 0;
+        for c in val.iter().cloned() {
+            if let Some(gd) = gd[i] {
+                map.insert(c, (gi[i], gd));
+            }
+            i += 1;
         }
 
         map
@@ -167,14 +173,14 @@ impl FontStore {
 
     pub fn deinit(&mut self) {
         let mut txn = Transaction::new();
-        for (_,ik) in &self.store {
+        for (_, ik) in &self.store {
             let _k = ik.key.clone();
-            for (_,_ik) in &ik.instances {
+            for (_, _ik) in &ik.instances {
                 txn.delete_font_instance(_ik.clone());
             }
             txn.delete_font(_k);
         }
-        self.api.send_transaction(self.document_id,txn);
+        self.api.send_transaction(self.document_id, txn);
     }
 }
 

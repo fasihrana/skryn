@@ -190,8 +190,6 @@ impl Internals{
 
         let font_store = Arc::new(Mutex::new(font::FontStore::new(api.clone_sender().create_api(),document_id.clone())));
 
-        font_store.lock().unwrap().get_font_instance_key(&String::from("Arial"), 12);
-
         Internals{
             gl_window: window,
             events_loop,
