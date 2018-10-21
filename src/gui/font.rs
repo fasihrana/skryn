@@ -8,9 +8,9 @@ use std::sync::{Arc, Mutex};
 use webrender::api::*;
 use app_units;
 
-lazy_static!(
+/*lazy_static!(
     static ref FONTDIRECTORY :Arc<Mutex<HashMap<String,Font>>> = Arc::new(Mutex::new(HashMap::new()));
-);
+);*/
 
 fn load_font_by_name(name: &String) -> Font {
     let mut props = font_kit::properties::Properties::new();
@@ -30,7 +30,7 @@ fn load_font_by_name(name: &String) -> Font {
     }*/
 }
 
-fn get_font(name: &String) -> Option<Arc<Vec<u8>>> {
+/*fn get_font(name: &String) -> Option<Arc<Vec<u8>>> {
     let mut load_font = false;
     let mut f = {
         if let Ok(dict) = FONTDIRECTORY.lock() {
@@ -51,7 +51,7 @@ fn get_font(name: &String) -> Option<Arc<Vec<u8>>> {
     }
 
     f
-}
+}*/
 
 
 fn add_font(name: &String, api: &RenderApi, document_id: DocumentId) -> FontKey {
@@ -115,7 +115,7 @@ impl FontStore {
         }
     }
 
-    pub fn get_font_instance_key(&mut self, family: &String, size: i32) -> (FontKey, FontInstanceKey) {
+    pub fn get_font_instance(&mut self, family: &String, size: i32) -> (FontKey, FontInstanceKey) {
         {
             let ikeys = self.store.get_mut(family);
             if let Some(mut _keys) = ikeys {

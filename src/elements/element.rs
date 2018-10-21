@@ -24,7 +24,8 @@ pub enum PrimitiveEvent {
     KeyInput(Option<VirtualKeyCode>,ScanCode,properties::ButtonState,properties::Modifiers),
     SetFocus(bool),
     Resized(glutin::dpi::LogicalSize),
-    DPI(f64)
+    DPI(f64),
+    Hover(properties::Position)
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]

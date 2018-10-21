@@ -91,12 +91,10 @@ impl Element for Button {
             bgcolor = self.props.get_focus_bg_color();
         }
 
-        let (f_key, fi_key) = font_store.get_font_instance_key(&family, size as i32);
+        let (f_key, fi_key) = font_store.get_font_instance(&family, size as i32);
 
         let mut next_x = extent.x;
         let mut next_y = extent.y + size;
-
-        let mut ignore_ws = true;
 
         let char_set: HashSet<char> = HashSet::from_iter(self.value.chars());
 
@@ -117,21 +115,15 @@ impl Element for Button {
             if _char == '\r' || _char == '\n' {
                 next_y = next_y + size;
                 next_x = 0.0;
-                ignore_ws = true;
                 continue;
             }
 
             if _char == ' ' || _char == '\t' {
-                if ignore_ws {
-                    continue;
-                } else {
-                    next_x += (size/3.0);
-                }
+                next_x += (size/3.0);
+                continue;
             }
 
             let _glyph = mappings.get(&_char);
-
-            ignore_ws = false;
 
             if let Some((gi, gd)) = _glyph {
                 glyphs.push(GlyphInstance {
@@ -140,9 +132,10 @@ impl Element for Button {
                 });
 
                 next_x = next_x + gd.advance;
-                if max_x < next_x {
-                    max_x = next_x;
-                }
+            }
+
+            if max_x < next_x {
+                max_x = next_x;
             }
         }
 
