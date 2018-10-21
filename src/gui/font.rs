@@ -1,7 +1,8 @@
 use euclid;
 use gui;
 use lazy_static;
-use font_kit::{canvas::Canvas, canvas::Format, source::SystemSource, properties, font::Font };
+use font_kit;
+use font_kit::{source::SystemSource, font::Font, family_name::FamilyName, };
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, Mutex};
 use webrender::api::*;
@@ -11,11 +12,19 @@ lazy_static!(
     static ref FONTDIRECTORY :Arc<Mutex<HashMap<String,Font>>> = Arc::new(Mutex::new(HashMap::new()));
 );
 
-fn load_font_by_postscript_name(name: &String){
-    let font = SystemSource::new().select_by_postscript_name(&name[0..])
-        .unwrap()
-        .load()
-        .unwrap();
+fn load_font_by_name(name: &String){
+
+    let mut props = font_kit::properties::Properties::new();
+
+    props.weight = font_kit::properties::Weight::NORMAL;
+    props.stretch = font_kit::properties::Stretch::NORMAL;
+    props.style = font_kit::properties::Style::Normal;
+
+    let source  = SystemSource::new();
+
+    let font = source
+        .select_best_match(&[FamilyName::Title(name.clone())], &props)
+        .unwrap().load().unwrap();
 
     if let Ok(ref mut dict) = FONTDIRECTORY.lock() {
         dict.insert(name.clone(), font);
@@ -38,7 +47,7 @@ fn get_font(name: &String) -> Option<Arc<Vec<u8>>>{
     };
 
     if load_font {
-        load_font_by_postscript_name(name);
+        load_font_by_name(name);
         f = FONTDIRECTORY.lock().unwrap().get(name).unwrap().copy_font_data();
     }
 
