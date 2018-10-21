@@ -115,9 +115,10 @@ impl Element for TextBox{
     }
 
     fn render(&mut self,
+              api: &RenderApi,
               builder: &mut DisplayListBuilder,
               extent: properties::Extent,
-              //font_store: &mut font::FontStore,
+              font_store: &mut font::FontStore,
               _props: Option<Arc<properties::Properties>>,
               gen: &mut properties::IdGenerator) {
         let _id = gen.get();

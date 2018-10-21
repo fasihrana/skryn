@@ -1,47 +1,61 @@
-/*
-use std::sync::{Arc,Mutex};
-use std::collections::HashMap;
-
-use webrender::api::{FontKey,FontInstanceKey, Transaction, RenderApi, DocumentId};
-use floader::system_fonts;
+use euclid;
+use gui;
+use lazy_static;
+use font_kit::{canvas::Canvas, canvas::Format, source::SystemSource, properties, font::Font };
+use std::collections::{HashMap, HashSet};
+use std::sync::{Arc, Mutex};
+use webrender::api::*;
 use app_units;
-use rusttype;
 
-lazy_static! {
-    static ref MAP: Mutex<HashMap<String,(Arc<Vec<u8>>,Arc<rusttype::Font<'static>>)>> = Mutex::new(HashMap::new());
+lazy_static!(
+    static ref FONTDIRECTORY :Arc<Mutex<HashMap<String,Font>>> = Arc::new(Mutex::new(HashMap::new()));
+);
+
+fn load_font_by_postscript_name(name: &String){
+    let font = SystemSource::new().select_by_postscript_name(&name[0..])
+        .unwrap()
+        .load()
+        .unwrap();
+
+    if let Ok(ref mut dict) = FONTDIRECTORY.lock() {
+        dict.insert(name.clone(), font);
+    }
 }
 
-fn find_in_map(family : &str) -> Option<(Arc<Vec<u8>>,Arc<rusttype::Font>)>{
-    let map = MAP.lock().unwrap();
-    let tuple =  map.get(family);
-    match tuple {
-        None => None,
-        Some(val) => {
-            Some(val.clone())
+fn get_font(name: &String) -> Option<Arc<Vec<u8>>>{
+    let mut load_font = false;
+    let mut f = {
+        if let Ok(dict) = FONTDIRECTORY.lock() {
+            if let Some(e) = dict.get(name) {
+                e.copy_font_data()
+            } else {
+                load_font = true;
+                None
+            }
+        } else {
+            None
         }
+    };
+
+    if load_font {
+        load_font_by_postscript_name(name);
+        f = FONTDIRECTORY.lock().unwrap().get(name).unwrap().copy_font_data();
     }
+
+    f
 }
 
-fn add_to_map(family: &str, bytes: Arc<Vec<u8>>) {
-    let mut map = MAP.lock().unwrap();
-    let font_coll = rusttype::FontCollection::from_bytes(bytes.to_vec()).unwrap();
-    let font_type =  Arc::new(font_coll.into_font().unwrap());
-    map.insert(String::from(family),(bytes,font_type));
-}
 
-fn get_font(family : &str) -> (Arc<Vec<u8>>,Arc<rusttype::Font>){
-    let mut bytes = find_in_map(family);
-    if bytes.is_none() {
-        let mut fprops = system_fonts::FontPropertyBuilder::new()
-            .family(family)
-            .build();
-        let (font_bytes, _) = system_fonts::get(&mut fprops).unwrap();
-        let font_bytes = Arc::new(font_bytes);
-        add_to_map(family, font_bytes);
-        bytes = find_in_map(family);
-    }
-    let bytes = bytes.unwrap();
-    return bytes.clone();
+
+fn add_font(name: &String, api: &RenderApi, document_id: DocumentId) -> FontKey {
+    let f = get_font(name).unwrap();
+    let key = api.generate_font_key();
+
+    let mut txn = Transaction::new();
+    txn.add_raw_font(key.clone(), (*f).to_owned(), 0);
+    api.send_transaction(document_id, txn);
+
+    key
 }
 
 struct InstanceKeys {
@@ -93,37 +107,56 @@ impl FontStore {
         }
     }
 
-    pub fn get_font_instance_key(&mut self, family: &String, size: i32) -> FontInstanceKey {
+    pub fn get_font_instance_key(&mut self, family: &String, size: i32) -> (FontKey,FontInstanceKey) {
         {
-            let keys = self.store.get_mut(family);
-            if let Some(mut _keys) = keys {
+            let ikeys = self.store.get_mut(family);
+            if let Some(mut _keys) = ikeys {
                 let ik = _keys.get_instance_key(size, &(self.api), self.document_id);
-                return ik.clone();
+                return (_keys.key.clone(), ik.clone());
             }
         }
         {
-            let bytes = get_font(&family).0.clone();
 
-            let fkey = self.api.generate_font_key();
-            let mut txn = Transaction::new();
-            txn.add_raw_font(fkey, bytes.to_vec(), 0);
-            self.api.send_transaction(self.document_id, txn);
+            let fkey = add_font(family, &self.api, self.document_id);
 
             let mut _keys = InstanceKeys::new(fkey);
-            let _ikey = _keys.get_instance_key(size, &(self.api), self.document_id);
+            let _ikey = _keys.get_instance_key(size, &self.api, self.document_id);
+
             self.store.insert(family.clone(), _keys);
 
-            return _ikey;
+            return (fkey.clone(),_ikey);
         }
     }
 
-    pub fn get_font_type<'a>(&'a mut self, family:&'a String) -> Arc<rusttype::Font<'a>>{
-        get_font(family).1
-    }
-}
+    pub fn get_glyphs(&self, f_key: FontKey, fi_key: FontInstanceKey, val: &HashSet<char>) -> HashMap<char,(GlyphIndex, GlyphDimensions)>{
+        let mut name = "".to_owned();
+        for ( family,  _f) in &self.store {
+            if _f.key == f_key {
+                name = family.clone();
+                break;
+            }
+        }
 
-impl Drop for FontStore {
-    fn drop(&mut self) {
+        let mut map:HashMap<char, (GlyphIndex, GlyphDimensions)> = HashMap::new();
+
+        if let Ok(fd) = FONTDIRECTORY.lock() {
+            let font = fd.get(&name).unwrap();
+            for c in val.iter().cloned() {
+                let tmp = font.glyph_for_char(c);
+                if let Some(g) = tmp {
+                    //TODO improve this line to create the vetor of all glyphs first and then get the dimension
+                    let dim = self.api.get_glyph_dimensions(fi_key,vec![g.clone()]);
+                    if let Some(d) = dim[0] {
+                        map.insert(c, (g, d));
+                    }
+                }
+            }
+        }
+
+        map
+    }
+
+    pub fn deinit(&mut self) {
         let mut txn = Transaction::new();
         for (_,ik) in &self.store {
             let _k = ik.key.clone();
@@ -135,37 +168,5 @@ impl Drop for FontStore {
         self.api.send_transaction(self.document_id,txn);
     }
 }
-*/
 
-use euclid;
-use gui;
-use lazy_static;
-use font_kit::{canvas::Canvas, canvas::Format, source::SystemSource, properties, font::Font };
-use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
 
-lazy_static!(
-    static ref FONTDIRECTORY :Arc<Mutex<HashMap<String,Font>>> = Arc::new(Mutex::new(HashMap::new()));
-);
-
-fn load(name: String){
-    let font = SystemSource::new().select_by_postscript_name(&name[0..])
-        .unwrap()
-        .load()
-        .unwrap();
-
-    if let Ok(ref mut dict) = FONTDIRECTORY.lock() {
-        dict.insert(name, font);
-    }
-}
-
-fn get(name: String) {
-    let f = {
-        if let Ok(dict) = FONTDIRECTORY.lock() {
-            let e = dict.get(&name).unwrap();
-            e.copy_font_data()
-        } else {
-            None
-        }
-    };
-}

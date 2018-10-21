@@ -123,7 +123,7 @@ impl RenderNotifier for WindowNotifier {
 struct Internals {
     gl_window: glutin::GlWindow,
     events_loop: glutin::EventsLoop,
-    //font_store: Arc<Mutex<font::FontStore>>,
+    font_store: Arc<Mutex<font::FontStore>>,
     api: RenderApi,
     document_id: DocumentId,
     pipeline_id: PipelineId,
@@ -188,14 +188,14 @@ impl Internals{
         let epoch = Epoch(0);
         let pipeline_id = PipelineId(0, 0);
 
-        //let font_store = Arc::new(Mutex::new(font::FontStore::new(api.clone_sender().create_api(),document_id.clone())));
+        let font_store = Arc::new(Mutex::new(font::FontStore::new(api.clone_sender().create_api(),document_id.clone())));
 
-        //font_store.lock().unwrap().get_font_instance_key(&String::from("Arial"), 12);
+        font_store.lock().unwrap().get_font_instance_key(&String::from("ArialMT"), 12);
 
         Internals{
             gl_window: window,
             events_loop,
-            //font_store,
+            font_store,
             api,
             document_id,
             pipeline_id,
@@ -309,6 +309,7 @@ impl Internals{
     }
 
     fn deinit(self){
+        self.font_store.lock().unwrap().deinit();
         self.renderer.deinit();
         self.api.delete_document(self.document_id);
     }
@@ -372,10 +373,15 @@ impl Window {
 
         let mut events = vec![];
         let mut dpi = 1.0;
+        let api;
 
-        if let Some (ref mut i) = self.internals{
-            events = i.events(&tags);
-            dpi = i.dpi;
+        match self.internals {
+            Some(ref mut i) => {
+                events = i.events(&tags);
+                dpi = i.dpi;
+                api = i.api.clone_sender().create_api();
+            },
+            _ => panic!("in tick but no window internals initialized")
         }
 
         //only for debug. take out later?
@@ -423,7 +429,7 @@ impl Window {
 
             let mut txn = Transaction::new();
             let mut builder = None;
-            //let mut font_store = None;
+            let mut font_store = None;
 
             let (layout_size, framebuffer_size) = if let Some (ref mut i) = self.internals {
                 unsafe {
@@ -442,7 +448,7 @@ impl Window {
 
                 builder = Some(DisplayListBuilder::new(i.pipeline_id, layout_size));
 
-                //font_store = Some(i.font_store.clone());
+                font_store = Some(i.font_store.clone());
 
                 (Some(layout_size), Some(framebuffer_size))
             } else {
@@ -450,13 +456,13 @@ impl Window {
             };
 
             let mut builder = builder.unwrap();
-            //let font_store = font_store.unwrap();
-            //let mut font_store = font_store.lock().unwrap();
-           // let font_store = font_store.deref_mut();
+            let font_store = font_store.unwrap();
+            let mut font_store = font_store.lock().unwrap();
+            let font_store = font_store.deref_mut();
             let framebuffer_size= framebuffer_size.unwrap();
             let layout_size = layout_size.unwrap();
 
-            self.render_root(&mut builder,/*font_store,*/dpi as f32);
+            self.render_root(&api, &mut builder,font_store,dpi as f32);
 
             if let Some(ref mut i) = self.internals{
 
@@ -486,7 +492,7 @@ impl Window {
         exit
     }
 
-    fn render_root(&mut self, builder:&mut DisplayListBuilder, /*font_store:&mut font::FontStore,*/ dpi: f32){
+    fn render_root(&mut self, api: &RenderApi, builder:&mut DisplayListBuilder, font_store:&mut font::FontStore, dpi: f32){
         let mut gen = self.id_generator.clone();
         gen.zero();
 
@@ -502,13 +508,13 @@ impl Window {
             RasterSpace::Screen,
         );
 
-        self.root.lock().unwrap().render(builder, properties::Extent {
+        self.root.lock().unwrap().render(api, builder, properties::Extent {
             x: 0.0,
             y: 0.0,
             w: self.width as f32,
             h: self.height as f32,
             dpi,
-        }, /*font_store,*/ None, &mut gen);
+        }, font_store, None, &mut gen);
 
         builder.pop_stacking_context();
     }
@@ -547,13 +553,13 @@ impl Manager{
         }
     }
 
-    pub fn add(elem: Arc<Mutex<Element>>, name: String, width:f64, height:f64){
-        if let Ok(ref mut to_add) = TOADD.lock(){
-            to_add.push((elem,name,width,height));
-        }
-    }
-
     pub fn start(fps: u64){
+        /*
+            TODO: Have a better frame rate implementation
+            the remaining time to sleep is the max time
+            to sleep minus the time taken to render the
+            windows.
+        */
         loop{
             let mut i = 0;
             let mut wmo = Manager::get();
@@ -578,7 +584,7 @@ impl Manager{
                         //    let w = wm.windows.remove(i);
                         //    w.deinit();
                         //} else {
-                            i += 1;
+                        i += 1;
                         //}
                     }
                     //Remove Windows not required
@@ -608,6 +614,12 @@ impl Manager{
                 }
             }
             thread::sleep(Duration::from_millis(1000/fps));
+        }
+    }
+
+    pub fn add(elem: Arc<Mutex<Element>>, name: String, width:f64, height:f64){
+        if let Ok(ref mut to_add) = TOADD.lock(){
+            to_add.push((elem,name,width,height));
         }
     }
 }

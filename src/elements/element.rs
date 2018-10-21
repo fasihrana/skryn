@@ -51,9 +51,10 @@ pub trait Element:Send+Sync {
     fn set(&mut self, prop: properties::Property);
     fn get(&self, prop: &properties::Property) -> Option<&properties::Property>;
     fn render(&mut self,
+              api: &RenderApi,
               builder: &mut DisplayListBuilder,
               extent: properties::Extent,
-              //font_store: &mut font::FontStore,
+              font_store: &mut font::FontStore,
               props: Option<Arc<properties::Properties>>,
               &mut properties::IdGenerator);
     fn get_bounds(&self) -> properties::Extent;

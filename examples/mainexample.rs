@@ -8,11 +8,11 @@ use std::thread;
 use std::time::Duration;
 
 use skryn::data::*;
-//use skryn::gui::font::FontStore;
+use skryn::gui::font::FontStore;
 use skryn::gui::properties::{Property, Extent, Properties, IdGenerator};
 use skryn::elements::*;
 
-use webrender::api::{ColorF, DisplayListBuilder};
+use webrender::api::{ColorF, DisplayListBuilder, RenderApi};
 
 /*
     Lets start with a Person struct. A
@@ -182,10 +182,10 @@ impl Element for PersonElm {
         None
     }
 
-    fn render(&mut self, builder: &mut DisplayListBuilder, extent: Extent, /*font_store: &mut FontStore,*/ _props: Option<Arc<Properties>>, gen: &mut IdGenerator) {
+    fn render(&mut self, api: &RenderApi, builder: &mut DisplayListBuilder, extent: Extent, font_store: &mut FontStore, _props: Option<Arc<Properties>>, gen: &mut IdGenerator) {
         match self.vbox.lock() {
             Ok(ref mut elm) => {
-                elm.render(builder,extent,/*font_store,*/None, gen);
+                elm.render(api,builder,extent,font_store,None, gen);
                 self.bounds = elm.get_bounds();
             },
             Err(_err_str) => panic!("unable to lock element : {}",_err_str)
@@ -259,6 +259,7 @@ impl Alert{
 }
 
 fn main () {
+
     //create the person.
     let person = Person::new(String::from("<Insert name here>"), 0);
 
