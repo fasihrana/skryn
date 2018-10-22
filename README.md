@@ -25,4 +25,3 @@ There are many limitations in the project. Following is the known list of these 
 4. There are no animations at the moment. (Possible through implementation of own Element).
 5. `ElementEvent` needs more events like HoverBegin,HoverEnd.
 6. Needs z-index like concept.
-7. Depends on `rusttype` at the moment which will be replaced with [font-kit](https://github.com/pcwalton/font-kit) when it is ready.
