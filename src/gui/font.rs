@@ -1,16 +1,8 @@
-use euclid;
-use gui;
-use lazy_static;
+use app_units;
 use font_kit;
 use font_kit::{source::SystemSource, font::Font, family_name::FamilyName};
 use std::collections::{HashMap, HashSet};
-use std::sync::{Arc, Mutex};
 use webrender::api::*;
-use app_units;
-
-/*lazy_static!(
-    static ref FONTDIRECTORY :Arc<Mutex<HashMap<String,Font>>> = Arc::new(Mutex::new(HashMap::new()));
-);*/
 
 fn load_font_by_name(name: &String) -> Font {
     let mut props = font_kit::properties::Properties::new();
@@ -24,39 +16,11 @@ fn load_font_by_name(name: &String) -> Font {
     source
         .select_best_match(&[FamilyName::Title(name.clone())], &props)
         .unwrap().load().unwrap()
-
-    /*if let Ok(ref mut dict) = FONTDIRECTORY.lock() {
-        dict.insert(name.clone(), font);
-    }*/
 }
-
-/*fn get_font(name: &String) -> Option<Arc<Vec<u8>>> {
-    let mut load_font = false;
-    let mut f = {
-        if let Ok(dict) = FONTDIRECTORY.lock() {
-            if let Some(e) = dict.get(name) {
-                e.copy_font_data()
-            } else {
-                load_font = true;
-                None
-            }
-        } else {
-            None
-        }
-    };
-
-    if load_font {
-        load_font_by_name(name);
-        f = FONTDIRECTORY.lock().unwrap().get(name).unwrap().copy_font_data();
-    }
-
-    f
-}*/
-
 
 fn add_font(name: &String, api: &RenderApi, document_id: DocumentId) -> FontKey {
     let font = load_font_by_name(name);
-    let f = font.copy_font_data().unwrap();//get_font(name).unwrap();
+    let f = font.copy_font_data().unwrap();
     let key = api.generate_font_key();
 
     let mut txn = Transaction::new();
@@ -136,14 +100,6 @@ impl FontStore {
     }
 
     pub fn get_glyphs(&self, f_key: FontKey, fi_key: FontInstanceKey, val: &HashSet<char>) -> HashMap<char, (GlyphIndex, GlyphDimensions)> {
-        let mut name = "".to_owned();
-        for (family, _f) in &self.store {
-            if _f.key == f_key {
-                name = family.clone();
-                break;
-            }
-        }
-
         let mut map: HashMap<char, (GlyphIndex, GlyphDimensions)> = HashMap::new();
 
         let mut str_val = "".to_owned();

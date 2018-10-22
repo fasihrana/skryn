@@ -1,12 +1,10 @@
 use std::sync::Arc;
 use std::any::Any;
-use std::collections::{HashSet, HashMap};
+use std::collections::{HashSet};
 use std::iter::FromIterator;
 
 use glutin::VirtualKeyCode;
-//use rusttype;
 use webrender::api::*;
-use webrender;
 use clipboard::{ClipboardProvider, ClipboardContext};
 
 use elements::element::*;
@@ -117,7 +115,7 @@ impl Element for TextBox {
     }
 
     fn render(&mut self,
-              api: &RenderApi,
+              _api: &RenderApi,
               builder: &mut DisplayListBuilder,
               extent: properties::Extent,
               font_store: &mut font::FontStore,
@@ -149,7 +147,7 @@ impl Element for TextBox {
 
         let char_set: HashSet<char> = HashSet::from_iter(self.value.chars());
 
-        let mut mappings = font_store.get_glyphs(f_key, fi_key, &char_set);
+        let mappings = font_store.get_glyphs(f_key, fi_key, &char_set);
         let mut text_iter = self.value.chars();
 
         let mut max_x: f32 = 0.0;
@@ -172,7 +170,7 @@ impl Element for TextBox {
                 skip = true;
             }
             if _char == ' ' || _char == '\t' {
-                next_x += (size / 3.0);
+                next_x += size / 3.0;
             }
 
             let _glyph = mappings.get(&_char);

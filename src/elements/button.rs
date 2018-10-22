@@ -1,6 +1,6 @@
 use std::sync::Arc;
 use std::any::Any;
-use std::collections::{HashMap, HashSet};
+use std::collections::{HashSet};
 use std::iter::FromIterator;
 
 use webrender::api::*;
@@ -68,7 +68,7 @@ impl Element for Button {
     }
 
     fn render(&mut self,
-              api: &RenderApi,
+              _api: &RenderApi,
               builder: &mut DisplayListBuilder,
               extent: properties::Extent,
               font_store: &mut font::FontStore,
@@ -119,7 +119,7 @@ impl Element for Button {
             }
 
             if _char == ' ' || _char == '\t' {
-                next_x += (size/3.0);
+                next_x += size/3.0;
                 continue;
             }
 

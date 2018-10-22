@@ -369,8 +369,8 @@ impl Window {
     pub fn tick(&mut self) -> bool{
         let tags = self.get_tags();
 
-        let mut events = vec![];
-        let mut dpi = 1.0;
+        let events;
+        let mut dpi;
         let api;
 
         match self.internals {
@@ -387,16 +387,16 @@ impl Window {
             println!("{:?}", events);
         }
 
-        let mut exit = false;
+        let exit = false;
 
         for e in events.iter(){
-            if exit {
+            /*if exit {
                 return true;
-            }
+            }*/
             match e {
-                PrimitiveEvent::Exit => {
+                /*PrimitiveEvent::Exit => {
                     //exit = true;
-                },
+                },*/
                 PrimitiveEvent::Resized(size) => {
                     self.width = size.width;
                     self.height = size.height;
