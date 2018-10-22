@@ -49,6 +49,7 @@ impl Element for ScrollBox {
     fn get_ext_id(&self)->u64{self.ext_id}
 
     fn render(&mut self,
+              api: &RenderApi,
               builder: &mut DisplayListBuilder,
               extent: properties::Extent,
               font_store: &mut font::FontStore,
@@ -95,7 +96,7 @@ impl Element for ScrollBox {
         if let Some(ref mut elm) = self.child {
             match elm.lock() {
                 Ok(ref mut elm) => {
-                    elm.render(builder,extent.clone(),font_store,None,gen);
+                    elm.render(api, builder,extent.clone(),font_store,None,gen);
                     bounds = elm.get_bounds();
                 },
                 Err(_err_str) => panic!("unable to lock element : {}",_err_str)

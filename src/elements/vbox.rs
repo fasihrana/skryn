@@ -67,6 +67,7 @@ impl Element for VBox {
     }
 
     fn render(&mut self,
+              api: &RenderApi,
               builder: &mut DisplayListBuilder,
               extent: properties::Extent,
               font_store: &mut font::FontStore,
@@ -113,7 +114,7 @@ impl Element for VBox {
                         _ => ()
                     }
 
-                    elm.render(builder, child_extent, font_store, None, gen);
+                    elm.render(api, builder, child_extent, font_store, None, gen);
                     let _ex = elm.get_bounds();
                     next_y += _ex.h;
                 },

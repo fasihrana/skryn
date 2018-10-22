@@ -9,8 +9,9 @@ use webrender::api::*;
 use glutin;
 use glutin::{VirtualKeyCode,ScanCode};
 
-use gui::font;
 use gui::properties;
+use gui::font;
+
 
 #[derive(Debug, Clone)]
 pub enum PrimitiveEvent {
@@ -23,7 +24,8 @@ pub enum PrimitiveEvent {
     KeyInput(Option<VirtualKeyCode>,ScanCode,properties::ButtonState,properties::Modifiers),
     SetFocus(bool),
     Resized(glutin::dpi::LogicalSize),
-    DPI(f64)
+    DPI(f64),
+    Hover(properties::Position)
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]
@@ -50,6 +52,7 @@ pub trait Element:Send+Sync {
     fn set(&mut self, prop: properties::Property);
     fn get(&self, prop: &properties::Property) -> Option<&properties::Property>;
     fn render(&mut self,
+              api: &RenderApi,
               builder: &mut DisplayListBuilder,
               extent: properties::Extent,
               font_store: &mut font::FontStore,

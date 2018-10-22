@@ -190,8 +190,6 @@ impl Internals{
 
         let font_store = Arc::new(Mutex::new(font::FontStore::new(api.clone_sender().create_api(),document_id.clone())));
 
-        font_store.lock().unwrap().get_font_instance_key(&String::from("Arial"), 12);
-
         Internals{
             gl_window: window,
             events_loop,
@@ -207,6 +205,7 @@ impl Internals{
     }
 
     fn events(&mut self, tags:&Vec<ItemTag>) -> Vec<PrimitiveEvent> {
+
         let mut events = Vec::new();
 
         let mut cursor_position = self.cursor_position.clone();
@@ -308,7 +307,9 @@ impl Internals{
     }
 
     fn deinit(self){
+        self.font_store.lock().unwrap().deinit();
         self.renderer.deinit();
+        self.api.delete_document(self.document_id);
     }
 }
 
@@ -368,12 +369,17 @@ impl Window {
     pub fn tick(&mut self) -> bool{
         let tags = self.get_tags();
 
-        let mut events = vec![];
-        let mut dpi = 1.0;
+        let events;
+        let mut dpi;
+        let api;
 
-        if let Some (ref mut i) = self.internals{
-            events = i.events(&tags);
-            dpi = i.dpi;
+        match self.internals {
+            Some(ref mut i) => {
+                events = i.events(&tags);
+                dpi = i.dpi;
+                api = i.api.clone_sender().create_api();
+            },
+            _ => panic!("in tick but no window internals initialized")
         }
 
         //only for debug. take out later?
@@ -381,16 +387,16 @@ impl Window {
             println!("{:?}", events);
         }
 
-        let mut exit = false;
+        let exit = false;
 
         for e in events.iter(){
-            if exit {
+            /*if exit {
                 return true;
-            }
+            }*/
             match e {
-                PrimitiveEvent::Exit => {
+                /*PrimitiveEvent::Exit => {
                     //exit = true;
-                },
+                },*/
                 PrimitiveEvent::Resized(size) => {
                     self.width = size.width;
                     self.height = size.height;
@@ -454,7 +460,7 @@ impl Window {
             let framebuffer_size= framebuffer_size.unwrap();
             let layout_size = layout_size.unwrap();
 
-            self.render_root(&mut builder,font_store,dpi as f32);
+            self.render_root(&api, &mut builder,font_store,dpi as f32);
 
             if let Some(ref mut i) = self.internals{
 
@@ -484,7 +490,7 @@ impl Window {
         exit
     }
 
-    fn render_root(&mut self, builder:&mut DisplayListBuilder, font_store:&mut font::FontStore, dpi: f32){
+    fn render_root(&mut self, api: &RenderApi, builder:&mut DisplayListBuilder, font_store:&mut font::FontStore, dpi: f32){
         let mut gen = self.id_generator.clone();
         gen.zero();
 
@@ -500,7 +506,7 @@ impl Window {
             RasterSpace::Screen,
         );
 
-        self.root.lock().unwrap().render(builder, properties::Extent {
+        self.root.lock().unwrap().render(api, builder, properties::Extent {
             x: 0.0,
             y: 0.0,
             w: self.width as f32,
@@ -545,13 +551,13 @@ impl Manager{
         }
     }
 
-    pub fn add(elem: Arc<Mutex<Element>>, name: String, width:f64, height:f64){
-        if let Ok(ref mut to_add) = TOADD.lock(){
-            to_add.push((elem,name,width,height));
-        }
-    }
-
     pub fn start(fps: u64){
+        /*
+            TODO: Have a better frame rate implementation
+            the remaining time to sleep is the max time
+            to sleep minus the time taken to render the
+            windows.
+        */
         loop{
             let mut i = 0;
             let mut wmo = Manager::get();
@@ -576,7 +582,7 @@ impl Manager{
                         //    let w = wm.windows.remove(i);
                         //    w.deinit();
                         //} else {
-                            i += 1;
+                        i += 1;
                         //}
                     }
                     //Remove Windows not required
@@ -606,6 +612,12 @@ impl Manager{
                 }
             }
             thread::sleep(Duration::from_millis(1000/fps));
+        }
+    }
+
+    pub fn add(elem: Arc<Mutex<Element>>, name: String, width:f64, height:f64){
+        if let Ok(ref mut to_add) = TOADD.lock(){
+            to_add.push((elem,name,width,height));
         }
     }
 }

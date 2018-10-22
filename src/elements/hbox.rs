@@ -67,6 +67,7 @@ impl  Element for HBox {
     }
 
     fn render(&mut self,
+              api: &RenderApi,
               builder: &mut DisplayListBuilder,
               extent: properties::Extent,
               font_store: &mut font::FontStore,
@@ -113,7 +114,7 @@ impl  Element for HBox {
                         _ => ()
                     }
 
-                    elm.render(builder,child_extent,font_store,None,gen);
+                    elm.render(api,builder,child_extent,font_store,None,gen);
                     let _ex = elm.get_bounds();
                     next_x += _ex.w;
                 },
