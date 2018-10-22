@@ -25,3 +25,4 @@ There are many limitations in the project. Following is the known list of these 
 4. There are no animations at the moment. (Possible through implementation of own Element).
 5. `ElementEvent` needs more events like HoverBegin,HoverEnd.
 6. Needs z-index like concept.
+7. Support for RTL languages.
