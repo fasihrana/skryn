@@ -36,8 +36,24 @@ impl HBox  {
     }
 
     fn get_width_sums(&mut self) -> (f32,f32) {
+        let left = self.props.get_left();
+        let right = self.props.get_right();
+
         let mut stretchy:f32 = 0.0;
         let mut pixel:f32 = 0.0;
+
+        match left {
+            properties::Unit::Stretch(_s) => stretchy += _s,
+            properties::Unit::Pixel(_p) => pixel += _p,
+            _ => ()
+        }
+
+        match right {
+            properties::Unit::Stretch(_s) => stretchy += _s,
+            properties::Unit::Pixel(_p) => pixel += _p,
+            _ => ()
+        }
+
         for elm in self.children.iter_mut() {
             if let Ok(_e) = elm.lock() {
                 let _w = _e.get(&properties::WIDTH).unwrap().clone();
@@ -89,6 +105,14 @@ impl  Element for HBox {
         builder.push_rect(&info, bgcolor);
 
         let mut next_x = 0.0;
+        let left = self.props.get_left();
+        let right = self.props.get_right();
+        match left {
+            properties::Unit::Stretch(_s) => next_x = stretchy_factor * _s,
+            properties::Unit::Pixel(_p) => next_x = _p,
+            _ => (),
+        }
+
         let next_y = 0.0;
 
         for elm in self.children.iter_mut(){
@@ -120,6 +144,12 @@ impl  Element for HBox {
                 },
                 Err(_err_str) => panic!("unable to lock element : {}",_err_str)
             }
+        }
+
+        match right {
+            properties::Unit::Stretch(_s) => next_x += _s*stretchy_factor,
+            properties::Unit::Pixel(_p) => next_x += _p,
+            _ => ()
         }
 
         // TODO: Remove

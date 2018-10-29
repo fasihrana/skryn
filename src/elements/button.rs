@@ -139,7 +139,7 @@ impl Element for Button {
             }
         }
 
-        let mut calc_w = max_x;
+        let mut calc_w = max_x - extent.x;
         let mut calc_h = next_y - extent.y;
 
         calc_w = match width {
@@ -169,7 +169,6 @@ impl Element for Button {
             self.drawn = 2;
         }
 
-
         let mut info = LayoutPrimitiveInfo::new(LayoutRect::new(
             LayoutPoint::new(extent.x, extent.y),
             LayoutSize::new(self.bounds.w, self.bounds.h),
@@ -181,6 +180,7 @@ impl Element for Button {
             LayoutPoint::new(extent.x, extent.y),
             LayoutSize::new(extent.w, extent.h),
         ));
+
         builder.push_text(&info,
                           &glyphs,
                           fi_key.clone(),

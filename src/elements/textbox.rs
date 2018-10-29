@@ -209,7 +209,7 @@ impl Element for TextBox {
 
         self.cache = cache;
 
-        let mut calc_w = max_x;
+        let mut calc_w = max_x - extent.x;
         let mut calc_h = next_y - extent.y;
 
         calc_w = match width {

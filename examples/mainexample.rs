@@ -102,6 +102,8 @@ impl PersonElm{
         let alert_button = Arc::new(Mutex::new(Button::new(format!("Press here!"))));
         let cancel_button = Arc::new(Mutex::new(Button::new(format!("Cancel"))));
         let h = Arc::new(Mutex::new(HBox::new()));
+        h.lock().unwrap().set(skryn::gui::properties::Property::Left(skryn::gui::properties::Unit::Stretch(1.0)));
+        h.lock().unwrap().set(skryn::gui::properties::Property::Right(skryn::gui::properties::Unit::Stretch(1.0)));
         match h.lock() {
             Ok(ref mut h) => {
                 h.append(alert_button.clone());
@@ -120,8 +122,8 @@ impl PersonElm{
         name.lock().unwrap().set(skryn::gui::properties::Property::Height(skryn::gui::properties::Unit::Stretch(0.4)));
         age.lock().unwrap().set(skryn::gui::properties::Property::Height(skryn::gui::properties::Unit::Stretch(0.4)));
         age.lock().unwrap().set_editable(false);
-        alert_button.lock().unwrap().set(skryn::gui::properties::Property::Width(skryn::gui::properties::Unit::Stretch(1.0)));
-        cancel_button.lock().unwrap().set(skryn::gui::properties::Property::Width(skryn::gui::properties::Unit::Stretch(1.0)));
+        alert_button.lock().unwrap().set(skryn::gui::properties::Property::Width(skryn::gui::properties::Unit::Natural));
+        cancel_button.lock().unwrap().set(skryn::gui::properties::Property::Width(skryn::gui::properties::Unit::Natural));
         //Here we have used the Stretch unit for elements above to make sure our VBox below is utilized to the full.
         let v = Arc::new(Mutex::new( VBox::new()));
         match v.lock() {
