@@ -119,13 +119,15 @@ impl PersonElm{
         //  -> Extent means the extent (bounding box) of parent element
         //  -> Stretch means use a percentage of the parent's extent (bounding box)
         //  -> Pixel is the static length
-        name.lock().unwrap().set(skryn::gui::properties::Property::Height(skryn::gui::properties::Unit::Stretch(0.4)));
-        age.lock().unwrap().set(skryn::gui::properties::Property::Height(skryn::gui::properties::Unit::Stretch(0.4)));
+        name.lock().unwrap().set(skryn::gui::properties::Property::Height(skryn::gui::properties::Unit::Stretch(1.0)));
+        age.lock().unwrap().set(skryn::gui::properties::Property::Height(skryn::gui::properties::Unit::Stretch(1.0)));
         age.lock().unwrap().set_editable(false);
-        alert_button.lock().unwrap().set(skryn::gui::properties::Property::Width(skryn::gui::properties::Unit::Natural));
-        cancel_button.lock().unwrap().set(skryn::gui::properties::Property::Width(skryn::gui::properties::Unit::Natural));
+        alert_button.lock().unwrap().set(skryn::gui::properties::Property::Width(skryn::gui::properties::Unit::Pixel(75.0)));
+        cancel_button.lock().unwrap().set(skryn::gui::properties::Property::Width(skryn::gui::properties::Unit::Pixel(75.0)));
         //Here we have used the Stretch unit for elements above to make sure our VBox below is utilized to the full.
         let v = Arc::new(Mutex::new( VBox::new()));
+        v.lock().unwrap().set(skryn::gui::properties::Property::Top(skryn::gui::properties::Unit::Stretch(1.0)));
+        v.lock().unwrap().set(skryn::gui::properties::Property::Bottom(skryn::gui::properties::Unit::Stretch(1.0)));
         match v.lock() {
             Ok(ref mut v) => {
                 v.append(name.clone());

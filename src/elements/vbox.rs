@@ -36,8 +36,24 @@ impl VBox {
     }
 
     fn get_height_sums(&mut self) -> (f32,f32) {
+        let top = self.props.get_top();
+        let bottom = self.props.get_bottom();
+
         let mut stretchy:f32 = 0.0;
         let mut pixel:f32 = 0.0;
+
+        match top {
+            properties::Unit::Stretch(_s) => stretchy += _s,
+            properties::Unit::Pixel(_p) => pixel += _p,
+            _ => ()
+        }
+
+        match bottom {
+            properties::Unit::Stretch(_s) => stretchy += _s,
+            properties::Unit::Pixel(_p) => pixel += _p,
+            _ => ()
+        }
+
         for elm in self.children.iter_mut() {
             if let Ok(_e) = elm.lock() {
                 let _h = _e.get(&properties::HEIGHT).unwrap().clone();
@@ -89,7 +105,17 @@ impl Element for VBox {
         builder.push_rect(&info, bgcolor);
 
         let next_x = 0.0;
+
+        let top = self.props.get_top();
+        let bottom = self.props.get_bottom();
+
         let mut next_y = 0.0;
+
+        match top {
+            properties::Unit::Stretch(_s) => next_y = stretchy_factor * _s,
+            properties::Unit::Pixel(_p) => next_y = _p,
+            _ => (),
+        }
 
         for elm in self.children.iter_mut(){
             let mut child_extent = properties::Extent{
@@ -120,6 +146,12 @@ impl Element for VBox {
                 },
                 Err(_err_str) => panic!("unable to lock element : {}",_err_str)
             }
+        }
+
+        match bottom {
+            properties::Unit::Stretch(_s) => next_y += stretchy_factor * _s,
+            properties::Unit::Pixel(_p) => next_y += _p,
+            _ => (),
         }
 
         // TODO: Remove
