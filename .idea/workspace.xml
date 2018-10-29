@@ -4,9 +4,9 @@
     <list default="true" id="5c32dbd9-0b30-470b-ab9f-bc177063d9e8" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/examples/mainexample.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/mainexample.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/elements/button.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/elements/button.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/elements/hbox.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/elements/hbox.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/elements/textbox.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/elements/textbox.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/elements/vbox.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/elements/vbox.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/gui/window.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/gui/window.rs" afterDir="false" />
     </list>
     <ignored path="C:\Users\fasih\workspace\skryn\.idea\shelf/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -21,8 +21,8 @@
       <file leaf-file-name="mainexample.rs" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/examples/mainexample.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-527">
-              <caret line="107" column="30" lean-forward="true" selection-start-line="107" selection-start-column="30" selection-end-line="107" selection-end-column="30" />
+            <state relative-caret-position="408">
+              <caret line="111" column="77" selection-start-line="111" selection-start-column="77" selection-end-line="111" selection-end-column="77" />
               <folding>
                 <element signature="e#6707#6708#0" expanded="true" />
                 <element signature="e#6741#6742#0" expanded="true" />
@@ -53,8 +53,8 @@
       <file leaf-file-name="window.rs" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/gui/window.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="618">
-              <caret line="300" lean-forward="true" selection-start-line="300" selection-end-line="300" />
+            <state relative-caret-position="-759">
+              <caret line="168" column="43" selection-start-line="168" selection-start-column="43" selection-end-line="168" selection-end-column="43" />
               <folding>
                 <element signature="e#2909#2910#0" expanded="true" />
                 <element signature="e#2939#2940#0" expanded="true" />
@@ -133,20 +133,20 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="vbox.rs" pinned="false" current-in-tab="false">
+      <file leaf-file-name="vbox.rs" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/elements/vbox.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="211">
-              <caret line="37" column="7" selection-start-line="37" selection-start-column="7" selection-end-line="37" selection-end-column="7" />
+            <state relative-caret-position="255">
+              <caret line="177" column="9" selection-start-line="177" selection-start-column="9" selection-end-line="177" selection-end-column="9" />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="hbox.rs" pinned="false" current-in-tab="true">
+      <file leaf-file-name="hbox.rs" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/elements/hbox.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="272">
-              <caret line="151" column="19" selection-start-line="151" selection-start-column="19" selection-end-line="151" selection-end-column="19" />
+            <state relative-caret-position="323">
+              <caret line="177" column="9" selection-start-line="177" selection-start-column="9" selection-end-line="177" selection-end-column="9" />
               <folding>
                 <element signature="e#1721#1722#0" expanded="true" />
                 <element signature="e#1757#1758#0" expanded="true" />
@@ -198,9 +198,9 @@
       <find>println</find>
       <find>DisplayListBuilder</find>
       <find>Arial</find>
-      <find>render_root</find>
       <find>cache</find>
       <find>ignore_ws</find>
+      <find>render_root</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -216,23 +216,23 @@
         <option value="$PROJECT_DIR$/Cargo.toml" />
         <option value="$PROJECT_DIR$/src/lib.rs" />
         <option value="$PROJECT_DIR$/src/elements/scrollbox.rs" />
-        <option value="$PROJECT_DIR$/src/elements/vbox.rs" />
         <option value="$PROJECT_DIR$/src/gui/properties.rs" />
-        <option value="$PROJECT_DIR$/src/gui/window.rs" />
         <option value="$PROJECT_DIR$/src/gui/font.rs" />
         <option value="$PROJECT_DIR$/src/elements/element.rs" />
         <option value="$PROJECT_DIR$/src/elements/textbox.rs" />
         <option value="$PROJECT_DIR$/src/elements/button.rs" />
         <option value="$PROJECT_DIR$/examples/mainexample.rs" />
+        <option value="$PROJECT_DIR$/src/gui/window.rs" />
         <option value="$PROJECT_DIR$/src/elements/hbox.rs" />
+        <option value="$PROJECT_DIR$/src/elements/vbox.rs" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="3765" />
-    <option name="y" value="167" />
-    <option name="width" value="718" />
-    <option name="height" value="377" />
+    <option name="x" value="3417" />
+    <option name="y" value="115" />
+    <option name="width" value="298" />
+    <option name="height" value="196" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
@@ -553,11 +553,25 @@
       <option name="project" value="LOCAL" />
       <updated>1540128605097</updated>
     </task>
-    <option name="localTasksCounter" value="28" />
+    <task id="LOCAL-00028" summary="implemented left/right properties for hbox">
+      <created>1540851276561</created>
+      <option name="number" value="00028" />
+      <option name="presentableId" value="LOCAL-00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1540851276561</updated>
+    </task>
+    <task id="LOCAL-00029" summary="implemented top/bottom properties for vbox">
+      <created>1540852207470</created>
+      <option name="number" value="00029" />
+      <option name="presentableId" value="LOCAL-00029" />
+      <option name="project" value="LOCAL" />
+      <updated>1540852207470</updated>
+    </task>
+    <option name="localTasksCounter" value="30" />
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-6" y="-6" width="1613" height="873" extended-state="6" />
+    <frame x="3192" y="-8" width="1936" height="1056" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info anchor="right" id="Palette" order="3" />
@@ -566,11 +580,11 @@
       <window_info anchor="right" id="Palette&#9;" order="4" />
       <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.5005208" side_tool="true" weight="0.46014878" />
       <window_info anchor="right" id="Maven Projects" order="5" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.49947917" visible="true" weight="0.23521683" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.49947917" visible="true" weight="0.19022317" />
       <window_info anchor="bottom" id="Version Control" order="8" />
       <window_info anchor="bottom" id="Terminal" order="7" />
       <window_info id="Designer" order="2" />
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.14321451" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.11927083" />
       <window_info anchor="bottom" id="Find" order="1" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
@@ -606,8 +620,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Refactoring mid point: Scrolling now works." />
-    <MESSAGE value="Scrolling is now functional for vertically extended elements." />
     <MESSAGE value="Scrolling is now functional for horizontally extended elements aswell." />
     <MESSAGE value="Added a button to the mix!" />
     <MESSAGE value="Buttons can be clicked now! Partial Focusing implementation." />
@@ -631,7 +643,9 @@
     <MESSAGE value="Button now works in the fontkitbranch." />
     <MESSAGE value="font can be loaded by fmaily name now." />
     <MESSAGE value="font-kit functions replaced by RenderApi function for glyph finding and getting dimensions" />
-    <option name="LAST_COMMIT_MESSAGE" value="font-kit functions replaced by RenderApi function for glyph finding and getting dimensions" />
+    <MESSAGE value="implemented left/right properties for hbox" />
+    <MESSAGE value="implemented top/bottom properties for vbox" />
+    <option name="LAST_COMMIT_MESSAGE" value="implemented top/bottom properties for vbox" />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/examples/mainexample.rs">
@@ -839,13 +853,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/elements/vbox.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="211">
-          <caret line="37" column="7" selection-start-line="37" selection-start-column="7" selection-end-line="37" selection-end-column="7" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$USER_HOME$/.cargo/git/checkouts/webrender-c3596abe1cf4f320/d84c919/webrender_api/src/font.rs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="321">
@@ -866,19 +873,6 @@
             <element signature="e#4740#4741#0" expanded="true" />
             <element signature="e#6265#6266#0" expanded="true" />
             <element signature="e#6300#6301#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/gui/window.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="618">
-          <caret line="300" lean-forward="true" selection-start-line="300" selection-end-line="300" />
-          <folding>
-            <element signature="e#2909#2910#0" expanded="true" />
-            <element signature="e#2939#2940#0" expanded="true" />
-            <element signature="e#10439#10440#0" expanded="true" />
-            <element signature="e#10481#10482#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -939,8 +933,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/examples/mainexample.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-527">
-          <caret line="107" column="30" lean-forward="true" selection-start-line="107" selection-start-column="30" selection-end-line="107" selection-end-column="30" />
+        <state relative-caret-position="408">
+          <caret line="111" column="77" selection-start-line="111" selection-start-column="77" selection-end-line="111" selection-end-column="77" />
           <folding>
             <element signature="e#6707#6708#0" expanded="true" />
             <element signature="e#6741#6742#0" expanded="true" />
@@ -954,10 +948,23 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/gui/window.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-759">
+          <caret line="168" column="43" selection-start-line="168" selection-start-column="43" selection-end-line="168" selection-end-column="43" />
+          <folding>
+            <element signature="e#2909#2910#0" expanded="true" />
+            <element signature="e#2939#2940#0" expanded="true" />
+            <element signature="e#10439#10440#0" expanded="true" />
+            <element signature="e#10481#10482#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/elements/hbox.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="272">
-          <caret line="151" column="19" selection-start-line="151" selection-start-column="19" selection-end-line="151" selection-end-column="19" />
+        <state relative-caret-position="323">
+          <caret line="177" column="9" selection-start-line="177" selection-start-column="9" selection-end-line="177" selection-end-column="9" />
           <folding>
             <element signature="e#1721#1722#0" expanded="true" />
             <element signature="e#1757#1758#0" expanded="true" />
@@ -970,6 +977,13 @@
             <element signature="e#6780#6781#0" expanded="true" />
             <element signature="e#6799#6800#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/elements/vbox.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="255">
+          <caret line="177" column="9" selection-start-line="177" selection-start-column="9" selection-end-line="177" selection-end-column="9" />
         </state>
       </provider>
     </entry>

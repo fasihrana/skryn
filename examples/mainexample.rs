@@ -109,6 +109,7 @@ impl PersonElm{
                 h.append(alert_button.clone());
                 h.append(cancel_button.clone());
                 h.set(skryn::gui::properties::Property::Height(skryn::gui::properties::Unit::Pixel(25.0)));
+                h.set(skryn::gui::properties::Property::BgColor(ColorF::new(0.2,1.0,0.2,1.0)));
             },
             Err(_err_str) => panic!("unable to lock element : {}", _err_str)
         }
@@ -128,12 +129,14 @@ impl PersonElm{
         let v = Arc::new(Mutex::new( VBox::new()));
         v.lock().unwrap().set(skryn::gui::properties::Property::Top(skryn::gui::properties::Unit::Stretch(1.0)));
         v.lock().unwrap().set(skryn::gui::properties::Property::Bottom(skryn::gui::properties::Unit::Stretch(1.0)));
+        v.lock().unwrap().set(skryn::gui::properties::Property::Left(skryn::gui::properties::Unit::Stretch(0.2)));
+        v.lock().unwrap().set(skryn::gui::properties::Property::Right(skryn::gui::properties::Unit::Stretch(0.2)));
         match v.lock() {
             Ok(ref mut v) => {
                 v.append(name.clone());
                 v.append(age.clone());
                 v.append(h.clone());
-                v.set(skryn::gui::properties::Property::BgColor(ColorF::new(1.0,0.5,0.5,1.0)));
+                v.set(skryn::gui::properties::Property::BgColor(ColorF::new(1.0,0.2,0.2,1.0)));
             },
             Err(_err_str) => panic!("unable to lock element : {}", _err_str)
         }

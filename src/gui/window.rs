@@ -166,7 +166,7 @@ impl Internals{
 
         let opts = webrender::RendererOptions {
             device_pixel_ratio: dpi as f32,
-            clear_color: Some(ColorF::new(1.0, 1.0, 1.0, 1.0)),
+            clear_color: Some(ColorF::new(0.0, 0.0, 0.0, 1.0)),
             //enable_scrollbars: true,
             //enable_aa:true,
             ..webrender::RendererOptions::default()

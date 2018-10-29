@@ -69,6 +69,35 @@ impl VBox {
 
         (pixel,stretchy)
     }
+
+    fn get_width_sums(&mut self) -> (f32,f32) {
+        let left = self.props.get_left();
+        let right = self.props.get_right();
+        let width = self.props.get_width();
+
+        let mut stretchy:f32 = 0.0;
+        let mut pixel:f32 = 0.0;
+
+        match left {
+            properties::Unit::Stretch(_s) => stretchy += _s,
+            properties::Unit::Pixel(_p) => pixel += _p,
+            _ => ()
+        }
+
+        match right {
+            properties::Unit::Stretch(_s) => stretchy += _s,
+            properties::Unit::Pixel(_p) => pixel += _p,
+            _ => ()
+        }
+
+        match width {
+            properties::Unit::Stretch(_s) => stretchy += _s,
+            properties::Unit::Pixel(_p) => pixel += _p,
+            _ => ()
+        }
+
+        (pixel,stretchy)
+    }
 }
 
 impl Element for VBox {
@@ -91,11 +120,28 @@ impl Element for VBox {
               gen: &mut properties::IdGenerator) {
 
         let bgcolor = self.props.get_bg_color();
+        let top = self.props.get_top();
+        let bottom = self.props.get_bottom();
+        let left = self.props.get_left();
+        let right = self.props.get_right();
+        let width = self.props.get_width();
+        let height = self.props.get_height();
 
-        let (pixel_sum, stretchy_sum )= self.get_height_sums();
-        let mut remaining_height = extent.h - pixel_sum;
+        let (wp_sum, ws_sum )= self.get_width_sums();
+        let mut remaining_width = extent.w - wp_sum;
+        if remaining_width < 0.0 {remaining_width = 0.0;}
+        let mut w_stretchy_factor = remaining_width / ws_sum;
+        if w_stretchy_factor.is_nan() {
+            w_stretchy_factor = 0.0;
+        }
+
+        let (hp_sum, hs_sum )= self.get_height_sums();
+        let mut remaining_height = extent.h - hp_sum;
         if remaining_height < 0.0 {remaining_height = 0.0;}
-        let stretchy_factor = remaining_height / stretchy_sum;
+        let mut h_stretchy_factor = remaining_height / hs_sum;
+        if h_stretchy_factor.is_nan() {
+            h_stretchy_factor = 0.0;
+        }
 
         let _id = gen.get();
         self.ext_id = _id;
@@ -104,25 +150,39 @@ impl Element for VBox {
         info.tag = Some((_id, 0));
         builder.push_rect(&info, bgcolor);
 
-        let next_x = 0.0;
-
-        let top = self.props.get_top();
-        let bottom = self.props.get_bottom();
-
+        let mut next_x = 0.0;
         let mut next_y = 0.0;
 
         match top {
-            properties::Unit::Stretch(_s) => next_y = stretchy_factor * _s,
+            properties::Unit::Stretch(_s) => next_y = h_stretchy_factor * _s,
             properties::Unit::Pixel(_p) => next_y = _p,
             _ => (),
+        }
+
+        match left {
+            properties::Unit::Stretch(_s) => next_x = w_stretchy_factor * _s,
+            properties::Unit::Pixel(_p) => next_x = _p,
+            _ => (),
+        }
+
+        match height {
+            properties::Unit::Stretch(_s) => remaining_height = _s * h_stretchy_factor,
+            properties::Unit::Pixel(_p) => remaining_height = _p,
+            _ => ()
+        }
+
+        match width {
+            properties::Unit::Stretch(_s) => remaining_width = _s * w_stretchy_factor,
+            properties::Unit::Pixel(_p) => remaining_width = _p,
+            _ => ()
         }
 
         for elm in self.children.iter_mut(){
             let mut child_extent = properties::Extent{
                 x: next_x + extent.x,
                 y: next_y + extent.y,
-                w: extent.w,
-                h: extent.h,
+                w: remaining_width,
+                h: remaining_height,
                 dpi: extent.dpi,
             };
 
@@ -135,7 +195,7 @@ impl Element for VBox {
                             child_extent.h = _p;
                         },
                         properties::Property::Height(properties::Unit::Stretch(_s)) => {
-                            child_extent.h = stretchy_factor;
+                            child_extent.h = h_stretchy_factor;
                         },
                         _ => ()
                     }
@@ -149,8 +209,15 @@ impl Element for VBox {
         }
 
         match bottom {
-            properties::Unit::Stretch(_s) => next_y += stretchy_factor * _s,
+            properties::Unit::Stretch(_s) => next_y += h_stretchy_factor * _s,
             properties::Unit::Pixel(_p) => next_y += _p,
+            _ => (),
+        }
+
+        next_x += remaining_width;
+        match right {
+            properties::Unit::Stretch(_s) => next_x +=  w_stretchy_factor * _s,
+            properties::Unit::Pixel(_p) => next_x += _p,
             _ => (),
         }
 
@@ -163,7 +230,7 @@ impl Element for VBox {
         self.bounds = properties::Extent{
             x: extent.x,
             y: extent.y,
-            w: extent.w,
+            w: next_x,
             h: next_y,
             dpi: extent.dpi,
         };
