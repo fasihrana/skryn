@@ -96,6 +96,9 @@ impl Element for Button {
                                                                      &family,
                                                                      font_store);
 
+        let mut _x = (extent.w - calc_w) / 2.0;
+        let mut _y = (extent.h - calc_h) / 2.0;
+
         calc_w = match width {
             properties::Unit::Extent => extent.w,
             properties::Unit::Pixel(px) => px,
@@ -118,9 +121,16 @@ impl Element for Button {
             dpi: extent.dpi,
         };
 
+        let mut info = LayoutPrimitiveInfo::new(LayoutRect::new(
+            LayoutPoint::new(extent.x, extent.y),
+            LayoutSize::new(self.bounds.w, self.bounds.h),
+        ));
+        info.tag = Some((_id, 0));
+        builder.push_rect(&info, bgcolor);
+
         builder.push_stacking_context(
             &LayoutPrimitiveInfo::new(LayoutRect::new(
-                LayoutPoint::new(extent.x, extent.y),
+                LayoutPoint::new(extent.x + _x, extent.y + _y),
                 LayoutSize::new(0.0, 0.0),
             )),
             None,
@@ -129,13 +139,6 @@ impl Element for Button {
             Vec::new(),
             RasterSpace::Screen,
         );
-
-        let mut info = LayoutPrimitiveInfo::new(LayoutRect::new(
-            LayoutPoint::new(0.0, 0.0),
-            LayoutSize::new(self.bounds.w, self.bounds.h),
-        ));
-        info.tag = Some((_id, 0));
-        builder.push_rect(&info, bgcolor);
 
         let info = LayoutPrimitiveInfo::new(LayoutRect::new(
             LayoutPoint::new(0.0, 0.0),
