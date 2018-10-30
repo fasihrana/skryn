@@ -16,7 +16,7 @@ pub struct Button
     props: properties::Properties,
     bounds: properties::Extent,
     //    cache:Vec<GlyphInstance>,
-    focus: bool,
+    //focus: bool,
     event_handlers: EventHandlers,
     drawn: u8,
 }
@@ -39,7 +39,7 @@ impl Button {
                 dpi: 0.0,
             },
 //            cache: Vec::new(),
-            focus: false,
+            //focus: false,
             event_handlers: EventHandlers::new(),
             drawn: 0,
         }
@@ -78,69 +78,23 @@ impl Element for Button {
         self.ext_id = _id;
 
 
-        let mut glyphs = vec![];
-        let size = self.props.get_size() as f32;
-        let family = self.props.get_family();
         let mut color = self.props.get_color();
         let mut bgcolor = self.props.get_bg_color();
         let width = self.props.get_width();
         let height = self.props.get_height();
+        let size = self.props.get_size() as f32;
+        let family = self.props.get_family();
 
-        if self.focus {
-            color = self.props.get_focus_color();
-            bgcolor = self.props.get_focus_bg_color();
-        }
+        let (_, fi_key) = font_store.get_font_instance(&family, size as i32);
 
-        let (f_key, fi_key) = font_store.get_font_instance(&family, size as i32);
-
-        let mut next_x = extent.x;
-        let mut next_y = extent.y + size;
-
-        let char_set: HashSet<char> = HashSet::from_iter(self.value.chars());
-
-        let mappings = font_store.get_glyphs(f_key, fi_key, &char_set);
-
-
-        let mut text_iter = self.value.chars();
-
-        let mut max_x: f32 = 0.0;
-
-        loop {
-            let _char = text_iter.next();
-            if _char.is_none() {
-                break;
-            }
-            let _char = _char.unwrap();
-
-            if _char == '\r' || _char == '\n' {
-                next_y = next_y + size;
-                next_x = 0.0;
-                continue;
-            }
-
-            if _char == ' ' || _char == '\t' {
-                next_x += size/3.0;
-                continue;
-            }
-
-            let _glyph = mappings.get(&_char);
-
-            if let Some((gi, gd)) = _glyph {
-                glyphs.push(GlyphInstance {
-                    index: gi.to_owned(),
-                    point: LayoutPoint::new(next_x, next_y),
-                });
-
-                next_x = next_x + gd.advance;
-            }
-
-            if max_x < next_x {
-                max_x = next_x;
-            }
-        }
-
-        let mut calc_w = max_x - extent.x;
-        let mut calc_h = next_y - extent.y;
+        let (glyphs, mut calc_w, mut calc_h) = font::FontRaster::place_glyphs(&self.value,
+                                                                     0.0,
+                                                                     0.0,
+                                                                     extent.w,
+                                                                     extent.h,
+                                                                     size,
+                                                                     &family,
+                                                                     font_store);
 
         calc_w = match width {
             properties::Unit::Extent => extent.w,
@@ -164,20 +118,27 @@ impl Element for Button {
             dpi: extent.dpi,
         };
 
-        self.drawn += 1;
-        if self.drawn > 2 {
-            self.drawn = 2;
-        }
+        builder.push_stacking_context(
+            &LayoutPrimitiveInfo::new(LayoutRect::new(
+                LayoutPoint::new(extent.x, extent.y),
+                LayoutSize::new(0.0, 0.0),
+            )),
+            None,
+            TransformStyle::Flat,
+            MixBlendMode::Normal,
+            Vec::new(),
+            RasterSpace::Screen,
+        );
 
         let mut info = LayoutPrimitiveInfo::new(LayoutRect::new(
-            LayoutPoint::new(extent.x, extent.y),
+            LayoutPoint::new(0.0, 0.0),
             LayoutSize::new(self.bounds.w, self.bounds.h),
         ));
         info.tag = Some((_id, 0));
         builder.push_rect(&info, bgcolor);
 
         let info = LayoutPrimitiveInfo::new(LayoutRect::new(
-            LayoutPoint::new(extent.x, extent.y),
+            LayoutPoint::new(0.0, 0.0),
             LayoutSize::new(extent.w, extent.h),
         ));
 
@@ -186,6 +147,8 @@ impl Element for Button {
                           fi_key.clone(),
                           color.clone(),
                           Some(GlyphOptions::default()));
+
+        builder.pop_stacking_context();
     }
 
     fn get_bounds(&self) -> properties::Extent {
