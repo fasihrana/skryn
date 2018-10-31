@@ -25,7 +25,8 @@ pub enum PrimitiveEvent {
     SetFocus(bool),
     Resized(glutin::dpi::LogicalSize),
     DPI(f64),
-    Hover(properties::Position)
+    HoverBegin(Vec<ItemTag>),
+    HoverEnd(Vec<ItemTag>)
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]

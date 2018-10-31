@@ -320,6 +320,7 @@ pub struct Window {
     name: String,
     id_generator: properties::IdGenerator,
     internals: Option<Internals>,
+    tags: Vec<ItemTag>,
 }
 
 impl Window {
@@ -333,6 +334,7 @@ impl Window {
             name,
             id_generator,
             internals: None,
+            tags: vec![],
         };
 
         _w.start_window();
@@ -344,8 +346,12 @@ impl Window {
         self.internals = Some(Internals::new(self.name.clone(),self.width,self.height));
     }
 
-    fn get_tags(&mut self) -> Vec<ItemTag>{
-        let mut tags : Vec<ItemTag> = Vec::new();
+    fn get_tags(&mut self) -> (Vec<ItemTag>,Vec<ItemTag>){
+        let mut tags : Vec<ItemTag> = vec![];
+
+        let mut new_tags : Vec<ItemTag> = vec![];
+        let mut old_tags : Vec<ItemTag> = vec![];
+
         if let Some(ref mut i) = self.internals
         {
             let results = i.api.hit_test(
@@ -361,15 +367,41 @@ impl Window {
             }
         }
 
-        tags
+        if self.tags.is_empty() {
+            self.tags = tags.clone();
+            new_tags = tags.clone();
+        } else {
+            for t in tags.iter() {
+                let exists = self.tags.iter().find(|x| {
+                    *x == t
+                });
+                if exists.is_none() {
+                    new_tags.push(t.clone());
+                }
+            }
+
+            for t in self.tags.iter() {
+                let exists = tags.iter().find(|x|{
+                    *x == t
+                });
+                if exists.is_none() {
+                    old_tags.push(t.clone());
+                }
+            }
+
+            self.tags = tags.clone();
+        }
+
+        (new_tags,old_tags)
     }
 
 
 
     pub fn tick(&mut self) -> bool{
-        let tags = self.get_tags();
+        let (new_tags, old_tags) = self.get_tags();
+        let tags = self.tags.clone();
 
-        let events;
+        let mut events;
         let mut dpi;
         let api;
 
@@ -380,6 +412,14 @@ impl Window {
                 api = i.api.clone_sender().create_api();
             },
             _ => panic!("in tick but no window internals initialized")
+        }
+
+        if new_tags.len() > 0 {
+            events.insert(0,PrimitiveEvent::HoverBegin(new_tags));
+        }
+
+        if old_tags.len() > 0 {
+            events.insert( 0,PrimitiveEvent::HoverEnd(old_tags));
         }
 
         //only for debug. take out later?
@@ -397,6 +437,9 @@ impl Window {
                 /*PrimitiveEvent::Exit => {
                     //exit = true;
                 },*/
+                PrimitiveEvent::CursorLeft => {
+                    self.tags.clear();
+                }
                 PrimitiveEvent::Resized(size) => {
                     self.width = size.width;
                     self.height = size.height;
