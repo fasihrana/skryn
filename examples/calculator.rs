@@ -118,8 +118,9 @@ impl CalculatorView{
         let mut view = VBox::new();
 
         let mut history = TextBox::new("".to_owned());
-        history.set(skryn::gui::properties::Property::Height(skryn::gui::properties::Unit::Stretch(2.0)));
+        history.set(skryn::gui::properties::Property::Height(skryn::gui::properties::Unit::Stretch(1.0)));
         history.set(skryn::gui::properties::Property::Size(16));
+        history.set(skryn::gui::properties::Property::BgColor(ColorF::new(0.95,0.95,0.95,1.0)));
         history.set_editable(false);
         let history = Arc::new(Mutex::new(history));
         view.append(history.clone());
@@ -132,7 +133,9 @@ impl CalculatorView{
         view.append(tbox.clone());
 
         let mut hbox = HBox::new();
+        hbox.set(skryn::gui::properties::Property::Height(skryn::gui::properties::Unit::Pixel(40.0)));
         let mut addbutt = Button::new("+".to_owned());
+        addbutt.set(skryn::gui::properties::Property::Size(32));
         let tmpbox = tbox.clone();
         let tmpcalc = calc.clone();
         let tmphist = history.clone();
@@ -154,6 +157,7 @@ impl CalculatorView{
         hbox.append(Arc::new(Mutex::new(addbutt)));
 
         let mut subbutt = Button::new("-".to_owned());
+        subbutt.set(skryn::gui::properties::Property::Size(32));
         let tmpbox = tbox.clone();
         let tmpcalc = calc.clone();
         let tmphist = history.clone();
@@ -175,6 +179,7 @@ impl CalculatorView{
         hbox.append(Arc::new(Mutex::new(subbutt)));
 
         let mut mulbutt = Button::new("*".to_owned());
+        mulbutt.set(skryn::gui::properties::Property::Size(32));
         let tmpbox = tbox.clone();
         let tmpcalc = calc.clone();
         let tmphist = history.clone();
@@ -196,6 +201,7 @@ impl CalculatorView{
         hbox.append(Arc::new(Mutex::new(mulbutt)));
 
         let mut divbutt = Button::new("/".to_owned());
+        divbutt.set(skryn::gui::properties::Property::Size(32));
         let tmpbox = tbox.clone();
         let tmpcalc = calc.clone();
         let tmphist = history.clone();
@@ -217,6 +223,7 @@ impl CalculatorView{
         hbox.append(Arc::new(Mutex::new(divbutt)));
 
         let mut eqlbutt = Button::new("=".to_owned());
+        eqlbutt.set(skryn::gui::properties::Property::Size(32));
         let tmpbox = tbox.clone();
         let tmpcalc = calc.clone();
         let tmphist = history.clone();
