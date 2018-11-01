@@ -42,11 +42,31 @@ impl Hash for ElementEvent {
     }
 }
 
-pub type EventFn = fn(&mut Element, &Any) -> bool;
+/*impl Copy for FnMut(&mut Element, &Any) -> bool {
+
+}*/
+
+//pub type EventFn = fn(&mut Element, &Any) -> bool;
+pub struct EventFn(pub Box<FnMut(&Any) -> bool>);
+//it should be safe since Element will always be within a lock.
+//sending it as arc.mutex.element might end up in a deadlock
+unsafe impl Send for EventFn {}
+unsafe impl Sync for EventFn {}
+
+impl EventFn{
+    /*pub fn copy(&self) -> EventFn{
+        //EventFn(Box::new(unsafe {mem::(&self.0)}))
+    }*/
+    pub fn call(&mut self, _d:&Any) -> bool {
+        self.0(_d)
+    }
+}
+
+//impl Copy for EventFn{}
+//impl Copy for FnMut<&mut Element, &Any> {}
+
 
 pub type EventHandlers = HashMap<ElementEvent,EventFn>;
-
-pub fn default_fn(_e:&mut Element, _d: &Any)->bool{false}
 
 pub trait Element:Send+Sync {
     fn get_ext_id(&self) -> u64;
@@ -62,7 +82,7 @@ pub trait Element:Send+Sync {
     fn get_bounds(&self) -> properties::Extent;
     fn on_primitive_event(&mut self, &[ItemTag], e: PrimitiveEvent) -> bool;
     fn set_handler(&mut self, _e: ElementEvent, _f:EventFn){}
-    fn get_handler(&mut self, _e: ElementEvent) -> EventFn { default_fn }
+    fn exec_handler(&mut self, _e: ElementEvent, _d: &Any) -> bool {false}
     fn as_any(&self) -> &Any;
     fn as_any_mut(&mut self) -> &mut Any;
     #[allow(unused)]

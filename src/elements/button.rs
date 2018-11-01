@@ -1,7 +1,5 @@
 use std::sync::Arc;
 use std::any::Any;
-use std::collections::{HashSet};
-use std::iter::FromIterator;
 
 use webrender::api::*;
 
@@ -168,8 +166,7 @@ impl Element for Button {
                     if b == properties::Button::Left
                         && s == properties::ButtonState::Released
                         {
-                            let handler = self.get_handler(ElementEvent::Clicked);
-                            handled = handler(self, &m);
+                            handled = self.exec_handler(ElementEvent::Clicked, &m);
                         }
                 }
             }
@@ -183,13 +180,13 @@ impl Element for Button {
         self.event_handlers.insert(_e, _f);
     }
 
-    fn get_handler(&mut self, _e: ElementEvent) -> EventFn {
+    fn exec_handler(&mut self, _e: ElementEvent, _d: &Any) -> bool {
         let eh = &mut self.event_handlers;
-        let h = eh.get(&_e);
-        if let Some(h) = h {
-            h.clone()
+        let h = eh.get_mut(&_e);
+        if let Some(h) = h{
+            (h.0)(_d)
         } else {
-            default_fn
+            false
         }
     }
 

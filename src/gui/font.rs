@@ -1,11 +1,9 @@
 use app_units;
 use font_kit;
 use font_kit::{source::SystemSource, font::Font, family_name::FamilyName};
-use std::sync::Arc;
 use std::collections::{HashMap, HashSet};
 use std::iter::FromIterator;
 use webrender::api::*;
-use gui;
 
 fn load_font_by_name(name: &String) -> Font {
     let mut props = font_kit::properties::Properties::new();
@@ -149,8 +147,8 @@ impl FontRaster {
     pub fn place_glyphs(value: &String,
                     x:f32,
                     y:f32,
-                    width: f32,
-                    height: f32,
+                    _width: f32,
+                    _height: f32,
                     size: f32,
                     family: &String,
                     font_store: &mut FontStore) -> (Vec<GlyphInstance>, f32, f32)

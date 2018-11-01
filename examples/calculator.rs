@@ -126,26 +126,93 @@ impl CalculatorView{
         let mut addbutt = Button::new("+".to_owned());
         let tmpbox = tbox.clone();
         let tmpcalc = calc.clone();
-        addbutt.set_handler(skryn::elements::ElementEvent::Clicked, move |_, _|{
-            let tb = tmpbox.lock().unwrap();
-            /*let val = tb.get_value().parse::<f64>();
+        addbutt.set_handler(skryn::elements::ElementEvent::Clicked, EventFn(Box::new(move |_|{
+            let mut tb = tmpbox.lock().unwrap();
+            let val = tb.get_value().parse::<f64>();
             if let Ok(n) = val {
                 tmpcalc.lock().unwrap().push_num(n);
                 tmpcalc.lock().unwrap().push_op(Operation::Add);
-            } else {*/
-                Alert::show(format!("Value {} could not be parsed to a number.",1/*tb.get_value()*/), "Number Error".to_owned());
-            //}
+                tb.set_value("".to_owned());
+            } else {
+                Alert::show(format!("Value {} could not be parsed to a number.",tb.get_value()), "Number Error".to_owned());
+            }
 
             true
-        });
+        })));
         hbox.append(Arc::new(Mutex::new(addbutt)));
+
         let mut subbutt = Button::new("-".to_owned());
+        let tmpbox = tbox.clone();
+        let tmpcalc = calc.clone();
+        subbutt.set_handler(skryn::elements::ElementEvent::Clicked, EventFn(Box::new(move |_|{
+            let mut tb = tmpbox.lock().unwrap();
+            let val = tb.get_value().parse::<f64>();
+            if let Ok(n) = val {
+                tmpcalc.lock().unwrap().push_num(n);
+                tmpcalc.lock().unwrap().push_op(Operation::Subtract);
+                tb.set_value("".to_owned());
+            } else {
+                Alert::show(format!("Value {} could not be parsed to a number.",tb.get_value()), "Number Error".to_owned());
+            }
+
+            true
+        })));
         hbox.append(Arc::new(Mutex::new(subbutt)));
+
         let mut mulbutt = Button::new("*".to_owned());
+        let tmpbox = tbox.clone();
+        let tmpcalc = calc.clone();
+        mulbutt.set_handler(skryn::elements::ElementEvent::Clicked, EventFn(Box::new(move |_|{
+            let mut tb = tmpbox.lock().unwrap();
+            let val = tb.get_value().parse::<f64>();
+            if let Ok(n) = val {
+                tmpcalc.lock().unwrap().push_num(n);
+                tmpcalc.lock().unwrap().push_op(Operation::Multiply);
+                tb.set_value("".to_owned());
+            } else {
+                Alert::show(format!("Value {} could not be parsed to a number.",tb.get_value()), "Number Error".to_owned());
+            }
+
+            true
+        })));
         hbox.append(Arc::new(Mutex::new(mulbutt)));
+
         let mut divbutt = Button::new("/".to_owned());
+        let tmpbox = tbox.clone();
+        let tmpcalc = calc.clone();
+        divbutt.set_handler(skryn::elements::ElementEvent::Clicked, EventFn(Box::new(move |_|{
+            let mut tb = tmpbox.lock().unwrap();
+            let val = tb.get_value().parse::<f64>();
+            if let Ok(n) = val {
+                tmpcalc.lock().unwrap().push_num(n);
+                tmpcalc.lock().unwrap().push_op(Operation::Divide);
+                tb.set_value("".to_owned());
+            } else {
+                Alert::show(format!("Value {} could not be parsed to a number.",tb.get_value()), "Number Error".to_owned());
+            }
+
+            true
+        })));
         hbox.append(Arc::new(Mutex::new(divbutt)));
+
         let mut eqlbutt = Button::new("=".to_owned());
+        let tmpbox = tbox.clone();
+        let tmpcalc = calc.clone();
+        eqlbutt.set_handler(skryn::elements::ElementEvent::Clicked, EventFn(Box::new(move |_|{
+            let mut tb = tmpbox.lock().unwrap();
+            let val = tb.get_value().parse::<f64>();
+            if let Ok(n) = val {
+                tmpcalc.lock().unwrap().push_num(n);
+                let v = tmpcalc.lock().unwrap().push_op(Operation::Answer);
+                if let Some(_v) = v {
+                    tb.set_value(format!("{}",_v));
+                }
+            } else {
+                Alert::show(format!("Value {} could not be parsed to a number.",tb.get_value()), "Number Error".to_owned());
+            }
+
+            true
+        })));
         hbox.append(Arc::new(Mutex::new(eqlbutt)));
 
         view.append(Arc::new(Mutex::new(hbox)));

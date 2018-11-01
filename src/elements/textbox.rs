@@ -312,16 +312,14 @@ impl Element for TextBox {
                     && s == properties::ButtonState::Released
                     {
                         self.cursor = self.get_index_at(_p.clone());
-                        let handler = self.get_handler(ElementEvent::Clicked);
-                        handled = handler(self, &m);
+                        handled = self.exec_handler(ElementEvent::Clicked, &m);
                     }
             }
             PrimitiveEvent::SetFocus(f) => {
                 if self.enabled {
                     if self.focus != f {
                         self.focus = f;
-                        let handler = self.get_handler(ElementEvent::FocusChange);
-                        handled = handler(self, &f);
+                        handled = self.exec_handler(ElementEvent::FocusChange, &f);
                     }
                 }
             }
@@ -349,13 +347,13 @@ impl Element for TextBox {
         self.event_handlers.insert(e, f);
     }
 
-    fn get_handler(&mut self, _e: ElementEvent) -> EventFn {
+    fn exec_handler(&mut self, _e: ElementEvent, _d: &Any) -> bool {
         let eh = &mut self.event_handlers;
-        let h = eh.get(&_e);
-        if let Some(h) = h {
-            h.clone()
+        let h = eh.get_mut(&_e);
+        if let Some(h) = h{
+            (h.0)(_d)
         } else {
-            default_fn
+            false
         }
     }
 

@@ -143,10 +143,10 @@ impl PersonElm{
 
         //The following is a simple action taken when our button is clicked.
         //An alert window is created.
-        alert_button.lock().unwrap().set_handler(ElementEvent::Clicked, |_, _| -> bool{
+        alert_button.lock().unwrap().set_handler(ElementEvent::Clicked, EventFn(Box::new(|_| -> bool{
             Alert::show("This is an Alert Box".to_owned(),"Alert".to_owned());
             true
-        });
+        })));
 
         // make sure you sae the observer id for age
         // so that we can remove the listener when
@@ -222,10 +222,10 @@ impl Element for PersonElm {
         }
     }
 
-    fn set_handler(&mut self, _e: ElementEvent, _f: fn(&mut Element, &Any) -> bool) {}
+    fn set_handler(&mut self, _e: ElementEvent, _f: EventFn) {}
 
-    fn get_handler(&mut self, _e: ElementEvent) -> fn(&mut Element, &Any) -> bool {
-        skryn::elements::default_fn
+    fn exec_handler(&mut self, _e: ElementEvent, _d: &Any) -> bool {
+        false
     }
 
     fn as_any(&self) -> &Any {
