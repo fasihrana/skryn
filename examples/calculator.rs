@@ -48,10 +48,10 @@ impl Calculator {
         }
     }
 
-    fn push_op(&mut self, op: Operation) -> Option<f64>{
+    fn push_op(&mut self, op: Operation) -> Result<Option<f64>,&str>{
         let ops = self.ops.clone();
         let len = self.ops.len();
-        let mut return_value = None;
+        let mut return_value = Ok(None);
         match op {
             Operation::Answer => {
                 if len > 2 {
@@ -60,22 +60,21 @@ impl Calculator {
                             match &ops[len - 2] {
                                 Operation::Add => {
                                     self.ops.push(Operation::Answer);
-                                    return_value = Some(l+r);
-                                    //self.ops.push(Operation::Input(l+r));
+                                    return_value = Ok(Some(l+r));
                                 },
                                 Operation::Subtract => {
                                     self.ops.push(Operation::Answer);
-                                    return_value = Some(l-r);
+                                    return_value = Ok(Some(l-r));
                                     //self.ops.push(Operation::Input(l-r));
                                 },
                                 Operation::Multiply => {
                                     self.ops.push(Operation::Answer);
-                                    return_value = Some(l*r);
+                                    return_value = Ok(Some(l*r));
                                     //self.ops.push(Operation::Input(l*r));
                                 },
                                 Operation::Divide => {
                                     self.ops.push(Operation::Answer);
-                                    return_value = Some(l/r);
+                                    return_value = Ok(Some(l/r));
                                     //self.ops.push(Operation::Input(l/r));
                                 },
                                 _ => ()
@@ -87,12 +86,14 @@ impl Calculator {
             },
             Operation::Input(n) => {
                 self.push_num(n);
+                return_value = Ok(Some(n))
             }
             _ => {
                 if let Some(xop)  = ops.last() {
                     match xop {
                         Operation::Input(_) => {
                             self.ops.push(op);
+                            return_value = Ok(None)
                         },
                         _ => ()
                     }
@@ -115,9 +116,17 @@ impl CalculatorView{
     fn new() -> CalculatorView{
         let calc = Arc::new(Mutex::new(Calculator::new()));
         let mut view = VBox::new();
+
+        let mut history = TextBox::new("".to_owned());
+        history.set(skryn::gui::properties::Property::Height(skryn::gui::properties::Unit::Stretch(2.0)));
+        history.set(skryn::gui::properties::Property::Size(16));
+        history.set_editable(false);
+        let history = Arc::new(Mutex::new(history));
+        view.append(history.clone());
+
         let mut tbox = TextBox::new("".to_owned());
         tbox.set_singleline(true);
-        tbox.set(skryn::gui::properties::Property::Height(skryn::gui::properties::Unit::Stretch(1.0)));
+        tbox.set(skryn::gui::properties::Property::Height(skryn::gui::properties::Unit::Pixel(40.0)));
         tbox.set(skryn::gui::properties::Property::Size(32));
         let tbox = Arc::new(Mutex::new(tbox));
         view.append(tbox.clone());
@@ -126,12 +135,15 @@ impl CalculatorView{
         let mut addbutt = Button::new("+".to_owned());
         let tmpbox = tbox.clone();
         let tmpcalc = calc.clone();
+        let tmphist = history.clone();
         addbutt.set_handler(skryn::elements::ElementEvent::Clicked, EventFn(Box::new(move |_|{
             let mut tb = tmpbox.lock().unwrap();
             let val = tb.get_value().parse::<f64>();
             if let Ok(n) = val {
-                tmpcalc.lock().unwrap().push_num(n);
-                tmpcalc.lock().unwrap().push_op(Operation::Add);
+                if tmpcalc.lock().unwrap().push_op(Operation::Input(n)).is_ok() {
+                    tmphist.lock().unwrap().append_value(format!("{}\n+\n",n));
+                    tmpcalc.lock().unwrap().push_op(Operation::Add);
+                }
                 tb.set_value("".to_owned());
             } else {
                 Alert::show(format!("Value {} could not be parsed to a number.",tb.get_value()), "Number Error".to_owned());
@@ -144,12 +156,15 @@ impl CalculatorView{
         let mut subbutt = Button::new("-".to_owned());
         let tmpbox = tbox.clone();
         let tmpcalc = calc.clone();
+        let tmphist = history.clone();
         subbutt.set_handler(skryn::elements::ElementEvent::Clicked, EventFn(Box::new(move |_|{
             let mut tb = tmpbox.lock().unwrap();
             let val = tb.get_value().parse::<f64>();
             if let Ok(n) = val {
-                tmpcalc.lock().unwrap().push_num(n);
-                tmpcalc.lock().unwrap().push_op(Operation::Subtract);
+                if tmpcalc.lock().unwrap().push_op(Operation::Input(n)).is_ok() {
+                    tmphist.lock().unwrap().append_value(format!("{}\n-\n",n));
+                    tmpcalc.lock().unwrap().push_op(Operation::Subtract);
+                }
                 tb.set_value("".to_owned());
             } else {
                 Alert::show(format!("Value {} could not be parsed to a number.",tb.get_value()), "Number Error".to_owned());
@@ -162,12 +177,15 @@ impl CalculatorView{
         let mut mulbutt = Button::new("*".to_owned());
         let tmpbox = tbox.clone();
         let tmpcalc = calc.clone();
+        let tmphist = history.clone();
         mulbutt.set_handler(skryn::elements::ElementEvent::Clicked, EventFn(Box::new(move |_|{
             let mut tb = tmpbox.lock().unwrap();
             let val = tb.get_value().parse::<f64>();
             if let Ok(n) = val {
-                tmpcalc.lock().unwrap().push_num(n);
-                tmpcalc.lock().unwrap().push_op(Operation::Multiply);
+                if tmpcalc.lock().unwrap().push_op(Operation::Input(n)).is_ok() {
+                    tmphist.lock().unwrap().append_value(format!("{}\n*\n",n));
+                    tmpcalc.lock().unwrap().push_op(Operation::Multiply);
+                }
                 tb.set_value("".to_owned());
             } else {
                 Alert::show(format!("Value {} could not be parsed to a number.",tb.get_value()), "Number Error".to_owned());
@@ -180,12 +198,15 @@ impl CalculatorView{
         let mut divbutt = Button::new("/".to_owned());
         let tmpbox = tbox.clone();
         let tmpcalc = calc.clone();
+        let tmphist = history.clone();
         divbutt.set_handler(skryn::elements::ElementEvent::Clicked, EventFn(Box::new(move |_|{
             let mut tb = tmpbox.lock().unwrap();
             let val = tb.get_value().parse::<f64>();
             if let Ok(n) = val {
-                tmpcalc.lock().unwrap().push_num(n);
-                tmpcalc.lock().unwrap().push_op(Operation::Divide);
+                if tmpcalc.lock().unwrap().push_op(Operation::Input(n)).is_ok() {
+                    tmphist.lock().unwrap().append_value(format!("{}\n/\n",n));
+                    tmpcalc.lock().unwrap().push_op(Operation::Divide);
+                }
                 tb.set_value("".to_owned());
             } else {
                 Alert::show(format!("Value {} could not be parsed to a number.",tb.get_value()), "Number Error".to_owned());
@@ -198,14 +219,17 @@ impl CalculatorView{
         let mut eqlbutt = Button::new("=".to_owned());
         let tmpbox = tbox.clone();
         let tmpcalc = calc.clone();
+        let tmphist = history.clone();
         eqlbutt.set_handler(skryn::elements::ElementEvent::Clicked, EventFn(Box::new(move |_|{
             let mut tb = tmpbox.lock().unwrap();
             let val = tb.get_value().parse::<f64>();
             if let Ok(n) = val {
-                tmpcalc.lock().unwrap().push_num(n);
-                let v = tmpcalc.lock().unwrap().push_op(Operation::Answer);
-                if let Some(_v) = v {
-                    tb.set_value(format!("{}",_v));
+                if tmpcalc.lock().unwrap().push_op(Operation::Input(n)).is_ok() {
+                    let v = tmpcalc.lock().unwrap().push_op(Operation::Answer).unwrap();
+                    if let Some(_v) = v {
+                        tmphist.lock().unwrap().append_value(format!("{}\n=\n",n));
+                        tb.set_value(format!("{}", _v));
+                    }
                 }
             } else {
                 Alert::show(format!("Value {} could not be parsed to a number.",tb.get_value()), "Number Error".to_owned());

@@ -63,6 +63,13 @@ impl TextBox {
         self.drawn = 0;
     }
 
+    pub fn append_value(&mut self, s: String) {
+        self.value = format!("{}{}",self.value,s);
+        //self.cache.clear();
+        //self.char_ext.clear();
+        self.drawn = 0;
+    }
+
     pub fn get_value(&self) -> String {
         self.value.clone()
     }
