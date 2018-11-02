@@ -117,13 +117,17 @@ impl CalculatorView{
         let calc = Arc::new(Mutex::new(Calculator::new()));
         let mut view = VBox::new();
 
+        let mut history_scroll = ScrollBox::new();
+        history_scroll.set(skryn::gui::properties::Property::BgColor(ColorF::new(0.95,0.95,0.95,1.0)));
+
         let mut history = TextBox::new("".to_owned());
-        history.set(skryn::gui::properties::Property::Height(skryn::gui::properties::Unit::Stretch(1.0)));
+        history.set(skryn::gui::properties::Property::Height(skryn::gui::properties::Unit::Natural));
         history.set(skryn::gui::properties::Property::Size(16));
-        history.set(skryn::gui::properties::Property::BgColor(ColorF::new(0.95,0.95,0.95,1.0)));
         history.set_editable(false);
         let history = Arc::new(Mutex::new(history));
-        view.append(history.clone());
+
+        history_scroll.append(history.clone());
+        view.append(Arc::new(Mutex::new(history_scroll)));
 
         let mut tbox = TextBox::new("".to_owned());
         tbox.set_singleline(true);
@@ -133,7 +137,7 @@ impl CalculatorView{
         view.append(tbox.clone());
 
         let mut hbox = HBox::new();
-        hbox.set(skryn::gui::properties::Property::Height(skryn::gui::properties::Unit::Pixel(40.0)));
+        hbox.set(skryn::gui::properties::Property::Height(skryn::gui::properties::Unit::Pixel(44.0)));
         let mut addbutt = Button::new("+".to_owned());
         addbutt.set(skryn::gui::properties::Property::Size(32));
         let tmpbox = tbox.clone();
