@@ -196,6 +196,8 @@ impl Properties {
             .set(Property::BgColor(ColorF::new(1.0,1.0,1.0,1.0)))
             .set(Property::FocusColor(ColorF::new(0.0,0.0,0.0,1.0)))
             .set(Property::FocusBgColor(ColorF::new(0.9,0.9,0.9,1.0)))
+            .set(Property::HoverColor(ColorF::new(1.0,1.0,1.0,1.0)))
+            .set(Property::HoverBgColor(ColorF::new(0.1,0.1,0.1,1.0)))
             .set(Property::DisabledColor(ColorF::new(0.2,0.2,0.2,1.0)))
             .set(Property::DisabledBgColor(ColorF::new(0.8,0.8,0.8,1.0)))
             .set(Property::OverflowX(Overflow::Hidden))
@@ -273,6 +275,14 @@ impl Properties {
 
     pub fn get_focus_bg_color(&self) -> ColorF {
         if let Some(Property::FocusBgColor(x)) = self.get(&FOCUS_BG_COLOR) {x.clone()} else {panic!("Focus Background Color not found")}
+    }
+
+    pub fn get_hover_color(&self) -> ColorF {
+        if let Some(Property::HoverColor(x)) = self.get(&HOVER_COLOR) {x.clone()} else {panic!("Hover Color not found")}
+    }
+
+    pub fn get_hover_bg_color(&self) -> ColorF {
+        if let Some(Property::HoverBgColor(x)) = self.get(&HOVER_BG_COLOR) {x.clone()} else {panic!("Hover Background Color not found")}
     }
 
     pub fn get_disabled_color(&self) -> ColorF {

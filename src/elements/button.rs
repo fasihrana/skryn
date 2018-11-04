@@ -17,6 +17,7 @@ pub struct Button
     //focus: bool,
     event_handlers: EventHandlers,
     drawn: u8,
+    hovering: bool,
 }
 
 impl Button {
@@ -40,6 +41,7 @@ impl Button {
             //focus: false,
             event_handlers: EventHandlers::new(),
             drawn: 0,
+            hovering: false,
         }
     }
 
@@ -82,6 +84,11 @@ impl Element for Button {
         let height = self.props.get_height();
         let size = self.props.get_size() as f32;
         let family = self.props.get_family();
+
+        if self.hovering {
+            color = self.props.get_hover_color();
+            bgcolor = self.props.get_hover_bg_color();
+        }
 
         let (_, fi_key) = font_store.get_font_instance(&family, size as i32);
 
@@ -169,7 +176,23 @@ impl Element for Button {
                             handled = self.exec_handler(ElementEvent::Clicked, &m);
                         }
                 }
-            }
+            },
+            PrimitiveEvent::HoverBegin(n_tags) => {
+                let matched = n_tags.iter().find(|x|{
+                    x.0 == self.ext_id
+                });
+                if let Some(_) =  matched {
+                    self.hovering = true;
+                }
+            },
+            PrimitiveEvent::HoverEnd(o_tags) => {
+                let matched = o_tags.iter().find(|x|{
+                    x.0 == self.ext_id
+                });
+                if let Some(_) =  matched {
+                    self.hovering = false;
+                }
+            },
             _ => ()
         }
 
@@ -195,14 +218,6 @@ impl Element for Button {
     }
     fn as_any_mut(&mut self) -> &mut Any {
         self
-    }
-
-    fn is_invalid(&self) -> bool {
-        if self.drawn < 2 {
-            true
-        } else {
-            false
-        }
     }
 }
 

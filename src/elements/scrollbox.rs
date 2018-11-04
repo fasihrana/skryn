@@ -71,6 +71,8 @@ impl Element for ScrollBox {
 
         self.bounds = extent.clone();
 
+
+
         builder.push_stacking_context(
             &LayoutPrimitiveInfo::new((extent.x, extent.y).by(0.0, 0.0)),
             None,
@@ -80,23 +82,25 @@ impl Element for ScrollBox {
             RasterSpace::Screen,
         );
 
+        let mut info = LayoutPrimitiveInfo::new((0.0,0.0).by(extent.w, extent.h));
+        info.tag = Some((_id, 0));
+        builder.push_rect(&info, bgcolor);
+
         let pipeline_id = builder.pipeline_id.clone();
         let scroll_frame = builder.define_scroll_frame(Some(ExternalScrollId(_id,pipeline_id)),
-                                    (self.content.x,self.content.y).by(self.content.w, self.content.h),
+                                    (0.0,0.0).by(self.content.w, self.content.h),
                                     (0.0,0.0).by(extent.w,extent.h),
                                     vec![],
                                     None,
                                     ScrollSensitivity::ScriptAndInputEvents);
         builder.push_clip_id(scroll_frame);
 
-        let mut info = LayoutPrimitiveInfo::new((self.content.x,self.content.y).by(self.content.w, self.content.h));
-        info.tag = Some((_id, 0));
-        builder.push_rect(&info, bgcolor);
+
 
         if let Some(ref mut elm) = self.child {
             match elm.lock() {
                 Ok(ref mut elm) => {
-                    elm.render(api, builder,extent.clone(),font_store,None,gen);
+                    elm.render(api, builder,properties::Extent{x:0.0,y:0.0,w:extent.w,h:extent.h,dpi:extent.dpi},font_store,None,gen);
                     bounds = elm.get_bounds();
                 },
                 Err(_err_str) => panic!("unable to lock element : {}",_err_str)
@@ -146,6 +150,12 @@ impl Element for ScrollBox {
                         }
                     }
                 },
+                (PrimitiveEvent::HoverBegin(n_tags), Ok(ref mut _child_elm)) => {
+                    _child_elm.on_primitive_event(&[],e.clone());
+                },
+                (PrimitiveEvent::HoverEnd(o_tags), Ok(ref mut _child_elm)) => {
+                    _child_elm.on_primitive_event(&[],e.clone());
+                },
                 (_,Err(_err_str)) => {
                     //this should be unreachable
                     panic!("unable to lock element : {}", _err_str)
@@ -184,14 +194,6 @@ impl Element for ScrollBox {
     }
     fn as_any_mut(&mut self) -> &mut Any{
         self
-    }
-
-    fn is_invalid(&self)->bool{
-        if let Some(ref x) = self.child {
-            x.lock().unwrap().is_invalid()
-        } else {
-            false
-        }
     }
 }
 

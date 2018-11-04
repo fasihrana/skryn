@@ -259,6 +259,12 @@ impl Element for VBox {
                         break;
                     }
                 },
+                (PrimitiveEvent::HoverBegin(_), Ok(ref mut _child_elm)) =>  {
+                    _child_elm.on_primitive_event(&[],e.clone());
+                },
+                (PrimitiveEvent::HoverEnd(_), Ok(ref mut _child_elm)) =>  {
+                    _child_elm.on_primitive_event(&[],e.clone());
+                },
                 (_, Ok(ref mut _child_elm)) =>  {
                     if !handled {
                         if ext_ids.len() == 1 {
@@ -306,16 +312,6 @@ impl Element for VBox {
     }
     fn as_any_mut(&mut self) -> &mut Any{
         self
-    }
-
-    fn is_invalid(&self)->bool{
-        for elm in self.children.iter(){
-            if elm.lock().unwrap().is_invalid() {
-                return true;
-            }
-        }
-
-        false
     }
 }
 

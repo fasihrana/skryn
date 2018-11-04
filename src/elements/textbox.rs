@@ -26,6 +26,7 @@ pub struct TextBox {
     enabled: bool,
     singleline: bool,
     cursor: usize,
+    hovering: bool,
 }
 
 impl TextBox {
@@ -53,6 +54,7 @@ impl TextBox {
             enabled: true,
             singleline: false,
             cursor: 0,
+            hovering: false,
         }
     }
 
@@ -128,6 +130,9 @@ impl Element for TextBox {
               font_store: &mut font::FontStore,
               _props: Option<Arc<properties::Properties>>,
               gen: &mut properties::IdGenerator) {
+
+        println!("renddering textbox ... {}", self.ext_id);
+
         let _id = gen.get();
         self.ext_id = _id;
 
@@ -141,6 +146,11 @@ impl Element for TextBox {
         let mut bgcolor = self.props.get_bg_color();
         let width = self.props.get_width();
         let height = self.props.get_height();
+
+        if self.hovering {
+            color = self.props.get_hover_color();
+            bgcolor = self.props.get_hover_bg_color();
+        }
 
         if self.focus && self.enabled && self.editable {
             color = self.props.get_focus_color();
@@ -312,7 +322,7 @@ impl Element for TextBox {
                     }
                     handled = true;
                 }
-            }
+            },
             PrimitiveEvent::Button(_p, b, s, m) => {
                 if ext_ids.len() > 0 && ext_ids[0].0 == self.ext_id
                     && b == properties::Button::Left
@@ -321,7 +331,7 @@ impl Element for TextBox {
                         self.cursor = self.get_index_at(_p.clone());
                         handled = self.exec_handler(ElementEvent::Clicked, &m);
                     }
-            }
+            },
             PrimitiveEvent::SetFocus(f) => {
                 if self.enabled {
                     if self.focus != f {
@@ -329,7 +339,7 @@ impl Element for TextBox {
                         handled = self.exec_handler(ElementEvent::FocusChange, &f);
                     }
                 }
-            }
+            },
             PrimitiveEvent::KeyInput(vkc, _sc, s, _m) => {
                 match vkc {
                     Some(VirtualKeyCode::Right) => {
@@ -344,7 +354,23 @@ impl Element for TextBox {
                     }
                     _ => ()
                 }
-            }
+            },
+            PrimitiveEvent::HoverBegin(n_tags) => {
+                let matched = n_tags.iter().find(|x|{
+                    x.0 == self.ext_id
+                });
+                if let Some(_) =  matched {
+                    self.hovering = true;
+                }
+            },
+            PrimitiveEvent::HoverEnd(o_tags) => {
+                let matched = o_tags.iter().find(|x|{
+                    x.0 == self.ext_id
+                });
+                if let Some(_) =  matched {
+                    self.hovering = false;
+                }
+            },
             _ => ()
         }
         return handled;
@@ -369,14 +395,6 @@ impl Element for TextBox {
     }
     fn as_any_mut(&mut self) -> &mut Any {
         self
-    }
-
-    fn is_invalid(&self) -> bool {
-        if self.drawn < 2 {
-            true
-        } else {
-            false
-        }
     }
 }
 
