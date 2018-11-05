@@ -131,8 +131,6 @@ impl Element for TextBox {
               _props: Option<Arc<properties::Properties>>,
               gen: &mut properties::IdGenerator) {
 
-        println!("renddering textbox ... {}", self.ext_id);
-
         let _id = gen.get();
         self.ext_id = _id;
 
@@ -260,7 +258,7 @@ impl Element for TextBox {
 
         let info = LayoutPrimitiveInfo::new(LayoutRect::new(
             LayoutPoint::new(extent.x, extent.y),
-            LayoutSize::new(extent.w, extent.h),
+            LayoutSize::new(self.bounds.w, self.bounds.h),
         ));
         builder.push_text(&info,
                           &glyphs,

@@ -189,6 +189,10 @@ impl Internals {
 
         let font_store = Arc::new(Mutex::new(font::FontStore::new(api.clone_sender().create_api(), document_id.clone())));
 
+        let mut txn = Transaction::new();
+        txn.set_root_pipeline(pipeline_id);
+        api.send_transaction(document_id,txn);
+
         Internals {
             gl_window: window,
             events_loop,
@@ -292,6 +296,7 @@ impl Internals {
         self.dpi = dpi;
 
         if let Some(mut _txn) = txn {
+            _txn.generate_frame();
             self.api.send_transaction(self.document_id, _txn);
         }
 
@@ -471,7 +476,7 @@ impl Window {
         }
 
 
-        /*let mut txn = Transaction::new();
+        let mut txn = Transaction::new();
         let mut builder = None;
         let mut font_store = None;
 
@@ -522,7 +527,7 @@ impl Window {
                 builder.finalize(),
                 true,
             );
-            txn.set_root_pipeline(i.pipeline_id);
+            //txn.set_root_pipeline(i.pipeline_id);
             txn.generate_frame();
             i.api.send_transaction(i.document_id, txn);
 
@@ -530,7 +535,7 @@ impl Window {
             i.renderer.render(framebuffer_size).unwrap();
             let _ = i.renderer.flush_pipeline_info();
             i.gl_window.swap_buffers().ok();
-        }*/
+        }
 
         exit
     }
