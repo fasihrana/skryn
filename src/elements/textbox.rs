@@ -16,8 +16,6 @@ pub struct TextBox {
     value: String,
     props: properties::Properties,
     bounds: properties::Extent,
-    //cache: Vec<GlyphDimensions>,
-    //char_ext: Vec<((f32,f32),(f32,f32))>,
     cache: Vec<((f32,f32),(f32,f32))>,
     focus: bool,
     event_handlers: EventHandlers,
@@ -27,6 +25,7 @@ pub struct TextBox {
     singleline: bool,
     cursor: usize,
     hovering: bool,
+    is_password: bool,
 }
 
 impl TextBox {
@@ -55,6 +54,7 @@ impl TextBox {
             singleline: false,
             cursor: 0,
             hovering: false,
+            is_password: false,
         }
     }
 
@@ -82,6 +82,10 @@ impl TextBox {
         if !editable {
             self.focus = false;
         }
+    }
+
+    pub fn set_is_password(&mut self, val: bool){
+        self.is_password = val;
     }
 
     pub fn set_singleline(&mut self, singleline: bool) {
@@ -160,10 +164,23 @@ impl Element for TextBox {
         let mut next_x = extent.x;
         let mut next_y = extent.y + size;
 
-        let char_set: HashSet<char> = HashSet::from_iter(self.value.chars());
+        let val_str = "●".repeat(self.value.len());
+        let char_set: HashSet<char> = if self.is_password {
+            HashSet::from_iter(val_str.chars())
+        }
+        else {
+            HashSet::from_iter(self.value.chars())
+        };
 
         let mappings = font_store.get_glyphs(f_key, fi_key, &char_set);
-        let mut text_iter = self.value.chars();
+
+        let val_str = if self.is_password {
+            val_str.chars()
+        } else {
+            self.value.chars()
+        };
+
+        let mut text_iter = val_str;//self.value.chars();
 
         let mut max_x: f32 = 0.0;
 
@@ -296,8 +313,10 @@ impl Element for TextBox {
                             self.cursor = l;
                         }
                     } else if c == '\u{3}' {
-                        let mut ctx: ClipboardContext = ClipboardProvider::new().unwrap();
-                        ctx.set_contents(self.value.clone()).unwrap();
+                        if !self.is_password {
+                            let mut ctx: ClipboardContext = ClipboardProvider::new().unwrap();
+                            ctx.set_contents(self.value.clone()).unwrap();
+                        }
                     } else if c == '\u{16}' {
                         let mut ctx: ClipboardContext = ClipboardProvider::new().unwrap();
                         let vstr = ctx.get_contents().unwrap();

@@ -120,7 +120,7 @@ impl CalculatorView{
         let mut history_scroll = ScrollBox::new();
         history_scroll.set(skryn::gui::properties::Property::BgColor(ColorF::new(0.95,0.95,0.95,1.0)));
 
-        let mut history = TextBox::new("".to_owned());
+        let mut history = TextBox::new("Calculation History:\n============\n".to_owned());
         history.set(skryn::gui::properties::Property::BgColor(ColorF::new(0.9,0.9,0.9,0.0)));
         history.set(skryn::gui::properties::Property::Height(skryn::gui::properties::Unit::Natural));
         history.set(skryn::gui::properties::Property::Size(16));
