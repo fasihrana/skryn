@@ -54,14 +54,15 @@ impl VBox {
             _ => ()
         }
 
-        for elm in self.children.iter_mut() {
-            if let Ok(_e) = elm.lock() {
-                let _h = _e.get(&properties::HEIGHT).unwrap().clone();
-                match _h {
-                    properties::Property::Height(properties::Unit::Stretch(_s)) => stretchy += _s,
-                    _ => {
-                        let t_b = _e.get_bounds();
-                        pixel += t_b.h;
+        for elm in self.children.iter() {
+            if let Ok(ref _e) = elm.lock() {
+                let _p = _e.get_bounds().h;
+                if let Some(p) = _e.get(&properties::HEIGHT) {
+                    if let properties::Property::Height(_h) = p {
+                        match _h {
+                            properties::Unit::Stretch(_s) => stretchy += _s,
+                            _ => pixel += _p,
+                        }
                     }
                 }
             }
@@ -135,13 +136,16 @@ impl Element for VBox {
             w_stretchy_factor = 0.0;
         }
 
-        let (hp_sum, hs_sum )= self.get_height_sums();
+        /*let (hp_sum, hs_sum )= self.get_height_sums();
         let mut remaining_height = extent.h - hp_sum;
         if remaining_height < 0.0 {remaining_height = 0.0;}
         let mut h_stretchy_factor = remaining_height / hs_sum;
         if h_stretchy_factor.is_nan() {
             h_stretchy_factor = 0.0;
-        }
+        }*/
+
+        let mut remaining_height = extent.h;
+        let mut h_stretchy_factor = extent.h;
 
         let _id = gen.get();
         self.ext_id = _id;
@@ -223,9 +227,12 @@ impl Element for VBox {
 
         // TODO: Remove
         // only here for debugging.
-        if next_y == 0.0 {
+        /*if next_y == 0.0 {
             next_y = extent.h;
         }
+        if next_x == 0.0 {
+            next_x = extent.w;
+        }*/
 
         self.bounds = properties::Extent{
             x: extent.x,

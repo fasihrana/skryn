@@ -130,6 +130,7 @@ struct Internals {
     renderer: webrender::Renderer,
     cursor_position: WorldPoint,
     dpi: f64,
+    cursor_in_window: bool,
 }
 
 impl Internals {
@@ -191,7 +192,7 @@ impl Internals {
 
         let mut txn = Transaction::new();
         txn.set_root_pipeline(pipeline_id);
-        api.send_transaction(document_id,txn);
+        api.send_transaction(document_id, txn);
 
         Internals {
             gl_window: window,
@@ -204,12 +205,14 @@ impl Internals {
             renderer,
             cursor_position: WorldPoint::new(0.0, 0.0),
             dpi,
+            cursor_in_window: false,
         }
     }
 
     fn events(&mut self, tags: &Vec<ItemTag>) -> Vec<PrimitiveEvent> {
         let mut events = Vec::new();
 
+        let mut cursor_in_window = self.cursor_in_window.clone();
         let mut cursor_position = self.cursor_position.clone();
         let mut dpi = self.dpi;
         let mut txn = None;
@@ -221,14 +224,20 @@ impl Internals {
                     events.push(PrimitiveEvent::Exit);
                 }
                 glutin::Event::WindowEvent { event: glutin::WindowEvent::CursorEntered { .. }, .. } => {
-                    events.push(PrimitiveEvent::CursorEntered);
+                    //events.push(PrimitiveEvent::CursorEntered);
+                    cursor_in_window = true;
                 }
                 glutin::Event::WindowEvent { event: glutin::WindowEvent::CursorMoved { position, .. }, .. } => {
-                    cursor_position = WorldPoint::new(position.x as f32, position.y as f32);
-                    events.push(PrimitiveEvent::CursorMoved(position.into()));
+                    if cursor_in_window {
+                        cursor_position = WorldPoint::new(position.x as f32, position.y as f32);
+                        events.push(PrimitiveEvent::CursorMoved(position.into()));
+                    }
                 }
                 glutin::Event::WindowEvent { event: glutin::WindowEvent::CursorLeft { .. }, .. } => {
-                    events.push(PrimitiveEvent::CursorLeft);
+                    //events.push(PrimitiveEvent::CursorLeft);
+                    cursor_in_window = false;
+                    cursor_position.x = -1.0;
+                    cursor_position.y = -1.0;
                 }
                 glutin::Event::WindowEvent { event: glutin::WindowEvent::Resized(size), .. } => {
                     events.push(PrimitiveEvent::Resized(size));
@@ -300,6 +309,7 @@ impl Internals {
             self.api.send_transaction(self.document_id, _txn);
         }
 
+        self.cursor_in_window = cursor_in_window;
         self.cursor_position = cursor_position;
 
         events
@@ -355,8 +365,8 @@ impl Window {
         let mut new_tags: Vec<ItemTag> = vec![];
         let mut old_tags: Vec<ItemTag> = vec![];
 
-        if let Some(ref mut i) = self.internals
-            {
+        if let Some(ref mut i) = self.internals {
+            if i.cursor_position.x > 0.0 && i.cursor_position.y > 0.0 {
                 let results = i.api.hit_test(
                     i.document_id,
                     None,
@@ -369,6 +379,7 @@ impl Window {
                     tags.push(results.items[ind].tag);
                 }
             }
+        }
 
         if self.tags.is_empty() {
             self.tags = tags.clone();
@@ -552,7 +563,7 @@ impl Window {
             None,
             TransformStyle::Flat,
             MixBlendMode::Normal,
-            vec![],
+            &vec![],
             RasterSpace::Screen,
         );
 

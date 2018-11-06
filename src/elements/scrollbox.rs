@@ -78,7 +78,7 @@ impl Element for ScrollBox {
             None,
             TransformStyle::Flat,
             MixBlendMode::Normal,
-            vec![],
+            &vec![],
             RasterSpace::Screen,
         );
 

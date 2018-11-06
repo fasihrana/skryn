@@ -135,13 +135,16 @@ impl  Element for HBox {
             h_stretchy_factor = 0.0;
         }
 
-        let (wp_sum, ws_sum )= self.get_width_sums();
+        /*let (wp_sum, ws_sum )= self.get_width_sums();
         let mut remaining_width = extent.w - wp_sum;
         if remaining_width < 0.0 {remaining_width = 0.0;}
         let mut w_stretchy_factor = remaining_width / ws_sum;
         if w_stretchy_factor.is_nan() {
             w_stretchy_factor = 0.0;
-        }
+        }*/
+
+        let mut remaining_width = extent.w;
+        let mut w_stretchy_factor = extent.w;
 
         let _id = gen.get();
         self.ext_id = _id;

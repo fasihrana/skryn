@@ -2,7 +2,7 @@
 #![windows_subsystem = "windows"]
 extern crate winit;
 extern crate glutin;
-extern crate webrender;
+pub extern crate webrender;
 extern crate gleam;
 extern crate app_units;
 extern crate euclid;
@@ -17,3 +17,4 @@ pub mod data;
 mod util;
 pub mod elements;
 pub mod gui;
+//pub use self::webrender;
