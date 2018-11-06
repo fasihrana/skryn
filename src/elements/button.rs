@@ -141,7 +141,7 @@ impl Element for Button {
             None,
             TransformStyle::Flat,
             MixBlendMode::Normal,
-            Vec::new(),
+            vec![],
             RasterSpace::Screen,
         );
 
