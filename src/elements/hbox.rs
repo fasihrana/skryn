@@ -54,14 +54,19 @@ impl HBox  {
             _ => ()
         }
 
-        for elm in self.children.iter_mut() {
-            if let Ok(_e) = elm.lock() {
-                let _w = _e.get(&properties::WIDTH).unwrap().clone();
-                match _w {
-                    properties::Property::Width(properties::Unit::Stretch(_s)) => stretchy += _s,
-                    _ => {
-                        let t_b = _e.get_bounds();
-                        pixel += t_b.w;
+        for elm in self.children.iter() {
+            if let Ok(ref _e) = elm.lock() {
+                let _p = _e.get_bounds().w;
+                if let Some(p) = _e.get(&properties::WIDTH) {
+                    if let properties::Property::Width(_w) = p {
+                        match _w {
+                            properties::Unit::Stretch(_s) => stretchy += _s,
+                            _ => {
+                                if !_p.is_nan() && !_p.is_infinite() {
+                                    pixel += _p;
+                                }
+                            },
+                        }
                     }
                 }
             }
@@ -135,16 +140,16 @@ impl  Element for HBox {
             h_stretchy_factor = 0.0;
         }
 
-        /*let (wp_sum, ws_sum )= self.get_width_sums();
+        let (wp_sum, ws_sum )= self.get_width_sums();
         let mut remaining_width = extent.w - wp_sum;
         if remaining_width < 0.0 {remaining_width = 0.0;}
         let mut w_stretchy_factor = remaining_width / ws_sum;
         if w_stretchy_factor.is_nan() {
             w_stretchy_factor = 0.0;
-        }*/
+        }
 
-        let mut remaining_width = extent.w;
-        let mut w_stretchy_factor = extent.w;
+//        let mut remaining_width = extent.w;
+//        let mut w_stretchy_factor = extent.w;
 
         let _id = gen.get();
         self.ext_id = _id;

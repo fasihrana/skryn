@@ -64,7 +64,6 @@ pub enum Property{
     Top(Unit), //in pixels or stretches
     Height(Unit), //in pixels or stretches
     Bottom(Unit), //in pixels or stretches
-    Padding{t: Unit,r: Unit, b: Unit,l: Unit},// "trbl" -> top, right, bottom, left
     MinWidth(Unit),
     MinHeight(Unit),
     Color(ColorF),
@@ -91,7 +90,6 @@ lazy_static!{
     pub static ref TOP: Property = Property::Top(Unit::Stretch(0.0));
     pub static ref HEIGHT: Property = Property::Height(Unit::Stretch(1.0));
     pub static ref BOTTOM: Property = Property::Bottom(Unit::Stretch(0.0));
-    pub static ref PADDING: Property = Property::Padding{t: Unit::Stretch(0.0),r: Unit::Stretch(0.0),b: Unit::Stretch(0.0),l: Unit::Stretch(0.0)};
     pub static ref MIN_WIDTH: Property = Property::MinWidth(Unit::Pixel(0.0));
     pub static ref MIN_HEIGHT: Property = Property::MinHeight(Unit::Pixel(0.0));
     pub static ref COLOR: Property = Property::Color(ColorF{
@@ -189,7 +187,6 @@ impl Properties {
             .set(Property::Top(Unit::Stretch(0.0)))
             .set(Property::Height(Unit::Stretch(1.0)))
             .set(Property::Bottom(Unit::Stretch(0.0)))
-            .set(Property::Padding{t: Unit::Stretch(0.0),r: Unit::Stretch(0.0),b: Unit::Stretch(0.0),l: Unit::Stretch(0.0)})
             .set(Property::MinWidth(Unit::Pixel(0.0)))
             .set(Property::MinHeight(Unit::Pixel(0.0)))
             .set(Property::Color(ColorF::new(0.2,0.2,0.2,1.0)))
@@ -247,10 +244,6 @@ impl Properties {
 
     pub fn get_bottom(&self) -> Unit {
         if let Some(Property::Bottom(x)) = self.get(&BOTTOM) {x.clone()} else {panic!("Bottom not found")}
-    }
-
-    pub fn get_padding(&self) -> (Unit,Unit,Unit,Unit) {
-        if let Some(Property::Padding{t,r,b,l}) = self.get(&PADDING) {(t.clone(),r.clone(),b.clone(),l.clone())} else {panic!("Bottom not found")}
     }
 
     pub fn get_min_width(&self) -> Unit {

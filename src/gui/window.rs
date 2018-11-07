@@ -13,7 +13,7 @@ use gui::properties;
 use std::sync::{Arc, Mutex};
 use std::ops::DerefMut;
 use std::thread;
-use std::time::Duration;
+use std::time::{Duration, SystemTime};
 use std::mem;
 
 impl Into<properties::Position> for glutin::dpi::LogicalPosition {
@@ -619,7 +619,11 @@ impl Manager {
             to sleep minus the time taken to render the
             windows.
         */
+
+        let fps = 1000 / fps;
+        let mut lasttime = SystemTime::now();
         loop {
+            lasttime = SystemTime::now();
             let mut i = 0;
             let mut wmo = Manager::get();
             if let Some(ref mut _wmo) = wmo {
@@ -671,7 +675,15 @@ impl Manager {
                     }
                 }
             }
-            thread::sleep(Duration::from_millis(1000 / fps));
+            if let Ok(_t) = lasttime.elapsed(){
+                let mut _t = _t.subsec_millis() as u64;
+                if _t > fps {
+                    _t = fps;
+                }
+                thread::sleep(Duration::from_millis(fps - _t));
+            }else {
+                thread::sleep(Duration::from_millis(fps));
+            }
         }
     }
 

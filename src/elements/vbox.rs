@@ -61,7 +61,11 @@ impl VBox {
                     if let properties::Property::Height(_h) = p {
                         match _h {
                             properties::Unit::Stretch(_s) => stretchy += _s,
-                            _ => pixel += _p,
+                            _ => {
+                                if !_p.is_nan() && !_p.is_infinite() {
+                                    pixel += _p;
+                                }
+                            },
                         }
                     }
                 }
@@ -136,16 +140,14 @@ impl Element for VBox {
             w_stretchy_factor = 0.0;
         }
 
-        /*let (hp_sum, hs_sum )= self.get_height_sums();
+        let (hp_sum, hs_sum )= self.get_height_sums();
         let mut remaining_height = extent.h - hp_sum;
         if remaining_height < 0.0 {remaining_height = 0.0;}
         let mut h_stretchy_factor = remaining_height / hs_sum;
         if h_stretchy_factor.is_nan() {
             h_stretchy_factor = 0.0;
-        }*/
+        }
 
-        let mut remaining_height = extent.h;
-        let mut h_stretchy_factor = extent.h;
 
         let _id = gen.get();
         self.ext_id = _id;
