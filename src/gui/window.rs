@@ -621,7 +621,7 @@ impl Manager {
         */
 
         let fps = 1000 / fps;
-        let mut lasttime = SystemTime::now();
+        let mut lasttime;
         loop {
             lasttime = SystemTime::now();
             let mut i = 0;

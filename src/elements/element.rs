@@ -48,18 +48,28 @@ impl Hash for ElementEvent {
 }*/
 
 //pub type EventFn = fn(&mut Element, &Any) -> bool;
-pub struct EventFn(pub Box<FnMut(&Any) -> bool>);
+#[derive(Clone)]
+pub struct EventFn(Arc<Mutex<FnMut(&mut Element,&Any) -> bool>>);
 //it should be safe since Element will always be within a lock.
 //sending it as arc.mutex.element might end up in a deadlock
 unsafe impl Send for EventFn {}
 unsafe impl Sync for EventFn {}
 
+
+use std::ops::DerefMut;
 impl EventFn{
-    /*pub fn copy(&self) -> EventFn{
-        //EventFn(Box::new(unsafe {mem::(&self.0)}))
-    }*/
-    pub fn call(&mut self, _d:&Any) -> bool {
-        self.0(_d)
+    pub fn new(f:Arc<Mutex<FnMut(&mut Element,&Any) -> bool>>) -> EventFn {
+        EventFn(f)
+    }
+
+    pub fn call(&mut self, _e:&mut Element, _d:&Any) -> bool {
+        //let h = ;//.unwrap()(_d)
+        if let Ok(mut f) = self.0.lock() {
+            let x = f.deref_mut();
+            x(_e,_d)
+        } else {
+            false
+        }
     }
 }
 

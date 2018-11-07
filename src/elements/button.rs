@@ -92,7 +92,7 @@ impl Element for Button {
         let size = self.props.get_size() as f32;
         let family = self.props.get_family();
 
-        if self.hovering {
+        if self.hovering && self.enabled {
             color = self.props.get_hover_color();
             bgcolor = self.props.get_hover_bg_color();
         }
@@ -179,6 +179,7 @@ impl Element for Button {
                 if ext_ids.len() == 1 && ext_ids[0].0 == self.ext_id {
                     if b == properties::Button::Left
                         && s == properties::ButtonState::Released
+                        && self.enabled
                         {
                             handled = self.exec_handler(ElementEvent::Clicked, &m);
                         }
@@ -211,10 +212,9 @@ impl Element for Button {
     }
 
     fn exec_handler(&mut self, _e: ElementEvent, _d: &Any) -> bool {
-        let eh = &mut self.event_handlers;
-        let h = eh.get_mut(&_e);
-        if let Some(h) = h{
-            (h.0)(_d)
+        let h = self.event_handlers.get_mut(&_e).cloned();
+        if let Some(mut h) = h{
+            h.call(self, _d)
         } else {
             false
         }

@@ -307,10 +307,9 @@ impl  Element for HBox {
     }
 
     fn exec_handler(&mut self, _e: ElementEvent, _d: &Any) -> bool {
-        let eh = &mut self.handlers;
-        let h = eh.get_mut(&_e);
-        if let Some(h) = h{
-            (h.0)(_d)
+        let h = self.handlers.get_mut(&_e).cloned();
+        if let Some(mut h) = h{
+            h.call(self,_d)
         } else {
             false
         }

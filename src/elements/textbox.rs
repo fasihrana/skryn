@@ -411,10 +411,9 @@ impl Element for TextBox {
     }
 
     fn exec_handler(&mut self, _e: ElementEvent, _d: &Any) -> bool {
-        let eh = &mut self.event_handlers;
-        let h = eh.get_mut(&_e);
-        if let Some(h) = h{
-            (h.0)(_d)
+        let h = self.event_handlers.get_mut(&_e).cloned();
+        if let Some(mut h) = h{
+            h.call(self,_d)
         } else {
             false
         }
