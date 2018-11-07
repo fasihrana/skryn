@@ -18,6 +18,7 @@ pub struct Button
     event_handlers: EventHandlers,
     drawn: u8,
     hovering: bool,
+    enabled: bool,
 }
 
 impl Button {
@@ -25,7 +26,8 @@ impl Button {
         let mut props = properties::Properties::new();
         props.default();
         props.set(properties::Property::BgColor(ColorF::new(0.8, 0.9, 0.9, 1.0)))
-            .set(properties::Property::HoverBgColor(ColorF::new(0.7, 0.8, 0.8, 1.0)));
+            .set(properties::Property::Color(ColorF::new(0.2, 0.2, 0.2, 1.0)))
+            .set(properties::Property::HoverBgColor(ColorF::new(0.6, 0.7, 0.7, 1.0)));
         Button {
             ext_id: 0,
             value: s,
@@ -42,6 +44,7 @@ impl Button {
             event_handlers: EventHandlers::new(),
             drawn: 0,
             hovering: false,
+            enabled: true,
         }
     }
 
@@ -63,8 +66,12 @@ impl Element for Button {
         self.props.set(prop);
     }
 
-    fn get(&self, prop: &properties::Property) -> Option<&properties::Property> {
+    /*fn get(&self, prop: &properties::Property) -> Option<&properties::Property> {
         self.props.get(&prop)
+    }*/
+
+    fn get_properties(&self) -> properties::Properties {
+        self.props.clone()
     }
 
     fn render(&mut self,
@@ -221,3 +228,12 @@ impl Element for Button {
     }
 }
 
+impl CanDisable for Button {
+    fn set_enabled(&mut self, value: bool) {
+        self.enabled = value;
+    }
+
+    fn get_enabled(&self) -> bool {
+        self.enabled
+    }
+}

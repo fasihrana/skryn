@@ -72,7 +72,8 @@ pub type EventHandlers = HashMap<ElementEvent,EventFn>;
 pub trait Element:Send+Sync {
     fn get_ext_id(&self) -> u64;
     fn set(&mut self, prop: properties::Property);
-    fn get(&self, prop: &properties::Property) -> Option<&properties::Property>;
+    //fn get(&self, prop: &properties::Property) -> Option<&properties::Property>;
+    fn get_properties(&self) -> properties::Properties;
     fn render(&mut self,
               api: &RenderApi,
               builder: &mut DisplayListBuilder,
@@ -102,6 +103,7 @@ pub trait HasChildren : Element {
     fn append(&mut self, e:Arc<Mutex<Element>>) -> Option<Arc<Mutex<Element>>>{None}
 }
 
-
-
-
+pub trait CanDisable : Element {
+    fn set_enabled(&mut self, _:bool);
+    fn get_enabled(&self) -> bool;
+}

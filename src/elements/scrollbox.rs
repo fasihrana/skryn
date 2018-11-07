@@ -117,8 +117,12 @@ impl Element for ScrollBox {
         self.props.set(prop);
     }
 
-    fn get(&self, prop: &properties::Property) -> Option<&properties::Property> {
+    /*fn get(&self, prop: &properties::Property) -> Option<&properties::Property> {
         self.props.get(&prop)
+    }*/
+
+    fn get_properties(&self) -> properties::Properties {
+        self.props.clone()
     }
 
     fn get_bounds(&self) -> properties::Extent {

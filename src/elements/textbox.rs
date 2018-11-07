@@ -84,6 +84,10 @@ impl TextBox {
         }
     }
 
+    pub fn get_editable(&self) -> bool {
+        self.editable
+    }
+
     pub fn set_is_password(&mut self, val: bool){
         self.is_password = val;
     }
@@ -123,8 +127,12 @@ impl Element for TextBox {
         self.props.set(prop);
     }
 
-    fn get(&self, prop: &properties::Property) -> Option<&properties::Property> {
+    /*fn get(&self, prop: &properties::Property) -> Option<&properties::Property> {
         self.props.get(&prop)
+    }*/
+
+    fn get_properties(&self) -> properties::Properties {
+        self.props.clone()
     }
 
     fn render(&mut self,
@@ -154,9 +162,14 @@ impl Element for TextBox {
             bgcolor = self.props.get_hover_bg_color();
         }
 
-        if self.focus && self.enabled && self.editable {
+        if self.focus && self.editable {
             color = self.props.get_focus_color();
             bgcolor = self.props.get_focus_bg_color();
+        }
+
+        if !self.enabled {
+            color = self.props.get_disabled_color();
+            bgcolor = self.props.get_disabled_bg_color();
         }
 
         let (f_key, fi_key) = font_store.get_font_instance(&family, size as i32);
@@ -412,6 +425,16 @@ impl Element for TextBox {
     }
     fn as_any_mut(&mut self) -> &mut Any {
         self
+    }
+}
+
+impl CanDisable for TextBox {
+    fn set_enabled(&mut self, value: bool) {
+        self.enabled = value;
+    }
+
+    fn get_enabled(&self) -> bool {
+        self.enabled
     }
 }
 

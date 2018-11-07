@@ -14,13 +14,6 @@ pub struct Extent{
     pub dpi:f32,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum Overflow{
-    Hidden,
-    Wrap,
-    Scroll,
-}
-
 #[derive(Clone, Debug)]
 pub enum Unit{
     Natural,
@@ -41,14 +34,7 @@ impl Hash for Unit {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub enum VAlign{
-    Top,
-    Middle,
-    Bottom,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum HAlign{
+pub enum Align{
     Left,
     Middle,
     Right,
@@ -76,9 +62,7 @@ pub enum Property{
     ActiveBgColor(ColorF),
     DisabledColor(ColorF),
     DisabledBgColor(ColorF),
-    OverflowX(Overflow),
-    OverflowY(Overflow),
-    Enabled(bool),
+    TextAlign(Align),
 }
 
 lazy_static!{
@@ -111,9 +95,9 @@ lazy_static!{
         a: 1.0,
     });
     pub static ref HOVER_BG_COLOR: Property = Property::HoverBgColor(ColorF{
-        r: 1.0,
-        g: 1.0,
-        b: 1.0,
+        r: 0.8,
+        g: 0.8,
+        b: 0.8,
         a: 1.0,
     });
     pub static ref FOCUS_COLOR: Property = Property::FocusColor(ColorF{
@@ -152,9 +136,7 @@ lazy_static!{
         b: 0.8,
         a: 1.0,
     });
-    pub static ref OVERFLOW_X: Property = Property::OverflowX(Overflow::Hidden);
-    pub static ref OVERFLOW_Y: Property = Property::OverflowY(Overflow::Hidden);
-    pub static ref ENABLED: Property = Property::Enabled(true);
+    pub static ref TEXT_ALIGN: Property = Property::TextAlign(Align::Left);
 }
 
 impl PartialEq for Property {
@@ -189,17 +171,15 @@ impl Properties {
             .set(Property::Bottom(Unit::Stretch(0.0)))
             .set(Property::MinWidth(Unit::Pixel(0.0)))
             .set(Property::MinHeight(Unit::Pixel(0.0)))
-            .set(Property::Color(ColorF::new(0.2,0.2,0.2,1.0)))
-            .set(Property::BgColor(ColorF::new(1.0,1.0,1.0,1.0)))
-            .set(Property::FocusColor(ColorF::new(0.0,0.0,0.0,1.0)))
-            .set(Property::FocusBgColor(ColorF::new(0.9,0.9,0.9,1.0)))
+            .set(Property::Color(ColorF::new(0.9,0.9,0.9,1.0)))
+            .set(Property::BgColor(ColorF::new(1.0,1.0,1.0,0.0)))
+            .set(Property::FocusColor(ColorF::new(0.8,0.8,0.8,1.0)))
+            .set(Property::FocusBgColor(ColorF::new(0.0,0.0,0.0,0.0)))
             .set(Property::HoverColor(ColorF::new(1.0,1.0,1.0,1.0)))
-            .set(Property::HoverBgColor(ColorF::new(0.1,0.1,0.1,1.0)))
-            .set(Property::DisabledColor(ColorF::new(0.2,0.2,0.2,1.0)))
-            .set(Property::DisabledBgColor(ColorF::new(0.8,0.8,0.8,1.0)))
-            .set(Property::OverflowX(Overflow::Hidden))
-            .set(Property::OverflowY(Overflow::Hidden))
-            .set(Property::Enabled(true))
+            .set(Property::HoverBgColor(ColorF::new(0.0,0.0,0.0,0.0)))
+            .set(Property::DisabledColor(ColorF::new(0.7,0.7,0.7,1.0)))
+            .set(Property::DisabledBgColor(ColorF::new(0.0,0.0,0.0,0.0)))
+            .set(Property::TextAlign(Align::Left))
     }
 
     pub fn set(&mut self, property: Property) -> &mut Properties {
@@ -286,16 +266,8 @@ impl Properties {
         if let Some(Property::DisabledBgColor(x)) = self.get(&DISABLED_BG_COLOR) {x.clone()} else {panic!("Disabled Background Color not found")}
     }
 
-    pub fn get_overflow_x(&self) -> Overflow {
-        if let Some(Property::OverflowX(x)) = self.get(&OVERFLOW_X) {x.clone()} else {panic!("Overflow X not found")}
-    }
-
-    pub fn get_overflow_y(&self) -> Overflow {
-        if let Some(Property::OverflowY(y)) = self.get(&OVERFLOW_Y) {y.clone()} else {panic!("Overflow Y not found")}
-    }
-
-    pub fn get_enabled(&self) -> bool {
-        if let Some(Property::Enabled(b)) = self.get(&ENABLED) {b.clone()} else {panic!("Enabled not found")}
+    pub fn get_text_align(&self) -> Align {
+        if let Some(Property::TextAlign(x)) = self.get(&TEXT_ALIGN) {x.clone()} else {panic!("Text Align not found")}
     }
 }
 

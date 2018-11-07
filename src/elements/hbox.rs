@@ -57,17 +57,14 @@ impl HBox  {
         for elm in self.children.iter() {
             if let Ok(ref _e) = elm.lock() {
                 let _p = _e.get_bounds().w;
-                if let Some(p) = _e.get(&properties::WIDTH) {
-                    if let properties::Property::Width(_w) = p {
-                        match _w {
-                            properties::Unit::Stretch(_s) => stretchy += _s,
-                            _ => {
-                                if !_p.is_nan() && !_p.is_infinite() {
-                                    pixel += _p;
-                                }
-                            },
+
+                match _e.get_properties().get_width() {
+                    properties::Unit::Stretch(_s) => stretchy += _s,
+                    _ => {
+                        if !_p.is_nan() && !_p.is_infinite() {
+                            pixel += _p;
                         }
-                    }
+                    },
                 }
             }
         }
@@ -112,8 +109,12 @@ impl  Element for HBox {
         self.props.set(prop);
     }
 
-    fn get(&self, prop: &properties::Property) -> Option<&properties::Property> {
+    /*fn get(&self, prop: &properties::Property) -> Option<&properties::Property> {
         self.props.get(&prop)
+    }*/
+
+    fn get_properties(&self) -> properties::Properties {
+        self.props.clone()
     }
 
     fn render(&mut self,
@@ -196,13 +197,13 @@ impl  Element for HBox {
 
             match elm.lock() {
                 Ok(ref mut elm) => {
-                    let e_width = elm.get(&properties::WIDTH).unwrap().clone();
+                    let e_width = elm.get_properties().get_width();
 
                     match e_width {
-                        properties::Property::Width(properties::Unit::Pixel(_p)) => {
+                        properties::Unit::Pixel(_p) => {
                             child_extent.w = _p;
                         },
-                        properties::Property::Width(properties::Unit::Stretch(_s)) => {
+                        properties::Unit::Stretch(_s) => {
                             child_extent.w = w_stretchy_factor;
                         },
                         _ => ()
