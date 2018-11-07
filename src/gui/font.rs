@@ -4,6 +4,7 @@ use font_kit::{source::SystemSource, font::Font, family_name::FamilyName};
 use std::collections::{HashMap, HashSet};
 use std::iter::FromIterator;
 use webrender::api::*;
+use gui::properties::Align;
 
 fn load_font_by_name(name: &String) -> Font {
     let mut props = font_kit::properties::Properties::new();
@@ -19,8 +20,9 @@ fn load_font_by_name(name: &String) -> Font {
         .unwrap().load().unwrap()
 }
 
-fn add_font(name: &String, api: &RenderApi, document_id: DocumentId) -> FontKey {
-    let font = load_font_by_name(name);
+fn add_font(font: &font_kit::font::Font, api: &RenderApi, document_id: DocumentId) -> FontKey {
+    //let font: font_kit::font::Font = load_font_by_name(name);
+
     let f = font.copy_font_data().unwrap();
     let key = api.generate_font_key();
 
@@ -33,13 +35,15 @@ fn add_font(name: &String, api: &RenderApi, document_id: DocumentId) -> FontKey 
 
 struct InstanceKeys {
     key: FontKey,
+    font: font_kit::font::Font,
     instances: HashMap<i32, FontInstanceKey>,
 }
 
 impl InstanceKeys {
-    fn new(_key: FontKey) -> InstanceKeys {
+    fn new(_key: FontKey, _font: font_kit::font::Font) -> InstanceKeys {
         InstanceKeys {
             key: _key.clone(),
+            font: _font,
             instances: HashMap::new(),
         }
     }
@@ -89,9 +93,10 @@ impl FontStore {
             }
         }
         {
-            let fkey = add_font(family, &self.api, self.document_id);
+            let font = load_font_by_name(family);
+            let fkey = add_font(&font, &self.api, self.document_id);
 
-            let mut _keys = InstanceKeys::new(fkey);
+            let mut _keys = InstanceKeys::new(fkey, font);
             let _ikey = _keys.get_instance_key(size, &self.api, self.document_id);
 
             self.store.insert(family.clone(), _keys);
@@ -100,7 +105,16 @@ impl FontStore {
         }
     }
 
-    pub fn get_glyphs(&self, f_key: FontKey, fi_key: FontInstanceKey, val: &HashSet<char>) -> HashMap<char, (GlyphIndex, GlyphDimensions)> {
+    pub fn get_font_metrics(&self, family: &String) -> Option<font_kit::metrics::Metrics>{
+        let ikeys = self.store.get(family);
+        if let Some(mut _keys) = ikeys {
+            Some(_keys.font.metrics())
+        } else {
+            None
+        }
+    }
+
+    pub fn get_glyphs_for_set(&self, f_key: FontKey, fi_key: FontInstanceKey, val: &HashSet<char>) -> HashMap<char, (GlyphIndex, GlyphDimensions)> {
         let mut map: HashMap<char, (GlyphIndex, GlyphDimensions)> = HashMap::new();
 
         let mut str_val = "".to_owned();
@@ -128,6 +142,19 @@ impl FontStore {
         map
     }
 
+    pub fn get_glyphs_for_slice(&self, f_key: FontKey, fi_key: FontInstanceKey, s:&str) -> (Vec<Option<u32>>, Vec<Option<GlyphDimensions>>) {
+        let gi = self.api.get_glyph_indices(f_key, s);
+        let gi_z: Vec<u32> = gi.iter().map(|_gi|{
+            match _gi {
+                Some(v) => v.clone(),
+                _ => 0,
+            }
+        }).collect();
+        let gd = self.api.get_glyph_dimensions(fi_key, gi_z);
+
+        (gi,gd)
+    }
+
     pub fn deinit(&mut self) {
         let mut txn = Transaction::new();
         for (_, ik) in &self.store {
@@ -144,6 +171,53 @@ impl FontStore {
 pub struct FontRaster;
 
 impl FontRaster {
+
+    pub fn place_lines(value: &String,
+                       x:f32,
+                       y:f32,
+                       _width: f32,
+                       _height: f32,
+                       size: f32,
+                       family: &String,
+                       text_align: Align,
+                       font_store: &mut FontStore){
+
+        let next_x = x;
+        let next_y = y;
+
+        for line in value.lines() {
+            println!("{:?}",Self::place_line(line,size,family,font_store));
+        }
+    }
+
+    pub fn place_line(value: &str, size:f32,family:&String,font_store:&mut FontStore) -> (Vec<GlyphInstance>, f32, f32){
+
+        let metrics = font_store.get_font_metrics(family).unwrap();
+
+        let units = size / (metrics.ascent + (metrics.descent*-1.0));
+
+        let (f_key, fi_key) = font_store.get_font_instance(&family, size as i32);
+
+        let (indices, dimens) = font_store.get_glyphs_for_slice(f_key,fi_key, value);
+
+        let mut next_x = 0.0;
+        let baseline = units * metrics.ascent;
+
+        let mut glyphs = vec![];
+
+        for i in 0..indices.len() {
+            if let Some(gi) = indices[i] {
+                glyphs.push(GlyphInstance{ index: gi, point: LayoutPoint::new(next_x, baseline) });
+                match dimens[i]{
+                    Some(d) => next_x += d.advance,
+                    _ => next_x += size/2.0,
+                }
+            }
+        }
+
+        (glyphs, next_x, size)
+    }
+
     pub fn place_glyphs(value: &String,
                     x:f32,
                     y:f32,
@@ -151,6 +225,7 @@ impl FontRaster {
                     _height: f32,
                     size: f32,
                     family: &String,
+                    text_align: Align,
                     font_store: &mut FontStore) -> (Vec<GlyphInstance>, f32, f32)
     {
 
@@ -160,7 +235,7 @@ impl FontRaster {
 
         let char_set: HashSet<char> = HashSet::from_iter(value.chars());
 
-        let mappings = font_store.get_glyphs(f_key, fi_key, &char_set);
+        let mappings = font_store.get_glyphs_for_set(f_key, fi_key, &char_set);
 
         let mut text_iter = value.chars();
         let mut next_x = x;

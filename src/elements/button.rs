@@ -81,6 +81,8 @@ impl Element for Button {
               font_store: &mut font::FontStore,
               _props: Option<Arc<properties::Properties>>,
               gen: &mut properties::IdGenerator) {
+
+
         let _id = gen.get();
         self.ext_id = _id;
 
@@ -91,6 +93,7 @@ impl Element for Button {
         let height = self.props.get_height();
         let size = self.props.get_size() as f32;
         let family = self.props.get_family();
+        let text_align = self.props.get_text_align();
 
         if self.hovering && self.enabled {
             color = self.props.get_hover_color();
@@ -99,13 +102,14 @@ impl Element for Button {
 
         let (_, fi_key) = font_store.get_font_instance(&family, size as i32);
 
-        let (glyphs, mut calc_w, mut calc_h) = font::FontRaster::place_glyphs(&self.value,
-                                                                     0.0,
-                                                                     0.0,
-                                                                     extent.w,
-                                                                     extent.h,
+        let (glyphs, mut calc_w, mut calc_h) = font::FontRaster::place_line(&self.value[0..],//font::FontRaster::place_glyphs(&self.value,
+                                                                     //0.0,
+                                                                     //0.0,
+                                                                     //extent.w,
+                                                                     //extent.h,
                                                                      size,
                                                                      &family,
+                                                                     //text_align,
                                                                      font_store);
 
         let mut _x = (extent.w - calc_w) / 2.0;

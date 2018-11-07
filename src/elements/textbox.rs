@@ -165,6 +165,7 @@ impl Element for TextBox {
         let mut bgcolor = self.props.get_bg_color();
         let width = self.props.get_width();
         let height = self.props.get_height();
+        let text_align = self.props.get_text_align();
 
         if self.hovering {
             color = self.props.get_hover_color();
@@ -193,7 +194,7 @@ impl Element for TextBox {
             HashSet::from_iter(self.value.chars())
         };
 
-        let mappings = font_store.get_glyphs(f_key, fi_key, &char_set);
+        let mappings = font_store.get_glyphs_for_set(f_key, fi_key, &char_set);
 
         let val_str = if self.is_password {
             val_str.chars()
@@ -270,6 +271,7 @@ impl Element for TextBox {
                                                              extent.h,
                                                              size,
                                                              &family,
+                                                             text_align,
                                                              font_store);
             let info = LayoutPrimitiveInfo::new(LayoutRect::new(
                 LayoutPoint::new(extent.x, extent.y),
