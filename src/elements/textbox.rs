@@ -1,6 +1,6 @@
 use std::sync::Arc;
 use std::any::Any;
-use std::collections::{HashSet};
+use std::collections::HashSet;
 use std::iter::FromIterator;
 
 use glutin::VirtualKeyCode;
@@ -14,9 +14,10 @@ use gui::font;
 pub struct TextBox {
     ext_id: u64,
     value: String,
+    placeholder: String,
     props: properties::Properties,
     bounds: properties::Extent,
-    cache: Vec<((f32,f32),(f32,f32))>,
+    cache: Vec<((f32, f32), (f32, f32))>,
     focus: bool,
     event_handlers: EventHandlers,
     drawn: u8,
@@ -36,6 +37,7 @@ impl TextBox {
         TextBox {
             ext_id: 0,
             value: s,
+            placeholder: "".to_owned(),
             props,
             bounds: properties::Extent {
                 x: 0.0,
@@ -66,7 +68,7 @@ impl TextBox {
     }
 
     pub fn append_value(&mut self, s: String) {
-        self.value = format!("{}{}",self.value,s);
+        self.value = format!("{}{}", self.value, s);
         //self.cache.clear();
         //self.char_ext.clear();
         self.drawn = 0;
@@ -88,7 +90,7 @@ impl TextBox {
         self.editable
     }
 
-    pub fn set_is_password(&mut self, val: bool){
+    pub fn set_is_password(&mut self, val: bool) {
         self.is_password = val;
     }
 
@@ -106,17 +108,25 @@ impl TextBox {
             if p.y > (pmax.1 - size) && p.x > pmin.0 {
                 //if the click is before half-x of the character, assign i
                 //otherwise assign i+1
-                let mid_x = ((pmax.0 - pmin.0)/2.0) + pmin.0;
-                if p.x <  mid_x {
+                let mid_x = ((pmax.0 - pmin.0) / 2.0) + pmin.0;
+                if p.x < mid_x {
                     cursor = i;
                 } else {
-                    cursor = i+1;
+                    cursor = i + 1;
                 }
             }
             i += 1;
         }
 
         cursor
+    }
+
+    pub fn set_placeholder(&mut self, p: String) {
+        self.placeholder = p;
+    }
+
+    pub fn get_placeholder(&self) -> String {
+        self.placeholder.clone()
     }
 }
 
@@ -142,7 +152,6 @@ impl Element for TextBox {
               font_store: &mut font::FontStore,
               _props: Option<Arc<properties::Properties>>,
               gen: &mut properties::IdGenerator) {
-
         let _id = gen.get();
         self.ext_id = _id;
 
@@ -180,8 +189,7 @@ impl Element for TextBox {
         let val_str = "●".repeat(self.value.len());
         let char_set: HashSet<char> = if self.is_password {
             HashSet::from_iter(val_str.chars())
-        }
-        else {
+        } else {
             HashSet::from_iter(self.value.chars())
         };
 
@@ -242,7 +250,7 @@ impl Element for TextBox {
                 max_x = next_x;
             }
 
-            cache.push(((start_x,start_y),(next_x,next_y)));
+            cache.push(((start_x, start_y), (next_x, next_y)));
 
             c_indx += 1;
 
@@ -253,6 +261,31 @@ impl Element for TextBox {
         }
 
         self.cache = cache;
+
+        if self.value.is_empty() && !self.placeholder.is_empty() {
+            let placeholder = font::FontRaster::place_glyphs(&self.placeholder,
+                                                             extent.x,
+                                                             extent.y,
+                                                             extent.w,
+                                                             extent.h,
+                                                             size,
+                                                             &family,
+                                                             font_store);
+            let info = LayoutPrimitiveInfo::new(LayoutRect::new(
+                LayoutPoint::new(extent.x, extent.y),
+                LayoutSize::new(placeholder.1, placeholder.2),
+            ));
+
+            if !self.hovering {
+                color = self.props.get_disabled_color();
+            }
+
+            builder.push_text(&info,
+                              &placeholder.0,
+                              fi_key.clone(),
+                              color.clone(),
+                              Some(GlyphOptions::default()));
+        }
 
         let mut calc_w = max_x - extent.x;
         let mut calc_h = next_y - extent.y;
@@ -352,7 +385,7 @@ impl Element for TextBox {
                     }
                     handled = true;
                 }
-            },
+            }
             PrimitiveEvent::Button(_p, b, s, m) => {
                 if ext_ids.len() > 0 && ext_ids[0].0 == self.ext_id
                     && b == properties::Button::Left
@@ -361,7 +394,7 @@ impl Element for TextBox {
                         self.cursor = self.get_index_at(_p.clone());
                         handled = self.exec_handler(ElementEvent::Clicked, &m);
                     }
-            },
+            }
             PrimitiveEvent::SetFocus(f) => {
                 if self.enabled {
                     if self.focus != f {
@@ -369,7 +402,7 @@ impl Element for TextBox {
                         handled = self.exec_handler(ElementEvent::FocusChange, &f);
                     }
                 }
-            },
+            }
             PrimitiveEvent::KeyInput(vkc, _sc, s, _m) => {
                 match vkc {
                     Some(VirtualKeyCode::Right) => {
@@ -384,23 +417,23 @@ impl Element for TextBox {
                     }
                     _ => ()
                 }
-            },
+            }
             PrimitiveEvent::HoverBegin(n_tags) => {
-                let matched = n_tags.iter().find(|x|{
+                let matched = n_tags.iter().find(|x| {
                     x.0 == self.ext_id
                 });
-                if let Some(_) =  matched {
+                if let Some(_) = matched {
                     self.hovering = true;
                 }
-            },
+            }
             PrimitiveEvent::HoverEnd(o_tags) => {
-                let matched = o_tags.iter().find(|x|{
+                let matched = o_tags.iter().find(|x| {
                     x.0 == self.ext_id
                 });
-                if let Some(_) =  matched {
+                if let Some(_) = matched {
                     self.hovering = false;
                 }
-            },
+            }
             _ => ()
         }
         return handled;
@@ -412,8 +445,8 @@ impl Element for TextBox {
 
     fn exec_handler(&mut self, _e: ElementEvent, _d: &Any) -> bool {
         let h = self.event_handlers.get_mut(&_e).cloned();
-        if let Some(mut h) = h{
-            h.call(self,_d)
+        if let Some(mut h) = h {
+            h.call(self, _d)
         } else {
             false
         }
