@@ -112,8 +112,8 @@ impl Element for Button {
                                                                      //text_align,
                                                                      font_store);
 
-        let mut _x = (extent.w - calc_w) / 2.0;
-        let mut _y = (extent.h - calc_h) / 2.0;
+        let mut _x = (self.bounds.w - calc_w) / 2.0;
+        let mut _y = (self.bounds.h - calc_h) / 2.0;
 
         calc_w = match width {
             properties::Unit::Extent => extent.w,
