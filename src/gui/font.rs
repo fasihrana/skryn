@@ -185,12 +185,12 @@ impl FontRaster {
         let next_x = x;
         let next_y = y;
 
-        for line in value.lines() {
+        /*for line in value.lines() {
             println!("{:?}",Self::place_line(line,size,family,font_store));
-        }
+        }*/
     }
 
-    pub fn place_line(value: &str, size:f32,family:&String,font_store:&mut FontStore) -> (Vec<GlyphInstance>, f32, f32){
+    pub fn place_line(value: &str, x:f32, y:f32, size:f32,family:&String,font_store:&mut FontStore) -> (Vec<GlyphInstance>, f32, f32){
 
         let metrics = font_store.get_font_metrics(family).unwrap();
 
@@ -200,8 +200,8 @@ impl FontRaster {
 
         let (indices, dimens) = font_store.get_glyphs_for_slice(f_key,fi_key, value);
 
-        let mut next_x = 0.0;
-        let baseline = units * metrics.ascent;
+        let mut next_x = x;
+        let baseline = y + (units * metrics.ascent);
 
         let mut glyphs = vec![];
 

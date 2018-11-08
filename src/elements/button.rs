@@ -103,8 +103,8 @@ impl Element for Button {
         let (_, fi_key) = font_store.get_font_instance(&family, size as i32);
 
         let (glyphs, mut calc_w, mut calc_h) = font::FontRaster::place_line(&self.value[0..],//font::FontRaster::place_glyphs(&self.value,
-                                                                     //0.0,
-                                                                     //0.0,
+                                                                     0.0,
+                                                                     0.0,
                                                                      //extent.w,
                                                                      //extent.h,
                                                                      size,
