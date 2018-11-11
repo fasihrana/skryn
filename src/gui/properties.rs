@@ -6,6 +6,12 @@ use std::sync::{Mutex, Arc};
 use webrender::api::ColorF;
 
 #[derive(Clone, Debug, PartialEq)]
+pub struct Point{
+    pub x:f32,
+    pub y:f32,
+}
+
+#[derive(Clone, Debug, PartialEq)]
 pub struct Extent{
     pub x:f32,
     pub y:f32,

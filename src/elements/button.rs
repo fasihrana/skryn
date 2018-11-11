@@ -13,8 +13,6 @@ pub struct Button
     value: String,
     props: properties::Properties,
     bounds: properties::Extent,
-    //    cache:Vec<GlyphInstance>,
-    //focus: bool,
     event_handlers: EventHandlers,
     drawn: u8,
     hovering: bool,
@@ -39,8 +37,6 @@ impl Button {
                 h: 0.0,
                 dpi: 0.0,
             },
-//            cache: Vec::new(),
-            //focus: false,
             event_handlers: EventHandlers::new(),
             drawn: 0,
             hovering: false,
@@ -56,6 +52,57 @@ impl Button {
 
     pub fn get_value(&self) -> String {
         self.value.clone()
+    }
+
+    fn get_width_sums(&mut self) -> (f32,f32) {
+        let left = self.props.get_left();
+        let right = self.props.get_right();
+        let width = self.props.get_width();
+
+        let mut stretchy:f32 = 0.0;
+        let mut pixel:f32 = 0.0;
+
+        match left {
+            properties::Unit::Stretch(_s) => stretchy += _s,
+            properties::Unit::Pixel(_p) => pixel += _p,
+            _ => ()
+        }
+
+        match right {
+            properties::Unit::Stretch(_s) => stretchy += _s,
+            properties::Unit::Pixel(_p) => pixel += _p,
+            _ => ()
+        }
+
+        match width {
+            properties::Unit::Stretch(_s) => stretchy += _s,
+            properties::Unit::Pixel(_p) => pixel += _p,
+            _ => ()
+        }
+
+        (pixel,stretchy)
+    }
+
+    fn get_height_sums(&mut self) -> (f32,f32) {
+        let top = self.props.get_top();
+        let bottom = self.props.get_bottom();
+
+        let mut stretchy:f32 = 0.0;
+        let mut pixel:f32 = (self.props.get_size() * self.value.lines().count() as i32) as f32;
+
+        match top {
+            properties::Unit::Stretch(_s) => stretchy += _s,
+            properties::Unit::Pixel(_p) => pixel += _p,
+            _ => ()
+        }
+
+        match bottom {
+            properties::Unit::Stretch(_s) => stretchy += _s,
+            properties::Unit::Pixel(_p) => pixel += _p,
+            _ => ()
+        }
+
+        (pixel,stretchy)
     }
 }
 
@@ -94,6 +141,28 @@ impl Element for Button {
         let size = self.props.get_size() as f32;
         let family = self.props.get_family();
         let text_align = self.props.get_text_align();
+        let top = self.props.get_top();
+        let right = self.props.get_right();
+        let bottom = self.props.get_bottom();
+        let left = self.props.get_left();
+
+        let (wp_sum, ws_sum )= self.get_width_sums();
+        let mut remaining_width = extent.w - wp_sum;
+        if remaining_width < 0.0 {remaining_width = 0.0;}
+        let mut w_stretchy_factor = remaining_width / ws_sum;
+        if w_stretchy_factor.is_nan() || w_stretchy_factor.is_infinite() {
+            w_stretchy_factor = 0.0;
+        }
+
+        let (hp_sum, hs_sum )= self.get_height_sums();
+        let mut remaining_height = extent.h - hp_sum;
+        if remaining_height < 0.0 {remaining_height = 0.0;}
+        let mut h_stretchy_factor = remaining_height / hs_sum;
+        if h_stretchy_factor.is_nan() || h_stretchy_factor.is_infinite() {
+            h_stretchy_factor = 0.0;
+        }
+
+
 
         if self.hovering && self.enabled {
             color = self.props.get_hover_color();
@@ -102,18 +171,59 @@ impl Element for Button {
 
         let (_, fi_key) = font_store.get_font_instance(&family, size as i32);
 
-        let (glyphs, mut calc_w, mut calc_h) = font::FontRaster::place_line(&self.value[0..],//font::FontRaster::place_glyphs(&self.value,
-                                                                     0.0,
-                                                                     0.0,
-                                                                     //extent.w,
-                                                                     //extent.h,
+        let mut calc_x = extent.x;
+        let mut calc_y = extent.y;
+        let mut calc_w = extent.w;
+        let mut calc_h = extent.h;
+
+        match top {
+            properties::Unit::Pixel(_p) => {
+                calc_y += _p;
+                calc_h -= _p;
+            },
+            properties::Unit::Stretch(_s) =>{
+                calc_y += _s * h_stretchy_factor;
+                calc_h -= _s * h_stretchy_factor;
+            },
+            _ => ()
+        }
+
+        match bottom {
+            properties::Unit::Pixel(_p) => calc_h -= _p,
+            properties::Unit::Stretch(_s) => calc_h -= _s * h_stretchy_factor,
+            _ => ()
+        }
+
+
+        match left {
+            properties::Unit::Pixel(_p) => {
+                calc_x += _p;
+                calc_w -= _p;
+            },
+            properties::Unit::Stretch(_s) => {
+                calc_x += _s * w_stretchy_factor;
+                calc_w -= _s * w_stretchy_factor;
+            },
+            _ => ()
+        }
+        match right {
+            properties::Unit::Pixel(_p) => calc_w -= _p,
+            properties::Unit::Stretch(_s) => calc_w -= _s * w_stretchy_factor,
+            _ => ()
+        }
+
+        let (glyphs, tbounds) = font::FontRaster::place_lines(&self.value,
+                                                                     calc_x,
+                                                                     calc_y,
+                                                                     calc_w,
+                                                                     calc_h,
                                                                      size,
                                                                      &family,
-                                                                     //text_align,
+                                                                     text_align,
                                                                      font_store);
 
-        let mut _x = (self.bounds.w - calc_w) / 2.0;
-        let mut _y = (self.bounds.h - calc_h) / 2.0;
+        let mut calc_w = tbounds.w;
+        let mut calc_h = tbounds.h;
 
         calc_w = match width {
             properties::Unit::Extent => extent.w,
@@ -128,6 +238,7 @@ impl Element for Button {
             properties::Unit::Stretch(s) => s * extent.h,
             properties::Unit::Natural => calc_h,
         };
+
 
         self.bounds = properties::Extent {
             x: extent.x,
@@ -144,21 +255,9 @@ impl Element for Button {
         info.tag = Some((_id, 0));
         builder.push_rect(&info, bgcolor);
 
-        builder.push_stacking_context(
-            &LayoutPrimitiveInfo::new(LayoutRect::new(
-                LayoutPoint::new(extent.x + _x, extent.y + _y),
-                LayoutSize::new(0.0, 0.0),
-            )),
-            None,
-            TransformStyle::Flat,
-            MixBlendMode::Normal,
-            &vec![],
-            RasterSpace::Screen,
-        );
-
         let info = LayoutPrimitiveInfo::new(LayoutRect::new(
-            LayoutPoint::new(0.0, 0.0),
-            LayoutSize::new(extent.w, extent.h),
+            LayoutPoint::new(tbounds.x, tbounds.y),
+            LayoutSize::new(tbounds.w, tbounds.h),
         ));
 
         builder.push_text(&info,
@@ -166,8 +265,6 @@ impl Element for Button {
                           fi_key.clone(),
                           color.clone(),
                           Some(GlyphOptions::default()));
-
-        builder.pop_stacking_context();
     }
 
     fn get_bounds(&self) -> properties::Extent {

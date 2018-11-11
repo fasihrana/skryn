@@ -264,7 +264,7 @@ impl Element for TextBox {
         self.cache = cache;
 
         if self.value.is_empty() && !self.placeholder.is_empty() {
-            let placeholder = font::FontRaster::place_glyphs(&self.placeholder,
+            let placeholder = font::FontRaster::place_lines(&self.placeholder,
                                                              extent.x,
                                                              extent.y,
                                                              extent.w,
@@ -273,9 +273,10 @@ impl Element for TextBox {
                                                              &family,
                                                              text_align,
                                                              font_store);
+
             let info = LayoutPrimitiveInfo::new(LayoutRect::new(
-                LayoutPoint::new(extent.x, extent.y),
-                LayoutSize::new(placeholder.1, placeholder.2),
+                LayoutPoint::new(placeholder.1.x, placeholder.1.y),
+                LayoutSize::new(placeholder.1.w, placeholder.1.h),
             ));
 
             if !self.hovering {
