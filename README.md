@@ -21,8 +21,7 @@ There are many limitations in the project. Following is the known list of these 
 
 1. Cross Element communication
 2. Observables need a better implementation.
-3. Use [pilcrow](https://github.com/pcwalton/pilcrow) for paragraph rendering.
-4. There are no animations at the moment. (Possible through implementation of own Element).
-5. `ElementEvent` needs more events like HoverBegin,HoverEnd.
-6. Needs z-index like concept.
-7. Support for RTL languages.
+3. There are no animations at the moment. (Possible through implementation of own Element).
+4. `ElementEvent` needs more events like HoverBegin,HoverEnd.
+5. Needs z-index like concept.
+6. Support for RTL languages.
