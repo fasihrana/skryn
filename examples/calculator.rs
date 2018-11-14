@@ -120,10 +120,11 @@ impl CalculatorView{
         let mut history_scroll = ScrollBox::new();
         history_scroll.set(skryn::gui::properties::Property::BgColor(ColorF::new(0.95,0.95,0.95,1.0)));
 
-        let mut history = TextBox::new("Calculation History:\n============\n".to_owned());
+        let mut history = TextBox::new("Calculation History\n".to_owned());
         history.set(skryn::gui::properties::Property::Color(ColorF::new(0.2,0.2,0.2,1.0)));
         history.set(skryn::gui::properties::Property::Height(skryn::gui::properties::Unit::Natural));
         history.set(skryn::gui::properties::Property::Size(16));
+        history.set(skryn::gui::properties::Property::TextAlign(skryn::gui::properties::Align::Right));
         history.set_editable(false);
         let history = Arc::new(Mutex::new(history));
 
@@ -135,6 +136,7 @@ impl CalculatorView{
         tbox.set(skryn::gui::properties::Property::Height(skryn::gui::properties::Unit::Pixel(40.0)));
         tbox.set(skryn::gui::properties::Property::Size(32));
         tbox.set(skryn::gui::properties::Property::HoverBgColor(ColorF::new(0.75,0.75,0.75,1.0)));
+        tbox.set(skryn::gui::properties::Property::TextAlign(skryn::gui::properties::Align::Right));
         let tbox = Arc::new(Mutex::new(tbox));
         view.append(tbox.clone());
 
@@ -142,6 +144,9 @@ impl CalculatorView{
         hbox.set(skryn::gui::properties::Property::Height(skryn::gui::properties::Unit::Pixel(44.0)));
         let mut addbutt = Button::new("+".to_owned());
         addbutt.set(skryn::gui::properties::Property::Size(32));
+        addbutt.set(skryn::gui::properties::Property::TextAlign(skryn::gui::properties::Align::Middle));
+        addbutt.set(skryn::gui::properties::Property::Top(skryn::gui::properties::Unit::Stretch(1.0)));
+        addbutt.set(skryn::gui::properties::Property::Bottom(skryn::gui::properties::Unit::Stretch(1.0)));
         let tmpbox = tbox.clone();
         let tmpcalc = calc.clone();
         let tmphist = history.clone();
@@ -164,6 +169,9 @@ impl CalculatorView{
 
         let mut subbutt = Button::new("-".to_owned());
         subbutt.set(skryn::gui::properties::Property::Size(32));
+        subbutt.set(skryn::gui::properties::Property::TextAlign(skryn::gui::properties::Align::Middle));
+        subbutt.set(skryn::gui::properties::Property::Top(skryn::gui::properties::Unit::Stretch(1.0)));
+        subbutt.set(skryn::gui::properties::Property::Bottom(skryn::gui::properties::Unit::Stretch(1.0)));
         let tmpbox = tbox.clone();
         let tmpcalc = calc.clone();
         let tmphist = history.clone();
@@ -186,6 +194,9 @@ impl CalculatorView{
 
         let mut mulbutt = Button::new("*".to_owned());
         mulbutt.set(skryn::gui::properties::Property::Size(32));
+        mulbutt.set(skryn::gui::properties::Property::TextAlign(skryn::gui::properties::Align::Middle));
+        mulbutt.set(skryn::gui::properties::Property::Top(skryn::gui::properties::Unit::Stretch(1.0)));
+        mulbutt.set(skryn::gui::properties::Property::Bottom(skryn::gui::properties::Unit::Stretch(1.0)));
         let tmpbox = tbox.clone();
         let tmpcalc = calc.clone();
         let tmphist = history.clone();
@@ -208,6 +219,9 @@ impl CalculatorView{
 
         let mut divbutt = Button::new("/".to_owned());
         divbutt.set(skryn::gui::properties::Property::Size(32));
+        divbutt.set(skryn::gui::properties::Property::TextAlign(skryn::gui::properties::Align::Middle));
+        divbutt.set(skryn::gui::properties::Property::Top(skryn::gui::properties::Unit::Stretch(1.0)));
+        divbutt.set(skryn::gui::properties::Property::Bottom(skryn::gui::properties::Unit::Stretch(1.0)));
         let tmpbox = tbox.clone();
         let tmpcalc = calc.clone();
         let tmphist = history.clone();
@@ -230,6 +244,9 @@ impl CalculatorView{
 
         let mut eqlbutt = Button::new("=".to_owned());
         eqlbutt.set(skryn::gui::properties::Property::Size(32));
+        eqlbutt.set(skryn::gui::properties::Property::TextAlign(skryn::gui::properties::Align::Middle));
+        eqlbutt.set(skryn::gui::properties::Property::Top(skryn::gui::properties::Unit::Stretch(1.0)));
+        eqlbutt.set(skryn::gui::properties::Property::Bottom(skryn::gui::properties::Unit::Stretch(1.0)));
         let tmpbox = tbox.clone();
         let tmpcalc = calc.clone();
         let tmphist = history.clone();
