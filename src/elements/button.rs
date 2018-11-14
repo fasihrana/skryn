@@ -212,7 +212,7 @@ impl Element for Button {
             _ => ()
         }
 
-        let (glyphs, tbounds) = font::FontRaster::place_lines(&self.value,
+        let (glyphs, tbounds, _) = font::FontRaster::place_lines(&self.value,
                                                                      calc_x,
                                                                      calc_y,
                                                                      calc_w,

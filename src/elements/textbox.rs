@@ -157,8 +157,8 @@ impl Element for TextBox {
 
         let (mut cursor_x, mut cursor_y, cursor_i) = (0.0, 0.0, self.cursor);
 
-        let mut cache = vec![];
-        let mut glyphs = vec![];
+        //let mut cache = vec![];
+        //let mut glyphs = vec![];
         let size = self.props.get_size() as f32;
         let family = self.props.get_family();
         let mut color = self.props.get_color();
@@ -184,7 +184,9 @@ impl Element for TextBox {
 
         let (f_key, fi_key) = font_store.get_font_instance(&family, size as i32);
 
-        let mut next_x = extent.x;
+
+
+        /*let mut next_x = extent.x;
         let mut next_y = extent.y + size;
 
         let val_str = "●".repeat(self.value.len());
@@ -259,11 +261,40 @@ impl Element for TextBox {
                 cursor_x = next_x;
                 cursor_y = next_y;
             }
-        }
+        }*/
+
+        let val_str = "●".repeat(self.value.len());
+
+        let value = if !self.is_password { &self.value} else {&val_str};
+
+        let (mut glyphs, _bounds, cache)= font::FontRaster::place_lines(value,
+                                                       extent.x,
+                                                       extent.y,
+                                                       extent.w,
+                                                       extent.h,
+                                                       size,
+                                                       &family,
+                                                       text_align.clone(),
+                                                       font_store);
 
         self.cache = cache;
 
-        if self.value.is_empty() && !self.placeholder.is_empty() {
+        if cursor_i == 0 && self.cache.len() == 0 {
+            cursor_x = _bounds.x;
+            cursor_y = _bounds.y + size;
+        } else if cursor_i == 0 && self.cache.len() > 0 {
+            cursor_x = (self.cache[0].0).0;
+            cursor_y = (self.cache[0].1).1;
+        } else if self.cache.len() > 0 {
+            cursor_x = (self.cache[cursor_i-1].1).0;
+            cursor_y = (self.cache[cursor_i-1].1).1;
+        }
+
+        glyphs.retain(|x|{
+            x.index != 0
+        });
+
+        if self.value.is_empty() && !self.placeholder.is_empty() && !self.focus {
             let placeholder = font::FontRaster::place_lines(&self.placeholder,
                                                              extent.x,
                                                              extent.y,
@@ -290,8 +321,8 @@ impl Element for TextBox {
                               Some(GlyphOptions::default()));
         }
 
-        let mut calc_w = max_x - extent.x;
-        let mut calc_h = next_y - extent.y;
+        let mut calc_w = _bounds.w;
+        let mut calc_h = _bounds.h;
 
         calc_w = match width {
             properties::Unit::Extent => extent.w,
@@ -349,7 +380,7 @@ impl Element for TextBox {
     fn on_primitive_event(&mut self, ext_ids: &[ItemTag], e: PrimitiveEvent) -> bool {
         let mut handled = false;
         match e {
-            PrimitiveEvent::Char(c) => {
+            PrimitiveEvent::Char(mut c) => {
                 if self.focus && self.enabled && self.editable {
                     if c == '\x08' {
                         let mut l = self.cursor;
@@ -372,19 +403,24 @@ impl Element for TextBox {
                         self.value = format!("{}{}{}", &self.value[0..self.cursor], &vstr[0..], &self.value[self.cursor..]);
                         self.cursor += vstr.len();
                     } else {
-                        //self.value.push(c);
-                        //
-                        if self.cursor == 0 {
-                            let mut newstr = format!("{}", c);
-                            newstr.push_str(&self.value[0..]);
-                            self.value = newstr;
-                        } else if self.cursor < self.value.len() {
-                            self.value = format!("{}{}{}", &self.value[0..self.cursor], c, &self.value[self.cursor..]);
-                            ;
-                        } else {
-                            self.value.push(c);
+                        if c == '\r' {
+                            c = '\n';
                         }
-                        self.cursor += 1;
+                        if self.singleline && c == '\n' {
+                            //do not save the new line
+                        } else {
+                            if self.cursor == 0 {
+                                let mut newstr = format!("{}", c);
+                                newstr.push_str(&self.value[0..]);
+                                self.value = newstr;
+                            } else if self.cursor < self.value.len() {
+                                self.value = format!("{}{}{}", &self.value[0..self.cursor], c, &self.value[self.cursor..]);
+                                ;
+                            } else {
+                                self.value.push(c);
+                            }
+                            self.cursor += 1;
+                        }
                     }
                     handled = true;
                 }

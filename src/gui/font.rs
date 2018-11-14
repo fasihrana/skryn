@@ -180,12 +180,20 @@ impl FontRaster {
                        size: f32,
                        family: &String,
                        text_align: Align,
-                       font_store: &mut FontStore)  -> (Vec<GlyphInstance>, Extent) {
+                       font_store: &mut FontStore)  -> (Vec<GlyphInstance>, Extent, Vec<((f32,f32),(f32,f32))>) {
 
         let mut line_glyphs = vec![];
         let mut max_len = 0.0;
         let mut max_y = y;
 
+        let linefeed_at_end = if value.len() > 0{
+            let tmp : Vec<char> = value.chars().collect();
+            tmp[tmp.len() - 1] == '\n' || tmp[tmp.len() - 1] == '\r'
+        } else {
+            false
+        };
+
+        let mut total_lines = 0;
         for line in value.lines(){
             let (t_g, w, h) = Self::get_line_glyphs(line, size, family, font_store);
             if max_len < w {
@@ -193,93 +201,119 @@ impl FontRaster {
             }
             max_y += h;
             line_glyphs.push((t_g, w, h));
+            total_lines += 1;
         }
 
         let mut glyphs = vec![];
-        let mut bounds;// = Extent{x,y,w:max_len,h:max_y,dpi:0.0};
+        let mut bounds;
+        let mut dims = vec![];
+
+        let mut line_index = 0;
 
         match text_align {
             Align::Left => {
                 let (mut _x,mut _y) = (x,y);
                 for (l_g, w, h) in line_glyphs {
-                    for (gi, _offset) in l_g {
-                        glyphs.push(GlyphInstance{
-                            index: gi,
-                            point: LayoutPoint::new(_x,_y + _offset.1),
-                        });
-                        _x += _offset.0;
+
+                    if line_index > 0 && line_index<total_lines {
+                        dims.push(((_x, _y), (_x , _y + size)));
+                    }
+
+                    for (gi, _offset, _char) in l_g {
+                            glyphs.push(GlyphInstance {
+                                index: gi,
+                                point: LayoutPoint::new(_x, _y + _offset.1),
+                            });
+                            dims.push(((_x, _y), (_x + _offset.0, _y + size)));
+                            _x += _offset.0;
                     }
                     _x = x;
                     _y += size;
+                    line_index +=1;
+                }
+                if linefeed_at_end {
+                    glyphs.push(GlyphInstance{
+                        index: 1,
+                        point: LayoutPoint::new(_x,_y),
+                    });
+                    dims.push(((_x,_y),(_x,_y+size)));
                 }
                 bounds = Extent{x,y,w:max_len,h:_y,dpi:0.0};
             },
             Align::Right => {
                 let mut _y = y;
+                let mut _x = x + _width;
                 for (l_g, w, h) in line_glyphs {
-                    let mut _x = x + _width - w;
-                    for (gi, _offset) in l_g {
-                        glyphs.push(GlyphInstance{
-                            index: gi,
-                            point: LayoutPoint::new(_x,_y + _offset.1),
-                        });
+                    _x = x + _width - w;
 
-                        _x += _offset.0;
+                    if line_index > 0 && line_index<total_lines {
+                        dims.push(((_x, _y), (_x , _y + size)));
+                    }
+
+                    for (gi, _offset, _char) in l_g {
+                            glyphs.push(GlyphInstance {
+                                index: gi,
+                                point: LayoutPoint::new(_x, _y + _offset.1),
+                            });
+                            dims.push(((_x, _y), (_x + _offset.0, _y + size)));
+                            _x += _offset.0;
                     }
 
                     _y += size;
+                    //just so if it ends, it has the starting value for next line cursor
+                    _x = x + _width;
+                    line_index += 1;
+                }
+                if linefeed_at_end {
+                    glyphs.push(GlyphInstance{
+                        index: 1,
+                        point: LayoutPoint::new(_x,_y),
+                    });
+                    dims.push(((_x,_y),(_x,_y+size)));
                 }
                 bounds = Extent{x:x + _width - max_len,y,w:max_len,h:_y,dpi:0.0};
             },
             Align::Middle => {
                 let mut _y = y;
+                let mut _x = x + _width;
                 for (l_g, w, h) in line_glyphs {
-                    let mut _x = x + (_width - w)/2.0;
-                    for (gi, _offset) in l_g {
-                        glyphs.push(GlyphInstance{
-                            index: gi,
-                            point: LayoutPoint::new(_x,_y + _offset.1),
-                        });
+                    _x = x + (_width - w)/2.0;
 
-                        _x += _offset.0;
+                    if line_index > 0 && line_index<total_lines {
+                        dims.push(((_x, _y), (_x , _y + size)));
                     }
+
+                    for (gi, _offset, _char) in l_g {
+                            glyphs.push(GlyphInstance {
+                                index: gi,
+                                point: LayoutPoint::new(_x, _y + _offset.1),
+                            });
+                            dims.push(((_x, _y), (_x + _offset.0, _y + size)));
+                            _x += _offset.0;
+                    }
+
                     _y += size;
+                    //just so if it ends, it has the starting value for next line cursor
+                    _x = x + _width/2.0;
+                    line_index += 1;
+                }
+                if linefeed_at_end {
+                    glyphs.push(GlyphInstance{
+                        index: 1,
+                        point: LayoutPoint::new(_x,_y),
+                    });
+                    dims.push(((_x,_y),(_x,_y+size)));
                 }
                 bounds = Extent{x:x + (_width - max_len)/2.0,y,w:max_len,h:_y,dpi:0.0};
             }
         }
 
-        /*match text_align {
-            Align::Middle => {
-
-            },
-            Align::Right => {
-                let mut min_x = x + _width - dims[0].0;
-                for i in 0..line_glyphs.len() {
-                    let x0l = x + _width - dims[i].0;
-                    for g in &line_glyphs[i] {
-                        glyphs.push(GlyphInstance{
-                            index: g.index,
-                            point: LayoutPoint::new(x0l, g.point.y_typed().get()),
-                        });
-                    }
-                    if min_x > x0l {
-                        min_x = x0l;
-                    }
-                    bounds.x = min_x;
-                }
-            },
-            Align::Left => {
-                for l_g in line_glyphs.iter_mut() {
-                    glyphs.append(l_g);
-                }
-            }
-        }*/
-
-        (glyphs, bounds)
+        (glyphs, bounds, dims)
     }
 
-    fn get_line_glyphs(value: &str, size:f32,family:&String,font_store:&mut FontStore) -> (Vec<(GlyphIndex, (f32,f32))>, f32, f32){
+    fn get_line_glyphs(value: &str, size:f32,family:&String,font_store:&mut FontStore) -> (Vec<(GlyphIndex, (f32,f32), char)>, f32, f32){
+
+        let val_vec: Vec<char> = value.chars().collect();
 
         let metrics = font_store.get_font_metrics(family).unwrap();
 
@@ -302,7 +336,7 @@ impl FontRaster {
                     _ => _offset.0 = size/2.0, //next_x += size/2.0,
                 }
                 next_x += _offset.0;
-                glyphs.push(( gi, _offset));
+                glyphs.push(( gi, _offset, val_vec[i]));
             }
         }
 
