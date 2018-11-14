@@ -1,18 +1,17 @@
-
 use std::collections::HashMap;
 
-pub struct Observable<T: Clone>{
+pub struct Observable<T: Clone> {
     next_id: u64,
     value: T,
-    observers: HashMap<u64,Box<FnMut(&T)+Send>>
+    observers: HashMap<u64, Box<FnMut(&T) + Send>>,
 }
 
-impl <T: Clone> Observable <T> {
-    pub fn new(value:T)-> Self{
-        Self{
+impl<T: Clone> Observable<T> {
+    pub fn new(value: T) -> Self {
+        Self {
             next_id: 0,
             value,
-            observers:HashMap::new(),
+            observers: HashMap::new(),
         }
     }
 
@@ -20,42 +19,42 @@ impl <T: Clone> Observable <T> {
         self.value.clone()
     }
 
-    pub fn observe(&mut self, observer: Box<FnMut(&T)+Send>) -> u64 {
-        self.observers.insert(self.next_id,observer);
+    pub fn observe(&mut self, observer: Box<FnMut(&T) + Send>) -> u64 {
+        self.observers.insert(self.next_id, observer);
         let tmp = self.next_id;
         self.next_id += 1;
 
         tmp
     }
 
-    pub fn stop(&mut self, id: u64){
+    pub fn stop(&mut self, id: u64) {
         self.observers.remove(&id);
     }
 
-    fn notify_observers(&mut self){
-        for o in self.observers.values_mut(){
+    fn notify_observers(&mut self) {
+        for o in self.observers.values_mut() {
             o(&self.value);
         }
     }
 }
 
-pub enum Action<T: Clone>{
+pub enum Action<T: Clone> {
     Add(T),
     Remove(T),
     Update(T),
 }
 
 pub trait Update<T: Clone> {
-    fn update(&mut self, value:Action<T>);
+    fn update(&mut self, value: Action<T>);
 }
 
-impl <T: Clone> Update<T> for Observable<T>{
+impl<T: Clone> Update<T> for Observable<T> {
     fn update(&mut self, value: Action<T>) {
         match value {
             Action::Update(v) => {
                 self.value = v;
                 self.notify_observers();
-            },
+            }
             _ => (),
         }
     }

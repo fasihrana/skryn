@@ -1,13 +1,13 @@
-use std::sync::Arc;
 use std::any::Any;
+use std::sync::Arc;
 
+use clipboard::{ClipboardContext, ClipboardProvider};
 use glutin::VirtualKeyCode;
 use webrender::api::*;
-use clipboard::{ClipboardProvider, ClipboardContext};
 
 use elements::element::*;
-use gui::properties;
 use gui::font;
+use gui::properties;
 
 pub struct TextBox {
     ext_id: u64,
@@ -129,7 +129,9 @@ impl TextBox {
 }
 
 impl Element for TextBox {
-    fn get_ext_id(&self) -> u64 { self.ext_id }
+    fn get_ext_id(&self) -> u64 {
+        self.ext_id
+    }
 
     fn set(&mut self, prop: properties::Property) {
         self.props.set(prop);
@@ -143,13 +145,15 @@ impl Element for TextBox {
         self.props.clone()
     }
 
-    fn render(&mut self,
-              _api: &RenderApi,
-              builder: &mut DisplayListBuilder,
-              extent: properties::Extent,
-              font_store: &mut font::FontStore,
-              _props: Option<Arc<properties::Properties>>,
-              gen: &mut properties::IdGenerator) {
+    fn render(
+        &mut self,
+        _api: &RenderApi,
+        builder: &mut DisplayListBuilder,
+        extent: properties::Extent,
+        font_store: &mut font::FontStore,
+        _props: Option<Arc<properties::Properties>>,
+        gen: &mut properties::IdGenerator,
+    ) {
         let _id = gen.get();
         self.ext_id = _id;
 
@@ -181,8 +185,6 @@ impl Element for TextBox {
         }
 
         let (_f_key, fi_key) = font_store.get_font_instance(&family, size as i32);
-
-
 
         /*let mut next_x = extent.x;
         let mut next_y = extent.y + size;
@@ -263,17 +265,23 @@ impl Element for TextBox {
 
         let val_str = "●".repeat(self.value.len());
 
-        let value = if !self.is_password { &self.value} else {&val_str};
+        let value = if !self.is_password {
+            &self.value
+        } else {
+            &val_str
+        };
 
-        let (mut glyphs, _bounds, cache)= font::FontRaster::place_lines(value,
-                                                       extent.x,
-                                                       extent.y,
-                                                       extent.w,
-                                                       extent.h,
-                                                       size,
-                                                       &family,
-                                                       text_align.clone(),
-                                                       font_store);
+        let (mut glyphs, _bounds, cache) = font::FontRaster::place_lines(
+            value,
+            extent.x,
+            extent.y,
+            extent.w,
+            extent.h,
+            size,
+            &family,
+            text_align.clone(),
+            font_store,
+        );
 
         self.cache = cache;
 
@@ -284,24 +292,24 @@ impl Element for TextBox {
             cursor_x = (self.cache[0].0).0;
             cursor_y = (self.cache[0].1).1;
         } else if self.cache.len() > 0 {
-            cursor_x = (self.cache[cursor_i-1].1).0;
-            cursor_y = (self.cache[cursor_i-1].1).1;
+            cursor_x = (self.cache[cursor_i - 1].1).0;
+            cursor_y = (self.cache[cursor_i - 1].1).1;
         }
 
-        glyphs.retain(|x|{
-            x.index != 0
-        });
+        glyphs.retain(|x| x.index != 0);
 
         if self.value.is_empty() && !self.placeholder.is_empty() && !self.focus {
-            let placeholder = font::FontRaster::place_lines(&self.placeholder,
-                                                             extent.x,
-                                                             extent.y,
-                                                             extent.w,
-                                                             extent.h,
-                                                             size,
-                                                             &family,
-                                                             text_align,
-                                                             font_store);
+            let placeholder = font::FontRaster::place_lines(
+                &self.placeholder,
+                extent.x,
+                extent.y,
+                extent.w,
+                extent.h,
+                size,
+                &family,
+                text_align,
+                font_store,
+            );
 
             let info = LayoutPrimitiveInfo::new(LayoutRect::new(
                 LayoutPoint::new(placeholder.1.x, placeholder.1.y),
@@ -312,11 +320,13 @@ impl Element for TextBox {
                 color = self.props.get_disabled_color();
             }
 
-            builder.push_text(&info,
-                              &placeholder.0,
-                              fi_key.clone(),
-                              color.clone(),
-                              Some(GlyphOptions::default()));
+            builder.push_text(
+                &info,
+                &placeholder.0,
+                fi_key.clone(),
+                color.clone(),
+                Some(GlyphOptions::default()),
+            );
         }
 
         let mut calc_w = _bounds.w;
@@ -355,11 +365,13 @@ impl Element for TextBox {
             LayoutPoint::new(extent.x, extent.y),
             LayoutSize::new(self.bounds.w, self.bounds.h),
         ));
-        builder.push_text(&info,
-                          &glyphs,
-                          fi_key.clone(),
-                          color.clone(),
-                          Some(GlyphOptions::default()));
+        builder.push_text(
+            &info,
+            &glyphs,
+            fi_key.clone(),
+            color.clone(),
+            Some(GlyphOptions::default()),
+        );
 
         //add the cursor
         if self.focus && self.enabled && self.editable {
@@ -387,7 +399,8 @@ impl Element for TextBox {
                             while !self.value.is_char_boundary(l) && l > 0 {
                                 l = l - 1;
                             }
-                            self.value = format!("{}{}", &self.value[0..l], &self.value[self.cursor..]);
+                            self.value =
+                                format!("{}{}", &self.value[0..l], &self.value[self.cursor..]);
                             self.cursor = l;
                         }
                     } else if c == '\u{3}' {
@@ -398,7 +411,12 @@ impl Element for TextBox {
                     } else if c == '\u{16}' {
                         let mut ctx: ClipboardContext = ClipboardProvider::new().unwrap();
                         let vstr = ctx.get_contents().unwrap();
-                        self.value = format!("{}{}{}", &self.value[0..self.cursor], &vstr[0..], &self.value[self.cursor..]);
+                        self.value = format!(
+                            "{}{}{}",
+                            &self.value[0..self.cursor],
+                            &vstr[0..],
+                            &self.value[self.cursor..]
+                        );
                         self.cursor += vstr.len();
                     } else {
                         if c == '\r' {
@@ -412,7 +430,12 @@ impl Element for TextBox {
                                 newstr.push_str(&self.value[0..]);
                                 self.value = newstr;
                             } else if self.cursor < self.value.len() {
-                                self.value = format!("{}{}{}", &self.value[0..self.cursor], c, &self.value[self.cursor..]);
+                                self.value = format!(
+                                    "{}{}{}",
+                                    &self.value[0..self.cursor],
+                                    c,
+                                    &self.value[self.cursor..]
+                                );
                                 ;
                             } else {
                                 self.value.push(c);
@@ -424,13 +447,14 @@ impl Element for TextBox {
                 }
             }
             PrimitiveEvent::Button(_p, b, s, m) => {
-                if ext_ids.len() > 0 && ext_ids[0].0 == self.ext_id
+                if ext_ids.len() > 0
+                    && ext_ids[0].0 == self.ext_id
                     && b == properties::Button::Left
                     && s == properties::ButtonState::Released
-                    {
-                        self.cursor = self.get_index_at(_p.clone());
-                        handled = self.exec_handler(ElementEvent::Clicked, &m);
-                    }
+                {
+                    self.cursor = self.get_index_at(_p.clone());
+                    handled = self.exec_handler(ElementEvent::Clicked, &m);
+                }
             }
             PrimitiveEvent::SetFocus(f) => {
                 if self.enabled {
@@ -440,38 +464,32 @@ impl Element for TextBox {
                     }
                 }
             }
-            PrimitiveEvent::KeyInput(vkc, _sc, s, _m) => {
-                match vkc {
-                    Some(VirtualKeyCode::Right) => {
-                        if self.cursor < self.value.len() && s == properties::ButtonState::Pressed {
-                            self.cursor += 1;
-                        }
+            PrimitiveEvent::KeyInput(vkc, _sc, s, _m) => match vkc {
+                Some(VirtualKeyCode::Right) => {
+                    if self.cursor < self.value.len() && s == properties::ButtonState::Pressed {
+                        self.cursor += 1;
                     }
-                    Some(VirtualKeyCode::Left) => {
-                        if self.cursor > 0 && s == properties::ButtonState::Pressed {
-                            self.cursor -= 1;
-                        }
-                    }
-                    _ => ()
                 }
-            }
+                Some(VirtualKeyCode::Left) => {
+                    if self.cursor > 0 && s == properties::ButtonState::Pressed {
+                        self.cursor -= 1;
+                    }
+                }
+                _ => (),
+            },
             PrimitiveEvent::HoverBegin(n_tags) => {
-                let matched = n_tags.iter().find(|x| {
-                    x.0 == self.ext_id
-                });
+                let matched = n_tags.iter().find(|x| x.0 == self.ext_id);
                 if let Some(_) = matched {
                     self.hovering = true;
                 }
             }
             PrimitiveEvent::HoverEnd(o_tags) => {
-                let matched = o_tags.iter().find(|x| {
-                    x.0 == self.ext_id
-                });
+                let matched = o_tags.iter().find(|x| x.0 == self.ext_id);
                 if let Some(_) = matched {
                     self.hovering = false;
                 }
             }
-            _ => ()
+            _ => (),
         }
         return handled;
     }
