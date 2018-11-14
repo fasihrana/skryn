@@ -2,7 +2,6 @@ use app_units;
 use font_kit;
 use font_kit::{source::SystemSource, font::Font, family_name::FamilyName};
 use std::collections::{HashMap, HashSet};
-use std::iter::FromIterator;
 use webrender::api::*;
 use gui::properties::*;
 
@@ -184,7 +183,6 @@ impl FontRaster {
 
         let mut line_glyphs = vec![];
         let mut max_len = 0.0;
-        let mut max_y = y;
 
         let linefeed_at_end = if value.len() > 0{
             let tmp : Vec<char> = value.chars().collect();
@@ -199,13 +197,12 @@ impl FontRaster {
             if max_len < w {
                 max_len = w;
             }
-            max_y += h;
             line_glyphs.push((t_g, w, h));
             total_lines += 1;
         }
 
         let mut glyphs = vec![];
-        let mut bounds;
+        let bounds;
         let mut dims = vec![];
 
         let mut line_index = 0;
@@ -213,7 +210,7 @@ impl FontRaster {
         match text_align {
             Align::Left => {
                 let (mut _x,mut _y) = (x,y);
-                for (l_g, w, h) in line_glyphs {
+                for (l_g, _w, _h) in line_glyphs {
 
                     if line_index > 0 && line_index<total_lines {
                         dims.push(((_x, _y), (_x , _y + size)));
@@ -243,7 +240,7 @@ impl FontRaster {
             Align::Right => {
                 let mut _y = y;
                 let mut _x = x + _width;
-                for (l_g, w, h) in line_glyphs {
+                for (l_g, w, _h) in line_glyphs {
                     _x = x + _width - w;
 
                     if line_index > 0 && line_index<total_lines {
@@ -276,7 +273,7 @@ impl FontRaster {
             Align::Middle => {
                 let mut _y = y;
                 let mut _x = x + _width;
-                for (l_g, w, h) in line_glyphs {
+                for (l_g, w, _h) in line_glyphs {
                     _x = x + (_width - w)/2.0;
 
                     if line_index > 0 && line_index<total_lines {
@@ -324,7 +321,7 @@ impl FontRaster {
         let (indices, dimens) = font_store.get_glyphs_for_slice(f_key,fi_key, value);
 
         let mut next_x = 0.0;
-        let baseline = (units * metrics.ascent);
+        let baseline = units * metrics.ascent;
 
         let mut glyphs = vec![];
 
@@ -404,4 +401,3 @@ impl FontRaster {
         (glyphs, max_x, next_y)
     }*/
 }
-

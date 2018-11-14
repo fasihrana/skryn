@@ -418,7 +418,7 @@ impl Window {
         let (new_tags, old_tags) = self.get_tags();
         let tags = self.tags.clone();
 
-        let mut events;
+        let events;
         let mut dpi;
         let api;
 

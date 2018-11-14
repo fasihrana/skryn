@@ -1,7 +1,5 @@
 use std::sync::Arc;
 use std::any::Any;
-use std::collections::HashSet;
-use std::iter::FromIterator;
 
 use glutin::VirtualKeyCode;
 use webrender::api::*;
@@ -182,7 +180,7 @@ impl Element for TextBox {
             bgcolor = self.props.get_disabled_bg_color();
         }
 
-        let (f_key, fi_key) = font_store.get_font_instance(&family, size as i32);
+        let (_f_key, fi_key) = font_store.get_font_instance(&family, size as i32);
 
 
 
@@ -508,4 +506,3 @@ impl CanDisable for TextBox {
         self.enabled
     }
 }
-

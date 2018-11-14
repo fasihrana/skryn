@@ -3,15 +3,11 @@ extern crate webrender;
 
 use std::sync::{Arc,Mutex};
 use std::any::Any;
-use std::thread;
-use std::time::Duration;
 
 //use skryn::data::*;
-use skryn::gui::font::FontStore;
-use skryn::gui::properties::{Property, Extent, Properties, IdGenerator};
 use skryn::elements::*;
 
-use webrender::api::{ColorF, DisplayListBuilder, RenderApi};
+use webrender::api::ColorF;
 
 #[derive(Debug, Clone)]
 enum Operation {
@@ -156,7 +152,7 @@ impl CalculatorView{
             if let Ok(n) = val {
                 if tmpcalc.lock().unwrap().push_op(Operation::Input(n)).is_ok() {
                     tmphist.lock().unwrap().append_value(format!("{}\n+\n",n));
-                    tmpcalc.lock().unwrap().push_op(Operation::Add);
+                    tmpcalc.lock().unwrap().push_op(Operation::Add).unwrap();
                 }
                 tb.set_value("".to_owned());
             } else {
@@ -181,7 +177,7 @@ impl CalculatorView{
             if let Ok(n) = val {
                 if tmpcalc.lock().unwrap().push_op(Operation::Input(n)).is_ok() {
                     tmphist.lock().unwrap().append_value(format!("{}\n-\n",n));
-                    tmpcalc.lock().unwrap().push_op(Operation::Subtract);
+                    tmpcalc.lock().unwrap().push_op(Operation::Subtract).unwrap();
                 }
                 tb.set_value("".to_owned());
             } else {
@@ -206,7 +202,7 @@ impl CalculatorView{
             if let Ok(n) = val {
                 if tmpcalc.lock().unwrap().push_op(Operation::Input(n)).is_ok() {
                     tmphist.lock().unwrap().append_value(format!("{}\n*\n",n));
-                    tmpcalc.lock().unwrap().push_op(Operation::Multiply);
+                    tmpcalc.lock().unwrap().push_op(Operation::Multiply).unwrap();
                 }
                 tb.set_value("".to_owned());
             } else {
@@ -231,7 +227,7 @@ impl CalculatorView{
             if let Ok(n) = val {
                 if tmpcalc.lock().unwrap().push_op(Operation::Input(n)).is_ok() {
                     tmphist.lock().unwrap().append_value(format!("{}\n/\n",n));
-                    tmpcalc.lock().unwrap().push_op(Operation::Divide);
+                    tmpcalc.lock().unwrap().push_op(Operation::Divide).unwrap();
                 }
                 tb.set_value("".to_owned());
             } else {
@@ -290,7 +286,7 @@ impl Alert{
 }
 
 fn main(){
-    let mut calc = CalculatorView::new();
+    let calc = CalculatorView::new();
 
     //Calc.push_num(1.0);
     /*calc.push_op(Operation::Input(1.0));
