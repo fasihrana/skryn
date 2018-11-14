@@ -143,10 +143,10 @@ impl PersonElm{
 
         //The following is a simple action taken when our button is clicked.
         //An alert window is created.
-        alert_button.lock().unwrap().set_handler(ElementEvent::Clicked, EventFn(Box::new(|_| -> bool{
+        alert_button.lock().unwrap().set_handler(ElementEvent::Clicked, EventFn::new(Arc::new(Mutex::new( move |_e:&mut Element,_d:&Any| {
             Alert::show("This is an Alert Box".to_owned(),"Alert".to_owned());
             true
-        })));
+        }))));
 
         // make sure you sae the observer id for age
         // so that we can remove the listener when
@@ -183,10 +183,12 @@ impl Element for PersonElm {
         self.id
     }
 
-    fn set(&mut self, _prop: Property) {}
+    fn set(&mut self, _prop: Property) {
+        self.vbox.lock().unwrap().set(_prop);
+    }
 
-    fn get(&self, _prop: &Property) -> Option<&Property> {
-        None
+    fn get_properties(&self) -> skryn::gui::properties::Properties{
+        self.vbox.lock().unwrap().get_properties()
     }
 
     fn render(&mut self, api: &RenderApi, builder: &mut DisplayListBuilder, extent: Extent, font_store: &mut FontStore, _props: Option<Arc<Properties>>, gen: &mut IdGenerator) {
@@ -234,10 +236,6 @@ impl Element for PersonElm {
 
     fn as_any_mut(&mut self) -> &mut Any {
         self
-    }
-
-    fn is_invalid(&self)->bool{
-        self.vbox.lock().unwrap().is_invalid()
     }
 }
 

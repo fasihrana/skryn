@@ -121,7 +121,7 @@ impl CalculatorView{
         history_scroll.set(skryn::gui::properties::Property::BgColor(ColorF::new(0.95,0.95,0.95,1.0)));
 
         let mut history = TextBox::new("Calculation History:\n============\n".to_owned());
-        history.set(skryn::gui::properties::Property::BgColor(ColorF::new(0.9,0.9,0.9,0.0)));
+        history.set(skryn::gui::properties::Property::Color(ColorF::new(0.2,0.2,0.2,1.0)));
         history.set(skryn::gui::properties::Property::Height(skryn::gui::properties::Unit::Natural));
         history.set(skryn::gui::properties::Property::Size(16));
         history.set_editable(false);
@@ -145,7 +145,7 @@ impl CalculatorView{
         let tmpbox = tbox.clone();
         let tmpcalc = calc.clone();
         let tmphist = history.clone();
-        addbutt.set_handler(skryn::elements::ElementEvent::Clicked, EventFn(Box::new(move |_|{
+        addbutt.set_handler(skryn::elements::ElementEvent::Clicked,EventFn::new(Arc::new(Mutex::new( move |_e:&mut Element,_d:&Any| {
             let mut tb = tmpbox.lock().unwrap();
             let val = tb.get_value().parse::<f64>();
             if let Ok(n) = val {
@@ -159,7 +159,7 @@ impl CalculatorView{
             }
 
             true
-        })));
+        }))));
         hbox.append(Arc::new(Mutex::new(addbutt)));
 
         let mut subbutt = Button::new("-".to_owned());
@@ -167,7 +167,7 @@ impl CalculatorView{
         let tmpbox = tbox.clone();
         let tmpcalc = calc.clone();
         let tmphist = history.clone();
-        subbutt.set_handler(skryn::elements::ElementEvent::Clicked, EventFn(Box::new(move |_|{
+        subbutt.set_handler(skryn::elements::ElementEvent::Clicked, EventFn::new(Arc::new(Mutex::new( move |_e:&mut Element,_d:&Any| {
             let mut tb = tmpbox.lock().unwrap();
             let val = tb.get_value().parse::<f64>();
             if let Ok(n) = val {
@@ -181,7 +181,7 @@ impl CalculatorView{
             }
 
             true
-        })));
+        }))));
         hbox.append(Arc::new(Mutex::new(subbutt)));
 
         let mut mulbutt = Button::new("*".to_owned());
@@ -189,7 +189,7 @@ impl CalculatorView{
         let tmpbox = tbox.clone();
         let tmpcalc = calc.clone();
         let tmphist = history.clone();
-        mulbutt.set_handler(skryn::elements::ElementEvent::Clicked, EventFn(Box::new(move |_|{
+        mulbutt.set_handler(skryn::elements::ElementEvent::Clicked, EventFn::new(Arc::new(Mutex::new( move |_e:&mut Element,_d:&Any| {
             let mut tb = tmpbox.lock().unwrap();
             let val = tb.get_value().parse::<f64>();
             if let Ok(n) = val {
@@ -203,7 +203,7 @@ impl CalculatorView{
             }
 
             true
-        })));
+        }))));
         hbox.append(Arc::new(Mutex::new(mulbutt)));
 
         let mut divbutt = Button::new("/".to_owned());
@@ -211,7 +211,7 @@ impl CalculatorView{
         let tmpbox = tbox.clone();
         let tmpcalc = calc.clone();
         let tmphist = history.clone();
-        divbutt.set_handler(skryn::elements::ElementEvent::Clicked, EventFn(Box::new(move |_|{
+        divbutt.set_handler(skryn::elements::ElementEvent::Clicked, EventFn::new(Arc::new(Mutex::new( move |_e:&mut Element,_d:&Any| {
             let mut tb = tmpbox.lock().unwrap();
             let val = tb.get_value().parse::<f64>();
             if let Ok(n) = val {
@@ -225,7 +225,7 @@ impl CalculatorView{
             }
 
             true
-        })));
+        }))));
         hbox.append(Arc::new(Mutex::new(divbutt)));
 
         let mut eqlbutt = Button::new("=".to_owned());
@@ -233,7 +233,7 @@ impl CalculatorView{
         let tmpbox = tbox.clone();
         let tmpcalc = calc.clone();
         let tmphist = history.clone();
-        eqlbutt.set_handler(skryn::elements::ElementEvent::Clicked, EventFn(Box::new(move |_|{
+        eqlbutt.set_handler(skryn::elements::ElementEvent::Clicked, EventFn::new(Arc::new(Mutex::new( move |_e:&mut Element,_d:&Any| {
             let mut tb = tmpbox.lock().unwrap();
             let val = tb.get_value().parse::<f64>();
             if let Ok(n) = val {
@@ -249,7 +249,7 @@ impl CalculatorView{
             }
 
             true
-        })));
+        }))));
         hbox.append(Arc::new(Mutex::new(eqlbutt)));
 
         view.append(Arc::new(Mutex::new(hbox)));
