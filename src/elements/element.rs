@@ -38,7 +38,7 @@ pub enum PrimitiveEvent {
     HoverEnd(Vec<ItemTag>),
 }
 
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Debug, Clone, Eq)]
 pub enum ElementEvent {
     Clicked,
     FocusChange,
@@ -52,13 +52,21 @@ impl Hash for ElementEvent {
     }
 }
 
+impl PartialEq for ElementEvent {
+    fn eq(&self, other: &ElementEvent) -> bool {
+        mem::discriminant(self) == mem::discriminant(other)
+    }
+}
+
 /*impl Copy for FnMut(&mut Element, &Any) -> bool {
 
 }*/
 
 //pub type EventFn = fn(&mut Element, &Any) -> bool;
+pub type EventClosure = FnMut(&mut Element, &Any) -> bool;
+
 #[derive(Clone)]
-pub struct EventFn(Arc<Mutex<FnMut(&mut Element, &Any) -> bool>>);
+pub struct EventFn(Arc<Mutex<EventClosure>>);
 //it should be safe since Element will always be within a lock.
 //sending it as arc.mutex.element might end up in a deadlock
 unsafe impl Send for EventFn {}
@@ -66,7 +74,7 @@ unsafe impl Sync for EventFn {}
 
 use std::ops::DerefMut;
 impl EventFn {
-    pub fn new(f: Arc<Mutex<FnMut(&mut Element, &Any) -> bool>>) -> EventFn {
+    pub fn new(f: Arc<Mutex<EventClosure>>) -> EventFn {
         EventFn(f)
     }
 

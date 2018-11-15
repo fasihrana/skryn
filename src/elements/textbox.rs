@@ -65,7 +65,7 @@ impl TextBox {
         self.drawn = 0;
     }
 
-    pub fn append_value(&mut self, s: String) {
+    pub fn append_value(&mut self, s: &str) {
         self.value = format!("{}{}", self.value, s);
         //self.cache.clear();
         //self.char_ext.clear();
@@ -96,7 +96,7 @@ impl TextBox {
         self.singleline = singleline;
     }
 
-    pub fn get_index_at(&self, p: properties::Position) -> usize {
+    pub fn get_index_at(&self, p: &properties::Position) -> usize {
         let size = self.props.get_size() as f32;
         let mut i = 0;
         let mut cursor = 0;
@@ -279,19 +279,19 @@ impl Element for TextBox {
             extent.h,
             size,
             &family,
-            text_align.clone(),
+            &text_align,
             font_store,
         );
 
         self.cache = cache;
 
-        if cursor_i == 0 && self.cache.len() == 0 {
+        if cursor_i == 0 && self.cache.is_empty() {
             cursor_x = _bounds.x;
             cursor_y = _bounds.y + size;
-        } else if cursor_i == 0 && self.cache.len() > 0 {
+        } else if cursor_i == 0 && !self.cache.is_empty() {
             cursor_x = (self.cache[0].0).0;
             cursor_y = (self.cache[0].1).1;
-        } else if self.cache.len() > 0 {
+        } else if !self.cache.is_empty() {
             cursor_x = (self.cache[cursor_i - 1].1).0;
             cursor_y = (self.cache[cursor_i - 1].1).1;
         }
@@ -307,7 +307,7 @@ impl Element for TextBox {
                 extent.h,
                 size,
                 &family,
-                text_align,
+                &text_align,
                 font_store,
             );
 
@@ -323,8 +323,8 @@ impl Element for TextBox {
             builder.push_text(
                 &info,
                 &placeholder.0,
-                fi_key.clone(),
-                color.clone(),
+                fi_key,
+                color,
                 Some(GlyphOptions::default()),
             );
         }
@@ -365,13 +365,7 @@ impl Element for TextBox {
             LayoutPoint::new(extent.x, extent.y),
             LayoutSize::new(self.bounds.w, self.bounds.h),
         ));
-        builder.push_text(
-            &info,
-            &glyphs,
-            fi_key.clone(),
-            color.clone(),
-            Some(GlyphOptions::default()),
-        );
+        builder.push_text(&info, &glyphs, fi_key, color, Some(GlyphOptions::default()));
 
         //add the cursor
         if self.focus && self.enabled && self.editable {
@@ -379,7 +373,7 @@ impl Element for TextBox {
                 LayoutPoint::new(cursor_x, cursor_y - size),
                 LayoutSize::new(1.0, size),
             ));
-            builder.push_rect(&info, color.clone());
+            builder.push_rect(&info, color);
         }
     }
 
@@ -395,9 +389,9 @@ impl Element for TextBox {
                     if c == '\x08' {
                         let mut l = self.cursor;
                         if l > 0 {
-                            l = l - 1;
+                            l -= 1;
                             while !self.value.is_char_boundary(l) && l > 0 {
-                                l = l - 1;
+                                l -= 1;
                             }
                             self.value =
                                 format!("{}{}", &self.value[0..l], &self.value[self.cursor..]);
@@ -446,22 +440,20 @@ impl Element for TextBox {
                     handled = true;
                 }
             }
-            PrimitiveEvent::Button(_p, b, s, m) => {
-                if ext_ids.len() > 0
+            PrimitiveEvent::Button(p, b, s, m) => {
+                if !ext_ids.is_empty()
                     && ext_ids[0].0 == self.ext_id
                     && b == properties::Button::Left
                     && s == properties::ButtonState::Released
                 {
-                    self.cursor = self.get_index_at(_p.clone());
+                    self.cursor = self.get_index_at(&p);
                     handled = self.exec_handler(ElementEvent::Clicked, &m);
                 }
             }
             PrimitiveEvent::SetFocus(f) => {
-                if self.enabled {
-                    if self.focus != f {
-                        self.focus = f;
-                        handled = self.exec_handler(ElementEvent::FocusChange, &f);
-                    }
+                if self.enabled && self.focus != f {
+                    self.focus = f;
+                    handled = self.exec_handler(ElementEvent::FocusChange, &f);
                 }
             }
             PrimitiveEvent::KeyInput(vkc, _sc, s, _m) => match vkc {
@@ -479,29 +471,29 @@ impl Element for TextBox {
             },
             PrimitiveEvent::HoverBegin(n_tags) => {
                 let matched = n_tags.iter().find(|x| x.0 == self.ext_id);
-                if let Some(_) = matched {
+                if matched.is_some() {
                     self.hovering = true;
                 }
             }
             PrimitiveEvent::HoverEnd(o_tags) => {
                 let matched = o_tags.iter().find(|x| x.0 == self.ext_id);
-                if let Some(_) = matched {
+                if matched.is_some() {
                     self.hovering = false;
                 }
             }
             _ => (),
         }
-        return handled;
+        handled
     }
 
     fn set_handler(&mut self, e: ElementEvent, f: EventFn) {
         self.event_handlers.insert(e, f);
     }
 
-    fn exec_handler(&mut self, _e: ElementEvent, _d: &Any) -> bool {
-        let h = self.event_handlers.get_mut(&_e).cloned();
+    fn exec_handler(&mut self, e: ElementEvent, d: &Any) -> bool {
+        let h = self.event_handlers.get_mut(&e).cloned();
         if let Some(mut h) = h {
-            h.call(self, _d)
+            h.call(self, d)
         } else {
             false
         }

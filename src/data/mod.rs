@@ -50,12 +50,9 @@ pub trait Update<T: Clone> {
 
 impl<T: Clone> Update<T> for Observable<T> {
     fn update(&mut self, value: Action<T>) {
-        match value {
-            Action::Update(v) => {
-                self.value = v;
-                self.notify_observers();
-            }
-            _ => (),
+        if let Action::Update(v) = value {
+            self.value = v;
+            self.notify_observers();
         }
     }
 }

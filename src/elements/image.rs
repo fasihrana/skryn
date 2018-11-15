@@ -16,18 +16,17 @@ pub struct Image {
 
 impl Image {
     pub fn load(path: ImagePath) -> Option<Image> {
-        let mut ret = None;
         if let ImagePath::Local(_s) = path.clone() {
             let mut f = File::open(&_s[0..]);
             if let Ok(mut c) = f {
                 let l = c.metadata().unwrap().len();
                 let mut bytes: Vec<u8> = Vec::new();
                 bytes.resize(l as usize, 0);
-                let _r = c.read(&mut bytes);
-                println!("read file ? {:?}", _r);
-                if let Ok(_) = _r {
+                let r = c.read(&mut bytes);
+                println!("read file ? {:?}", r);
+                if r.is_ok() {
                     //let bytes = contents.to_vec();
-                    ret = Some(Image {
+                    return Some(Image {
                         path,
                         bytes,
                         ext_id: 0,
@@ -36,6 +35,6 @@ impl Image {
             }
         }
 
-        ret
+        None
     }
 }

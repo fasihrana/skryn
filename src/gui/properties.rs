@@ -158,7 +158,7 @@ impl Hash for Property {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct Properties(HashSet<Property>);
 
 impl Properties {
@@ -202,7 +202,7 @@ impl Properties {
 
     pub fn get_size(&self) -> i32 {
         if let Some(Property::Size(x)) = self.get(&SIZE) {
-            x.clone()
+            *x
         } else {
             panic!("Size not found")
         }
@@ -282,7 +282,7 @@ impl Properties {
 
     pub fn get_color(&self) -> ColorF {
         if let Some(Property::Color(x)) = self.get(&COLOR) {
-            x.clone()
+            *x
         } else {
             panic!("Color not found")
         }
@@ -290,7 +290,7 @@ impl Properties {
 
     pub fn get_bg_color(&self) -> ColorF {
         if let Some(Property::BgColor(x)) = self.get(&BG_COLOR) {
-            x.clone()
+            *x
         } else {
             panic!("Background Color not found")
         }
@@ -298,7 +298,7 @@ impl Properties {
 
     pub fn get_focus_color(&self) -> ColorF {
         if let Some(Property::FocusColor(x)) = self.get(&FOCUS_COLOR) {
-            x.clone()
+            *x
         } else {
             panic!("Focus Color not found")
         }
@@ -306,7 +306,7 @@ impl Properties {
 
     pub fn get_focus_bg_color(&self) -> ColorF {
         if let Some(Property::FocusBgColor(x)) = self.get(&FOCUS_BG_COLOR) {
-            x.clone()
+            *x
         } else {
             panic!("Focus Background Color not found")
         }
@@ -314,7 +314,7 @@ impl Properties {
 
     pub fn get_hover_color(&self) -> ColorF {
         if let Some(Property::HoverColor(x)) = self.get(&HOVER_COLOR) {
-            x.clone()
+            *x
         } else {
             panic!("Hover Color not found")
         }
@@ -322,7 +322,7 @@ impl Properties {
 
     pub fn get_hover_bg_color(&self) -> ColorF {
         if let Some(Property::HoverBgColor(x)) = self.get(&HOVER_BG_COLOR) {
-            x.clone()
+            *x
         } else {
             panic!("Hover Background Color not found")
         }
@@ -330,7 +330,7 @@ impl Properties {
 
     pub fn get_disabled_color(&self) -> ColorF {
         if let Some(Property::DisabledColor(x)) = self.get(&DISABLED_COLOR) {
-            x.clone()
+            *x
         } else {
             panic!("Disabled Color not found")
         }
@@ -338,7 +338,7 @@ impl Properties {
 
     pub fn get_disabled_bg_color(&self) -> ColorF {
         if let Some(Property::DisabledBgColor(x)) = self.get(&DISABLED_BG_COLOR) {
-            x.clone()
+            *x
         } else {
             panic!("Disabled Background Color not found")
         }
@@ -395,7 +395,7 @@ impl IdGenerator {
     pub fn get(&mut self) -> u64 {
         let mut counter = self.next_id.lock().unwrap();
         *counter += 1;
-        (*counter).clone()
+        *counter
     }
     pub fn zero(&mut self) {
         let mut counter = self.next_id.lock().unwrap();

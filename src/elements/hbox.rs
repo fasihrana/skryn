@@ -102,6 +102,12 @@ impl HBox {
     }
 }
 
+impl Default for HBox {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Element for HBox {
     fn get_ext_id(&self) -> u64 {
         self.ext_id
@@ -303,14 +309,11 @@ impl Element for HBox {
         // if none of the children handled the event
         // see if you can handle it here
         if !handled {
-            match e {
-                PrimitiveEvent::Button(_p, _b, _s, m) => {
-                    handled = self.exec_handler(ElementEvent::Clicked, &m);
-                }
-                _ => (),
+            if let PrimitiveEvent::Button(_p, _b, _s, m) = e {
+                handled = self.exec_handler(ElementEvent::Clicked, &m);
             }
         }
-        return handled;
+        handled
     }
 
     fn set_handler(&mut self, _e: ElementEvent, _f: EventFn) {

@@ -37,7 +37,7 @@ impl Into<properties::Position> for glutin::dpi::PhysicalPosition {
 impl Into<properties::Position> for WorldPoint {
     fn into(self) -> properties::Position {
         match self {
-            WorldPoint { x, y, _unit } => properties::Position { x: x, y: y },
+            WorldPoint { x, y, _unit } => properties::Position { x, y },
         }
     }
 }
@@ -121,7 +121,7 @@ struct Internals {
 }
 
 impl Internals {
-    fn new(name: String, width: f64, height: f64) -> Internals {
+    fn new(name: &str, width: f64, height: f64) -> Internals {
         let events_loop = glutin::EventsLoop::new();
         let context_builder =
             glutin::ContextBuilder::new().with_gl(glutin::GlRequest::GlThenGles {
@@ -129,7 +129,7 @@ impl Internals {
                 opengles_version: (3, 0),
             });
         let window_builder = glutin::WindowBuilder::new()
-            .with_title(name.clone())
+            .with_title(name)
             .with_multitouch()
             .with_dimensions(glutin::dpi::LogicalSize::new(width, height));
         let window = glutin::GlWindow::new(window_builder, context_builder, &events_loop).unwrap();
@@ -174,7 +174,7 @@ impl Internals {
 
         let font_store = Arc::new(Mutex::new(font::FontStore::new(
             api.clone_sender().create_api(),
-            document_id.clone(),
+            document_id,
         )));
 
         let mut txn = Transaction::new();
@@ -196,11 +196,11 @@ impl Internals {
         }
     }
 
-    fn events(&mut self, tags: &Vec<ItemTag>) -> Vec<PrimitiveEvent> {
+    fn events(&mut self, tags: &[ItemTag]) -> Vec<PrimitiveEvent> {
         let mut events = Vec::new();
 
-        let mut cursor_in_window = self.cursor_in_window.clone();
-        let mut cursor_position = self.cursor_position.clone();
+        let mut cursor_in_window = self.cursor_in_window;
+        let mut cursor_position = self.cursor_position;
         let mut dpi = self.dpi;
         let mut txn = None;
 
@@ -263,17 +263,16 @@ impl Internals {
                         },
                     ..
                 } => {
-                    let _pos: properties::Position = cursor_position.clone().into();
+                    let _pos: properties::Position = cursor_position.into();
                     let _button = button.into();
                     let _state = state.into();
                     let _modifiers = modifiers.into();
 
-                    if tags.len() > 0 {
-                        if button == glutin::MouseButton::Left
-                            && state == glutin::ElementState::Released
-                        {
-                            events.push(PrimitiveEvent::SetFocus(true));
-                        }
+                    if !tags.is_empty()
+                        && button == glutin::MouseButton::Left
+                        && state == glutin::ElementState::Released
+                    {
+                        events.push(PrimitiveEvent::SetFocus(true));
                     }
                     events.push(PrimitiveEvent::Button(_pos, _button, _state, _modifiers));
                 }
@@ -288,15 +287,16 @@ impl Internals {
                         txn = Some(Transaction::new());
                     }
                     const LINE_HEIGHT: f32 = 38.0;
-                    let (dx, dy) = match modifiers.alt {
-                        true => match delta {
+                    let (dx, dy) = if modifiers.alt {
+                        match delta {
                             glutin::MouseScrollDelta::LineDelta(_, dy) => (dy * LINE_HEIGHT, 0.0),
                             glutin::MouseScrollDelta::PixelDelta(pos) => (pos.y as f32, 0.0),
-                        },
-                        _ => match delta {
+                        }
+                    } else {
+                        match delta {
                             glutin::MouseScrollDelta::LineDelta(_, dy) => (0.0, dy * LINE_HEIGHT),
                             glutin::MouseScrollDelta::PixelDelta(pos) => (0.0, pos.y as f32),
-                        },
+                        }
                     };
 
                     if let Some(ref mut _txn) = txn {
@@ -357,7 +357,7 @@ impl Internals {
     }
 
     fn get_window_id(&self) -> glutin::WindowId {
-        self.gl_window.id().clone()
+        self.gl_window.id()
     }
 
     fn deinit(self) {
@@ -397,7 +397,7 @@ impl Window {
     }
 
     fn start_window(&mut self) {
-        self.internals = Some(Internals::new(self.name.clone(), self.width, self.height));
+        self.internals = Some(Internals::new(&self.name, self.width, self.height));
     }
 
     fn get_tags(&mut self) -> (Vec<ItemTag>, Vec<ItemTag>) {
@@ -443,7 +443,7 @@ impl Window {
             self.tags = tags.clone();
         }
 
-        if new_tags.len() > 0 || old_tags.len() > 0 {
+        if !new_tags.is_empty() || !old_tags.is_empty() {
             println! {"HoverBegin {:?}\nHoverEnd {:?}", new_tags, old_tags};
         }
 
@@ -467,7 +467,7 @@ impl Window {
             _ => panic!("in tick but no window internals initialized"),
         }
 
-        if new_tags.len() > 0 {
+        if !new_tags.is_empty() {
             //events.insert(0,PrimitiveEvent::HoverBegin(new_tags));
             self.root
                 .lock()
@@ -475,7 +475,7 @@ impl Window {
                 .on_primitive_event(&[], PrimitiveEvent::HoverBegin(new_tags));
         }
 
-        if old_tags.len() > 0 {
+        if !old_tags.is_empty() {
             //events.insert( 0,PrimitiveEvent::HoverEnd(old_tags));
             self.root
                 .lock()
@@ -484,7 +484,7 @@ impl Window {
         }
 
         //only for debug. take out later?
-        if events.len() > 0 {
+        if !events.is_empty() {
             println!("{:?}", events);
         }
 
@@ -614,7 +614,7 @@ impl Window {
             None,
             TransformStyle::Flat,
             MixBlendMode::Normal,
-            &vec![],
+            &[],
             RasterSpace::Screen,
         );
 
@@ -726,17 +726,17 @@ impl Manager {
                         }
                     }
                     //if all windows done, then exit the app
-                    if wm.windows.len() == 0 {
+                    if wm.windows.is_empty() {
                         return;
                     }
                 }
             }
-            if let Ok(_t) = lasttime.elapsed() {
-                let mut _t = _t.subsec_millis() as u64;
-                if _t > fps {
-                    _t = fps;
+            if let Ok(t) = lasttime.elapsed() {
+                let mut t = u64::from(t.subsec_millis());
+                if t > fps {
+                    t = fps;
                 }
-                thread::sleep(Duration::from_millis(fps - _t));
+                thread::sleep(Duration::from_millis(fps - t));
             } else {
                 thread::sleep(Duration::from_millis(fps));
             }

@@ -79,7 +79,7 @@ impl Element for ScrollBox {
             None,
             TransformStyle::Flat,
             MixBlendMode::Normal,
-            &vec![],
+            &[],
             RasterSpace::Screen,
         );
 
@@ -87,7 +87,7 @@ impl Element for ScrollBox {
         info.tag = Some((_id, 0));
         builder.push_rect(&info, bgcolor);
 
-        let pipeline_id = builder.pipeline_id.clone();
+        let pipeline_id = builder.pipeline_id;
         let scroll_frame = builder.define_scroll_frame(
             Some(ExternalScrollId(_id, pipeline_id)),
             (0.0, 0.0).by(self.content.w, self.content.h),
@@ -186,14 +186,11 @@ impl Element for ScrollBox {
         // if none of the children handled the event
         // see if you can handle it here
         if !handled {
-            match e {
-                PrimitiveEvent::Button(_p, _b, _s, m) => {
-                    handled = self.exec_handler(ElementEvent::Clicked, &m);
-                }
-                _ => (),
+            if let PrimitiveEvent::Button(_p, _b, _s, m) = e {
+                handled = self.exec_handler(ElementEvent::Clicked, &m);
             }
         }
-        return handled;
+        handled
     }
 
     fn set_handler(&mut self, _e: ElementEvent, _f: EventFn) {
@@ -217,6 +214,12 @@ impl Element for ScrollBox {
     }
 }
 
+impl Default for ScrollBox {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl HasChildren for ScrollBox {
     #[allow(unused)]
     fn get_child(&self, i: u32) -> Option<Arc<Mutex<Element>>> {
@@ -227,6 +230,6 @@ impl HasChildren for ScrollBox {
     fn append(&mut self, e: Arc<Mutex<Element>>) -> Option<Arc<Mutex<Element>>> {
         let mut ret = Some(e);
         mem::swap(&mut self.child, &mut ret);
-        return ret;
+        ret
     }
 }

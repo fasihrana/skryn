@@ -226,7 +226,7 @@ impl Element for Button {
             calc_h,
             size,
             &family,
-            text_align,
+            &text_align,
             font_store,
         );
 
@@ -267,13 +267,7 @@ impl Element for Button {
             LayoutSize::new(tbounds.w, tbounds.h),
         ));
 
-        builder.push_text(
-            &info,
-            &glyphs,
-            fi_key.clone(),
-            color.clone(),
-            Some(GlyphOptions::default()),
-        );
+        builder.push_text(&info, &glyphs, fi_key, color, Some(GlyphOptions::default()));
     }
 
     fn get_bounds(&self) -> properties::Extent {
@@ -286,31 +280,31 @@ impl Element for Button {
         match e {
             PrimitiveEvent::Button(_p, b, s, m) => {
                 self.drawn = 0;
-                if ext_ids.len() == 1 && ext_ids[0].0 == self.ext_id {
-                    if b == properties::Button::Left
-                        && s == properties::ButtonState::Released
-                        && self.enabled
-                    {
-                        handled = self.exec_handler(ElementEvent::Clicked, &m);
-                    }
+                if ext_ids.len() == 1
+                    && ext_ids[0].0 == self.ext_id
+                    && b == properties::Button::Left
+                    && s == properties::ButtonState::Released
+                    && self.enabled
+                {
+                    handled = self.exec_handler(ElementEvent::Clicked, &m);
                 }
             }
             PrimitiveEvent::HoverBegin(n_tags) => {
                 let matched = n_tags.iter().find(|x| x.0 == self.ext_id);
-                if let Some(_) = matched {
+                if matched.is_some() {
                     self.hovering = true;
                 }
             }
             PrimitiveEvent::HoverEnd(o_tags) => {
                 let matched = o_tags.iter().find(|x| x.0 == self.ext_id);
-                if let Some(_) = matched {
+                if matched.is_some() {
                     self.hovering = false;
                 }
             }
             _ => (),
         }
 
-        return handled;
+        handled
     }
 
     fn set_handler(&mut self, _e: ElementEvent, _f: EventFn) {

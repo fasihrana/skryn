@@ -173,7 +173,7 @@ impl CalculatorView {
                 let val = tb.get_value().parse::<f64>();
                 if let Ok(n) = val {
                     if tmpcalc.lock().unwrap().push_op(Operation::Input(n)).is_ok() {
-                        tmphist.lock().unwrap().append_value(format!("{}\n+\n", n));
+                        tmphist.lock().unwrap().append_value(&format!("{}\n+\n", n));
                         tmpcalc.lock().unwrap().push_op(Operation::Add).unwrap();
                     }
                     tb.set_value("".to_owned());
@@ -210,7 +210,7 @@ impl CalculatorView {
                 let val = tb.get_value().parse::<f64>();
                 if let Ok(n) = val {
                     if tmpcalc.lock().unwrap().push_op(Operation::Input(n)).is_ok() {
-                        tmphist.lock().unwrap().append_value(format!("{}\n-\n", n));
+                        tmphist.lock().unwrap().append_value(&format!("{}\n-\n", n));
                         tmpcalc
                             .lock()
                             .unwrap()
@@ -251,7 +251,7 @@ impl CalculatorView {
                 let val = tb.get_value().parse::<f64>();
                 if let Ok(n) = val {
                     if tmpcalc.lock().unwrap().push_op(Operation::Input(n)).is_ok() {
-                        tmphist.lock().unwrap().append_value(format!("{}\n*\n", n));
+                        tmphist.lock().unwrap().append_value(&format!("{}\n*\n", n));
                         tmpcalc
                             .lock()
                             .unwrap()
@@ -292,7 +292,7 @@ impl CalculatorView {
                 let val = tb.get_value().parse::<f64>();
                 if let Ok(n) = val {
                     if tmpcalc.lock().unwrap().push_op(Operation::Input(n)).is_ok() {
-                        tmphist.lock().unwrap().append_value(format!("{}\n/\n", n));
+                        tmphist.lock().unwrap().append_value(&format!("{}\n/\n", n));
                         tmpcalc.lock().unwrap().push_op(Operation::Divide).unwrap();
                     }
                     tb.set_value("".to_owned());
@@ -331,7 +331,7 @@ impl CalculatorView {
                     if tmpcalc.lock().unwrap().push_op(Operation::Input(n)).is_ok() {
                         let v = tmpcalc.lock().unwrap().push_op(Operation::Answer).unwrap();
                         if let Some(_v) = v {
-                            tmphist.lock().unwrap().append_value(format!("{}\n=\n", n));
+                            tmphist.lock().unwrap().append_value(&format!("{}\n=\n", n));
                             tb.set_value(format!("{}", _v));
                         }
                     }
