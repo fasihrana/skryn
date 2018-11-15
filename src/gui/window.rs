@@ -1,20 +1,20 @@
+use euclid;
 use gleam::gl;
 use glutin;
 use glutin::GlContext;
 use webrender;
 use webrender::api::*;
-use euclid;
 
-use util::*;
 use elements::{Element, PrimitiveEvent};
 use gui::font;
 use gui::properties;
+use util::*;
 
-use std::sync::{Arc, Mutex};
+use std::mem;
 use std::ops::DerefMut;
+use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, SystemTime};
-use std::mem;
 
 impl Into<properties::Position> for glutin::dpi::LogicalPosition {
     fn into(self) -> properties::Position {
@@ -37,10 +37,7 @@ impl Into<properties::Position> for glutin::dpi::PhysicalPosition {
 impl Into<properties::Position> for WorldPoint {
     fn into(self) -> properties::Position {
         match self {
-            WorldPoint { x, y, _unit } => properties::Position {
-                x: x,
-                y: y,
-            }
+            WorldPoint { x, y, _unit } => properties::Position { x, y },
         }
     }
 }
@@ -59,18 +56,10 @@ impl Into<properties::Modifiers> for glutin::ModifiersState {
 impl Into<properties::Button> for glutin::MouseButton {
     fn into(self) -> properties::Button {
         match self {
-            glutin::MouseButton::Left => {
-                properties::Button::Left
-            }
-            glutin::MouseButton::Right => {
-                properties::Button::Right
-            }
-            glutin::MouseButton::Middle => {
-                properties::Button::Middle
-            }
-            glutin::MouseButton::Other(_) => {
-                properties::Button::Other
-            }
+            glutin::MouseButton::Left => properties::Button::Left,
+            glutin::MouseButton::Right => properties::Button::Right,
+            glutin::MouseButton::Middle => properties::Button::Middle,
+            glutin::MouseButton::Other(_) => properties::Button::Other,
         }
     }
 }
@@ -78,12 +67,8 @@ impl Into<properties::Button> for glutin::MouseButton {
 impl Into<properties::ButtonState> for glutin::ElementState {
     fn into(self) -> properties::ButtonState {
         match self {
-            glutin::ElementState::Pressed => {
-                properties::ButtonState::Pressed
-            }
-            glutin::ElementState::Released => {
-                properties::ButtonState::Released
-            }
+            glutin::ElementState::Pressed => properties::ButtonState::Pressed,
+            glutin::ElementState::Released => properties::ButtonState::Released,
         }
     }
 }
@@ -110,11 +95,13 @@ impl RenderNotifier for WindowNotifier {
         let _ = self.events_proxy.wakeup();
     }
 
-    fn new_frame_ready(&self,
-                       _doc_id: DocumentId,
-                       _scrolled: bool,
-                       _composite_needed: bool,
-                       _render_time: Option<u64>) {
+    fn new_frame_ready(
+        &self,
+        _doc_id: DocumentId,
+        _scrolled: bool,
+        _composite_needed: bool,
+        _render_time: Option<u64>,
+    ) {
         self.wake_up();
     }
 }
@@ -134,19 +121,18 @@ struct Internals {
 }
 
 impl Internals {
-    fn new(name: String, width: f64, height: f64) -> Internals {
+    fn new(name: &str, width: f64, height: f64) -> Internals {
         let events_loop = glutin::EventsLoop::new();
-        let context_builder = glutin::ContextBuilder::new()
-            .with_gl(glutin::GlRequest::GlThenGles {
+        let context_builder =
+            glutin::ContextBuilder::new().with_gl(glutin::GlRequest::GlThenGles {
                 opengl_version: (3, 2),
                 opengles_version: (3, 0),
             });
         let window_builder = glutin::WindowBuilder::new()
-            .with_title(name.clone())
+            .with_title(name)
             .with_multitouch()
             .with_dimensions(glutin::dpi::LogicalSize::new(width, height));
-        let window = glutin::GlWindow::new(window_builder, context_builder, &events_loop)
-            .unwrap();
+        let window = glutin::GlWindow::new(window_builder, context_builder, &events_loop).unwrap();
 
         unsafe {
             window.make_current().ok();
@@ -166,29 +152,30 @@ impl Internals {
 
         let opts = webrender::RendererOptions {
             device_pixel_ratio: dpi as f32,
-            clear_color: Some(ColorF::new(0.2,0.2,0.2, 1.0)),
+            clear_color: Some(ColorF::new(0.2, 0.2, 0.2, 1.0)),
             //enable_scrollbars: true,
             //enable_aa:true,
             ..webrender::RendererOptions::default()
         };
 
         let framebuffer_size = {
-            let size = window
-                .get_inner_size()
-                .unwrap()
-                .to_physical(dpi);
+            let size = window.get_inner_size().unwrap().to_physical(dpi);
             DeviceUintSize::new(size.width as u32, size.height as u32)
         };
 
         let notifier = Box::new(WindowNotifier::new(events_loop.create_proxy()));
-        let (renderer, sender) = webrender::Renderer::new(gl.clone(), notifier, opts, None).unwrap();
+        let (renderer, sender) =
+            webrender::Renderer::new(gl.clone(), notifier, opts, None).unwrap();
         let api = sender.create_api();
         let document_id = api.add_document(framebuffer_size, 0);
 
         let epoch = Epoch(0);
         let pipeline_id = PipelineId(0, 0);
 
-        let font_store = Arc::new(Mutex::new(font::FontStore::new(api.clone_sender().create_api(), document_id.clone())));
+        let font_store = Arc::new(Mutex::new(font::FontStore::new(
+            api.clone_sender().create_api(),
+            document_id,
+        )));
 
         let mut txn = Transaction::new();
         txn.set_root_pipeline(pipeline_id);
@@ -209,73 +196,106 @@ impl Internals {
         }
     }
 
-    fn events(&mut self, tags: &Vec<ItemTag>) -> Vec<PrimitiveEvent> {
+    fn events(&mut self, tags: &[ItemTag]) -> Vec<PrimitiveEvent> {
         let mut events = Vec::new();
 
-        let mut cursor_in_window = self.cursor_in_window.clone();
-        let mut cursor_position = self.cursor_position.clone();
+        let mut cursor_in_window = self.cursor_in_window;
+        let mut cursor_position = self.cursor_position;
         let mut dpi = self.dpi;
         let mut txn = None;
 
         self.events_loop.poll_events(|event| {
             match event {
-                glutin::Event::WindowEvent { event: glutin::WindowEvent::CloseRequested, window_id } => {
-                    { TODEL.lock().unwrap().push(window_id); }
+                glutin::Event::WindowEvent {
+                    event: glutin::WindowEvent::CloseRequested,
+                    window_id,
+                } => {
+                    {
+                        TODEL.lock().unwrap().push(window_id);
+                    }
                     events.push(PrimitiveEvent::Exit);
                 }
-                glutin::Event::WindowEvent { event: glutin::WindowEvent::CursorEntered { .. }, .. } => {
+                glutin::Event::WindowEvent {
+                    event: glutin::WindowEvent::CursorEntered { .. },
+                    ..
+                } => {
                     //events.push(PrimitiveEvent::CursorEntered);
                     cursor_in_window = true;
                 }
-                glutin::Event::WindowEvent { event: glutin::WindowEvent::CursorMoved { position, .. }, .. } => {
+                glutin::Event::WindowEvent {
+                    event: glutin::WindowEvent::CursorMoved { position, .. },
+                    ..
+                } => {
                     if cursor_in_window {
                         cursor_position = WorldPoint::new(position.x as f32, position.y as f32);
                         events.push(PrimitiveEvent::CursorMoved(position.into()));
                     }
                 }
-                glutin::Event::WindowEvent { event: glutin::WindowEvent::CursorLeft { .. }, .. } => {
+                glutin::Event::WindowEvent {
+                    event: glutin::WindowEvent::CursorLeft { .. },
+                    ..
+                } => {
                     //events.push(PrimitiveEvent::CursorLeft);
                     cursor_in_window = false;
                     cursor_position.x = -1.0;
                     cursor_position.y = -1.0;
                 }
-                glutin::Event::WindowEvent { event: glutin::WindowEvent::Resized(size), .. } => {
+                glutin::Event::WindowEvent {
+                    event: glutin::WindowEvent::Resized(size),
+                    ..
+                } => {
                     events.push(PrimitiveEvent::Resized(size));
                 }
-                glutin::Event::WindowEvent { event: glutin::WindowEvent::HiDpiFactorChanged(factor), .. } => {
+                glutin::Event::WindowEvent {
+                    event: glutin::WindowEvent::HiDpiFactorChanged(factor),
+                    ..
+                } => {
                     dpi = factor;
                     events.push(PrimitiveEvent::DPI(factor));
                 }
-                glutin::Event::WindowEvent { event: glutin::WindowEvent::MouseInput { state, button, modifiers, .. }, .. } => {
-                    let _pos: properties::Position = cursor_position.clone().into();
+                glutin::Event::WindowEvent {
+                    event:
+                        glutin::WindowEvent::MouseInput {
+                            state,
+                            button,
+                            modifiers,
+                            ..
+                        },
+                    ..
+                } => {
+                    let _pos: properties::Position = cursor_position.into();
                     let _button = button.into();
                     let _state = state.into();
                     let _modifiers = modifiers.into();
 
-                    if tags.len() > 0 {
-                        if button == glutin::MouseButton::Left && state == glutin::ElementState::Released {
-                            events.push(PrimitiveEvent::SetFocus(true));
-                        }
+                    if !tags.is_empty()
+                        && button == glutin::MouseButton::Left
+                        && state == glutin::ElementState::Released
+                    {
+                        events.push(PrimitiveEvent::SetFocus(true));
                     }
                     events.push(PrimitiveEvent::Button(_pos, _button, _state, _modifiers));
                 }
-                glutin::Event::WindowEvent { event: glutin::WindowEvent::MouseWheel { delta, modifiers, .. }, .. } => {
+                glutin::Event::WindowEvent {
+                    event:
+                        glutin::WindowEvent::MouseWheel {
+                            delta, modifiers, ..
+                        },
+                    ..
+                } => {
                     if txn.is_none() {
                         txn = Some(Transaction::new());
                     }
                     const LINE_HEIGHT: f32 = 38.0;
-                    let (dx, dy) = match modifiers.alt {
-                        true => {
-                            match delta {
-                                glutin::MouseScrollDelta::LineDelta(_, dy) => (dy * LINE_HEIGHT, 0.0),
-                                glutin::MouseScrollDelta::PixelDelta(pos) => (pos.y as f32, 0.0),
-                            }
+                    let (dx, dy) = if modifiers.alt {
+                        match delta {
+                            glutin::MouseScrollDelta::LineDelta(_, dy) => (dy * LINE_HEIGHT, 0.0),
+                            glutin::MouseScrollDelta::PixelDelta(pos) => (pos.y as f32, 0.0),
                         }
-                        _ => {
-                            match delta {
-                                glutin::MouseScrollDelta::LineDelta(_, dy) => (0.0, dy * LINE_HEIGHT),
-                                glutin::MouseScrollDelta::PixelDelta(pos) => (0.0, pos.y as f32),
-                            }
+                    } else {
+                        match delta {
+                            glutin::MouseScrollDelta::LineDelta(_, dy) => (0.0, dy * LINE_HEIGHT),
+                            glutin::MouseScrollDelta::PixelDelta(pos) => (0.0, pos.y as f32),
                         }
                     };
 
@@ -288,17 +308,38 @@ impl Internals {
 
                     //println!("scrolling {} {}",dx,dy);
                 }
-                glutin::Event::WindowEvent { event: glutin::WindowEvent::KeyboardInput { input: glutin::KeyboardInput { scancode, state, virtual_keycode, modifiers }, .. }, .. } => {
-                    events.push(PrimitiveEvent::KeyInput(virtual_keycode, scancode, state.into(), modifiers.into()));
+                glutin::Event::WindowEvent {
+                    event:
+                        glutin::WindowEvent::KeyboardInput {
+                            input:
+                                glutin::KeyboardInput {
+                                    scancode,
+                                    state,
+                                    virtual_keycode,
+                                    modifiers,
+                                },
+                            ..
+                        },
+                    ..
+                } => {
+                    events.push(PrimitiveEvent::KeyInput(
+                        virtual_keycode,
+                        scancode,
+                        state.into(),
+                        modifiers.into(),
+                    ));
                 }
-                glutin::Event::WindowEvent { event: glutin::WindowEvent::ReceivedCharacter(c), .. } => {
+                glutin::Event::WindowEvent {
+                    event: glutin::WindowEvent::ReceivedCharacter(c),
+                    ..
+                } => {
                     if c == '\x1b' {
                         events.push(PrimitiveEvent::SetFocus(false));
                     } else {
                         events.push(PrimitiveEvent::Char(c));
                     }
                 }
-                _ => ()
+                _ => (),
             }
         });
 
@@ -316,7 +357,7 @@ impl Internals {
     }
 
     fn get_window_id(&self) -> glutin::WindowId {
-        self.gl_window.id().clone()
+        self.gl_window.id()
     }
 
     fn deinit(self) {
@@ -356,7 +397,7 @@ impl Window {
     }
 
     fn start_window(&mut self) {
-        self.internals = Some(Internals::new(self.name.clone(), self.width, self.height));
+        self.internals = Some(Internals::new(&self.name, self.width, self.height));
     }
 
     fn get_tags(&mut self) -> (Vec<ItemTag>, Vec<ItemTag>) {
@@ -386,18 +427,14 @@ impl Window {
             new_tags = tags.clone();
         } else {
             for t in tags.iter() {
-                let exists = self.tags.iter().find(|x| {
-                    *x == t
-                });
+                let exists = self.tags.iter().find(|x| *x == t);
                 if exists.is_none() {
                     new_tags.push(t.clone());
                 }
             }
 
             for t in self.tags.iter() {
-                let exists = tags.iter().find(|x| {
-                    *x == t
-                });
+                let exists = tags.iter().find(|x| *x == t);
                 if exists.is_none() {
                     old_tags.push(t.clone());
                 }
@@ -406,19 +443,18 @@ impl Window {
             self.tags = tags.clone();
         }
 
-        if new_tags.len() > 0 || old_tags.len() > 0 {
+        if !new_tags.is_empty() || !old_tags.is_empty() {
             println! {"HoverBegin {:?}\nHoverEnd {:?}", new_tags, old_tags};
         }
 
         (new_tags, old_tags)
     }
 
-
     pub fn tick(&mut self) -> bool {
         let (new_tags, old_tags) = self.get_tags();
         let tags = self.tags.clone();
 
-        let mut events;
+        let events;
         let mut dpi;
         let api;
 
@@ -428,21 +464,27 @@ impl Window {
                 dpi = i.dpi;
                 api = i.api.clone_sender().create_api();
             }
-            _ => panic!("in tick but no window internals initialized")
+            _ => panic!("in tick but no window internals initialized"),
         }
 
-        if new_tags.len() > 0 {
+        if !new_tags.is_empty() {
             //events.insert(0,PrimitiveEvent::HoverBegin(new_tags));
-            self.root.lock().unwrap().on_primitive_event(&[], PrimitiveEvent::HoverBegin(new_tags));
+            self.root
+                .lock()
+                .unwrap()
+                .on_primitive_event(&[], PrimitiveEvent::HoverBegin(new_tags));
         }
 
-        if old_tags.len() > 0 {
+        if !old_tags.is_empty() {
             //events.insert( 0,PrimitiveEvent::HoverEnd(old_tags));
-            self.root.lock().unwrap().on_primitive_event(&[], PrimitiveEvent::HoverEnd(old_tags));
+            self.root
+                .lock()
+                .unwrap()
+                .on_primitive_event(&[], PrimitiveEvent::HoverEnd(old_tags));
         }
 
         //only for debug. take out later?
-        if events.len() > 0 {
+        if !events.is_empty() {
             println!("{:?}", events);
         }
 
@@ -467,25 +509,39 @@ impl Window {
                     if !*b {
                         self.root.lock().unwrap().on_primitive_event(&[], e.clone());
                     } else {
-                        self.root.lock().unwrap().on_primitive_event(&tags, e.clone());
+                        self.root
+                            .lock()
+                            .unwrap()
+                            .on_primitive_event(&tags, e.clone());
                     }
                 }
                 PrimitiveEvent::Button(_, _, _, _) => {
-                    self.root.lock().unwrap().on_primitive_event(&tags, e.clone());
+                    self.root
+                        .lock()
+                        .unwrap()
+                        .on_primitive_event(&tags, e.clone());
                 }
                 PrimitiveEvent::Char(_) => {
-                    self.root.lock().unwrap().on_primitive_event(&tags, e.clone());
+                    self.root
+                        .lock()
+                        .unwrap()
+                        .on_primitive_event(&tags, e.clone());
                 }
                 PrimitiveEvent::CursorMoved(_) => {
-                    self.root.lock().unwrap().on_primitive_event(&tags, e.clone());
+                    self.root
+                        .lock()
+                        .unwrap()
+                        .on_primitive_event(&tags, e.clone());
                 }
                 PrimitiveEvent::KeyInput(_, _, _, _) => {
-                    self.root.lock().unwrap().on_primitive_event(&tags, e.clone());
+                    self.root
+                        .lock()
+                        .unwrap()
+                        .on_primitive_event(&tags, e.clone());
                 }
-                _ => ()
+                _ => (),
             }
         }
-
 
         let mut txn = Transaction::new();
         let mut builder = None;
@@ -498,10 +554,7 @@ impl Window {
 
             dpi = i.gl_window.get_hidpi_factor();
             let framebuffer_size = {
-                let size = i.gl_window
-                    .get_inner_size()
-                    .unwrap()
-                    .to_physical(dpi);
+                let size = i.gl_window.get_inner_size().unwrap().to_physical(dpi);
                 DeviceUintSize::new(size.width as u32, size.height as u32)
             };
             let layout_size = framebuffer_size.to_f32() / euclid::TypedScale::new(dpi as f32);
@@ -531,13 +584,7 @@ impl Window {
                 dpi as f32,
             );
 
-            txn.set_display_list(
-                i.epoch,
-                None,
-                layout_size,
-                builder.finalize(),
-                true,
-            );
+            txn.set_display_list(i.epoch, None, layout_size, builder.finalize(), true);
             //txn.set_root_pipeline(i.pipeline_id);
             txn.generate_frame();
             i.api.send_transaction(i.document_id, txn);
@@ -551,29 +598,40 @@ impl Window {
         exit
     }
 
-    fn render_root(&mut self, api: &RenderApi, builder: &mut DisplayListBuilder, font_store: &mut font::FontStore, dpi: f32) {
+    fn render_root(
+        &mut self,
+        api: &RenderApi,
+        builder: &mut DisplayListBuilder,
+        font_store: &mut font::FontStore,
+        dpi: f32,
+    ) {
         let mut gen = self.id_generator.clone();
         gen.zero();
 
-        let info = LayoutPrimitiveInfo::new(
-            (0.0, 0.0).by(self.width as f32, self.height as f32)
-        );
+        let info = LayoutPrimitiveInfo::new((0.0, 0.0).by(self.width as f32, self.height as f32));
         builder.push_stacking_context(
             &info,
             None,
             TransformStyle::Flat,
             MixBlendMode::Normal,
-            &vec![],
+            &[],
             RasterSpace::Screen,
         );
 
-        self.root.lock().unwrap().render(api, builder, properties::Extent {
-            x: 0.0,
-            y: 0.0,
-            w: self.width as f32,
-            h: self.height as f32,
-            dpi,
-        }, font_store, None, &mut gen);
+        self.root.lock().unwrap().render(
+            api,
+            builder,
+            properties::Extent {
+                x: 0.0,
+                y: 0.0,
+                w: self.width as f32,
+                h: self.height as f32,
+                dpi,
+            },
+            font_store,
+            None,
+            &mut gen,
+        );
 
         builder.pop_stacking_context();
     }
@@ -588,13 +646,13 @@ impl Drop for Window {
     }
 }
 
-lazy_static!(
-    static ref TOADD: Mutex<Vec<(Arc<Mutex<Element>>,String,f64,f64)>> = Mutex::new(vec![]);
+lazy_static! {
+    static ref TOADD: Mutex<Vec<(Arc<Mutex<Element>>, String, f64, f64)>> = Mutex::new(vec![]);
     static ref TODEL: Mutex<Vec<glutin::WindowId>> = Mutex::new(vec![]);
-);
+}
 
 pub struct Manager {
-    windows: Vec<Window>
+    windows: Vec<Window>,
 }
 
 impl Manager {
@@ -603,9 +661,7 @@ impl Manager {
 
         unsafe {
             if MANAGER.is_none() {
-                MANAGER = Some(Arc::new(Mutex::new(Manager {
-                    windows: vec![]
-                })));
+                MANAGER = Some(Arc::new(Mutex::new(Manager { windows: vec![] })));
             }
 
             MANAGER.clone()
@@ -642,10 +698,10 @@ impl Manager {
                     //render the windows
                     while i < wm.windows.len() {
                         //if
-                        wm.windows[i].tick();// {
-                        //    let w = wm.windows.remove(i);
-                        //    w.deinit();
-                        //} else {
+                        wm.windows[i].tick(); // {
+                                              //    let w = wm.windows.remove(i);
+                                              //    w.deinit();
+                                              //} else {
                         i += 1;
                         //}
                     }
@@ -670,18 +726,18 @@ impl Manager {
                         }
                     }
                     //if all windows done, then exit the app
-                    if wm.windows.len() == 0 {
+                    if wm.windows.is_empty() {
                         return;
                     }
                 }
             }
-            if let Ok(_t) = lasttime.elapsed(){
-                let mut _t = _t.subsec_millis() as u64;
-                if _t > fps {
-                    _t = fps;
+            if let Ok(t) = lasttime.elapsed() {
+                let mut t = u64::from(t.subsec_millis());
+                if t > fps {
+                    t = fps;
                 }
-                thread::sleep(Duration::from_millis(fps - _t));
-            }else {
+                thread::sleep(Duration::from_millis(fps - t));
+            } else {
                 thread::sleep(Duration::from_millis(fps));
             }
         }

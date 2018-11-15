@@ -1,30 +1,30 @@
-use std::sync::{Arc,Mutex};
 use std::any::Any;
+use std::sync::{Arc, Mutex};
 
 use webrender::api::*;
 
-use util::*;
 use elements::element::*;
-use gui::properties;
 use gui::font;
+use gui::properties;
+use util::*;
 
 pub struct HBox {
-    ext_id:u64,
+    ext_id: u64,
     children: Vec<Arc<Mutex<Element>>>,
     props: properties::Properties,
     bounds: properties::Extent,
     handlers: EventHandlers,
 }
 
-impl HBox  {
-    pub fn new() -> Self{
+impl HBox {
+    pub fn new() -> Self {
         let mut props = properties::Properties::new();
         props.default();
         HBox {
-            ext_id:0,
-            children:Vec::new(),
+            ext_id: 0,
+            children: Vec::new(),
             props,
-            bounds: properties::Extent{
+            bounds: properties::Extent {
                 x: 0.0,
                 y: 0.0,
                 w: 0.0,
@@ -35,23 +35,23 @@ impl HBox  {
         }
     }
 
-    fn get_width_sums(&mut self) -> (f32,f32) {
+    fn get_width_sums(&mut self) -> (f32, f32) {
         let left = self.props.get_left();
         let right = self.props.get_right();
 
-        let mut stretchy:f32 = 0.0;
-        let mut pixel:f32 = 0.0;
+        let mut stretchy: f32 = 0.0;
+        let mut pixel: f32 = 0.0;
 
         match left {
             properties::Unit::Stretch(_s) => stretchy += _s,
             properties::Unit::Pixel(_p) => pixel += _p,
-            _ => ()
+            _ => (),
         }
 
         match right {
             properties::Unit::Stretch(_s) => stretchy += _s,
             properties::Unit::Pixel(_p) => pixel += _p,
-            _ => ()
+            _ => (),
         }
 
         for elm in self.children.iter() {
@@ -64,46 +64,54 @@ impl HBox  {
                         if !_p.is_nan() && !_p.is_infinite() {
                             pixel += _p;
                         }
-                    },
+                    }
                 }
             }
         }
 
-        (pixel,stretchy)
+        (pixel, stretchy)
     }
 
-    fn get_height_sums(&mut self) -> (f32,f32) {
+    fn get_height_sums(&mut self) -> (f32, f32) {
         let top = self.props.get_top();
         let bottom = self.props.get_bottom();
         let height = self.props.get_height();
 
-        let mut stretchy:f32 = 0.0;
-        let mut pixel:f32 = 0.0;
+        let mut stretchy: f32 = 0.0;
+        let mut pixel: f32 = 0.0;
 
         match top {
             properties::Unit::Stretch(_s) => stretchy += _s,
             properties::Unit::Pixel(_p) => pixel += _p,
-            _ => ()
+            _ => (),
         }
 
         match bottom {
             properties::Unit::Stretch(_s) => stretchy += _s,
             properties::Unit::Pixel(_p) => pixel += _p,
-            _ => ()
+            _ => (),
         }
 
         match height {
             properties::Unit::Stretch(_s) => stretchy += _s,
             properties::Unit::Pixel(_p) => pixel += _p,
-            _ => ()
+            _ => (),
         }
 
-        (pixel,stretchy)
+        (pixel, stretchy)
     }
 }
 
-impl  Element for HBox {
-    fn get_ext_id(&self)->u64{self.ext_id}
+impl Default for HBox {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl Element for HBox {
+    fn get_ext_id(&self) -> u64 {
+        self.ext_id
+    }
 
     fn set(&mut self, prop: properties::Property) {
         self.props.set(prop);
@@ -117,14 +125,15 @@ impl  Element for HBox {
         self.props.clone()
     }
 
-    fn render(&mut self,
-              api: &RenderApi,
-              builder: &mut DisplayListBuilder,
-              extent: properties::Extent,
-              font_store: &mut font::FontStore,
-              _props: Option<Arc<properties::Properties>>,
-              gen: &mut properties::IdGenerator) {
-
+    fn render(
+        &mut self,
+        api: &RenderApi,
+        builder: &mut DisplayListBuilder,
+        extent: properties::Extent,
+        font_store: &mut font::FontStore,
+        _props: Option<Arc<properties::Properties>>,
+        gen: &mut properties::IdGenerator,
+    ) {
         let bgcolor = self.props.get_bg_color();
         let top = self.props.get_top();
         let bottom = self.props.get_bottom();
@@ -133,29 +142,35 @@ impl  Element for HBox {
         let width = self.props.get_width();
         let height = self.props.get_height();
 
-        let (hp_sum, hs_sum )= self.get_height_sums();
+        let (hp_sum, hs_sum) = self.get_height_sums();
         let mut remaining_height = extent.h - hp_sum;
-        if remaining_height < 0.0 {remaining_height = 0.0;}
+        if remaining_height < 0.0 {
+            remaining_height = 0.0;
+        }
         let mut h_stretchy_factor = remaining_height / hs_sum;
         if h_stretchy_factor.is_nan() {
             h_stretchy_factor = 0.0;
         }
 
-        let (wp_sum, ws_sum )= self.get_width_sums();
+        let (wp_sum, ws_sum) = self.get_width_sums();
         let mut remaining_width = extent.w - wp_sum;
-        if remaining_width < 0.0 {remaining_width = 0.0;}
+        if remaining_width < 0.0 {
+            remaining_width = 0.0;
+        }
         let mut w_stretchy_factor = remaining_width / ws_sum;
         if w_stretchy_factor.is_nan() {
             w_stretchy_factor = 0.0;
         }
 
-//        let mut remaining_width = extent.w;
-//        let mut w_stretchy_factor = extent.w;
+        //        let mut remaining_width = extent.w;
+        //        let mut w_stretchy_factor = extent.w;
 
         let _id = gen.get();
         self.ext_id = _id;
 
-        let mut info = LayoutPrimitiveInfo::new((self.bounds.x, self.bounds.y).by(self.bounds.w, self.bounds.h));
+        let mut info = LayoutPrimitiveInfo::new(
+            (self.bounds.x, self.bounds.y).by(self.bounds.w, self.bounds.h),
+        );
         info.tag = Some((_id, 0));
         builder.push_rect(&info, bgcolor);
 
@@ -177,17 +192,17 @@ impl  Element for HBox {
         match width {
             properties::Unit::Stretch(_s) => remaining_width = _s * w_stretchy_factor,
             properties::Unit::Pixel(_p) => remaining_width = _p,
-            _ => ()
+            _ => (),
         }
 
         match height {
             properties::Unit::Stretch(_s) => remaining_height = _s * h_stretchy_factor,
             properties::Unit::Pixel(_p) => remaining_height = _p,
-            _ => ()
+            _ => (),
         }
 
-        for elm in self.children.iter_mut(){
-            let mut child_extent = properties::Extent{
+        for elm in self.children.iter_mut() {
+            let mut child_extent = properties::Extent {
                 x: next_x + extent.x,
                 y: next_y + extent.y,
                 w: remaining_width,
@@ -202,32 +217,32 @@ impl  Element for HBox {
                     match e_width {
                         properties::Unit::Pixel(_p) => {
                             child_extent.w = _p;
-                        },
+                        }
                         properties::Unit::Stretch(_s) => {
                             child_extent.w = w_stretchy_factor;
-                        },
-                        _ => ()
+                        }
+                        _ => (),
                     }
 
-                    elm.render(api,builder,child_extent,font_store,None,gen);
+                    elm.render(api, builder, child_extent, font_store, None, gen);
                     let _ex = elm.get_bounds();
                     next_x += _ex.w;
-                },
-                Err(_err_str) => panic!("unable to lock element : {}",_err_str)
+                }
+                Err(_err_str) => panic!("unable to lock element : {}", _err_str),
             }
         }
 
         match right {
-            properties::Unit::Stretch(_s) => next_x += _s*w_stretchy_factor,
+            properties::Unit::Stretch(_s) => next_x += _s * w_stretchy_factor,
             properties::Unit::Pixel(_p) => next_x += _p,
-            _ => ()
+            _ => (),
         }
 
         next_y += remaining_height;
         match bottom {
-            properties::Unit::Stretch(_s) => next_y += _s*h_stretchy_factor,
+            properties::Unit::Stretch(_s) => next_y += _s * h_stretchy_factor,
             properties::Unit::Pixel(_p) => next_y += _p,
-            _ => ()
+            _ => (),
         }
 
         // TODO: Remove
@@ -236,7 +251,7 @@ impl  Element for HBox {
             next_x = extent.w;
         }
 
-        self.bounds = properties::Extent{
+        self.bounds = properties::Extent {
             x: extent.x,
             y: extent.y,
             w: next_x,
@@ -249,32 +264,34 @@ impl  Element for HBox {
         self.bounds.clone()
     }
 
-    fn on_primitive_event(&mut self, ext_ids:&[ItemTag], e: PrimitiveEvent) -> bool {
+    fn on_primitive_event(&mut self, ext_ids: &[ItemTag], e: PrimitiveEvent) -> bool {
         let mut handled = false;
         for _child_elm in self.children.iter_mut() {
-            match (&e,_child_elm.lock()) {
+            match (&e, _child_elm.lock()) {
                 (PrimitiveEvent::SetFocus(_), Ok(ref mut _child_elm)) => {
                     if ext_ids.len() > 1
                         && ext_ids[0].0 == self.ext_id
-                        && ext_ids[1].0 == _child_elm.get_ext_id() {
-                        _child_elm.on_primitive_event(&ext_ids[1..], PrimitiveEvent::SetFocus(true));
+                        && ext_ids[1].0 == _child_elm.get_ext_id()
+                    {
+                        _child_elm
+                            .on_primitive_event(&ext_ids[1..], PrimitiveEvent::SetFocus(true));
                     } else {
                         _child_elm.on_primitive_event(&[], PrimitiveEvent::SetFocus(false));
                     }
-                },
+                }
                 (PrimitiveEvent::Char(_c), Ok(ref mut _child_elm)) => {
-                    handled = _child_elm.on_primitive_event(&[],e.clone());
+                    handled = _child_elm.on_primitive_event(&[], e.clone());
                     if handled {
                         break;
                     }
-                },
-                (PrimitiveEvent::HoverBegin(_), Ok(ref mut _child_elm)) =>  {
-                    _child_elm.on_primitive_event(&[],e.clone());
-                },
-                (PrimitiveEvent::HoverEnd(_), Ok(ref mut _child_elm)) =>  {
-                    _child_elm.on_primitive_event(&[],e.clone());
-                },
-                (_, Ok(ref mut _child_elm)) =>  {
+                }
+                (PrimitiveEvent::HoverBegin(_), Ok(ref mut _child_elm)) => {
+                    _child_elm.on_primitive_event(&[], e.clone());
+                }
+                (PrimitiveEvent::HoverEnd(_), Ok(ref mut _child_elm)) => {
+                    _child_elm.on_primitive_event(&[], e.clone());
+                }
+                (_, Ok(ref mut _child_elm)) => {
                     if !handled {
                         if ext_ids.len() == 1 {
                             handled = _child_elm.on_primitive_event(&[], e.clone());
@@ -282,8 +299,8 @@ impl  Element for HBox {
                             handled = _child_elm.on_primitive_event(&ext_ids[1..], e.clone());
                         }
                     }
-                },
-                (_,Err(_err_str)) => {
+                }
+                (_, Err(_err_str)) => {
                     //this should be unreachable
                     panic!("unable to lock element : {}", _err_str)
                 }
@@ -292,45 +309,43 @@ impl  Element for HBox {
         // if none of the children handled the event
         // see if you can handle it here
         if !handled {
-            match e {
-                PrimitiveEvent::Button(_p,_b,_s,m) => {
-                    handled = self.exec_handler(ElementEvent::Clicked, &m);
-                },
-                _ => ()
+            if let PrimitiveEvent::Button(_p, _b, _s, m) = e {
+                handled = self.exec_handler(ElementEvent::Clicked, &m);
             }
         }
-        return handled;
+        handled
     }
 
-    fn set_handler(&mut self, _e: ElementEvent, _f:EventFn) {
+    fn set_handler(&mut self, _e: ElementEvent, _f: EventFn) {
         self.handlers.insert(_e, _f);
     }
 
     fn exec_handler(&mut self, _e: ElementEvent, _d: &Any) -> bool {
         let h = self.handlers.get_mut(&_e).cloned();
-        if let Some(mut h) = h{
-            h.call(self,_d)
+        if let Some(mut h) = h {
+            h.call(self, _d)
         } else {
             false
         }
     }
 
-    fn as_any(&self) -> &Any{
+    fn as_any(&self) -> &Any {
         self
     }
-    fn as_any_mut(&mut self) -> &mut Any{
+    fn as_any_mut(&mut self) -> &mut Any {
         self
     }
 }
 
-impl HasChildren for HBox  {
+impl HasChildren for HBox {
     #[allow(unused)]
-    fn get_child(&self, i:u32) -> Option<Arc<Mutex<Element>>> {None}
+    fn get_child(&self, i: u32) -> Option<Arc<Mutex<Element>>> {
+        None
+    }
     #[allow(unused)]
     //fn get_child_mut(&mut self, i:u32) -> Option<&mut Element> {None}
-    fn append(&mut self, e:Arc<Mutex<Element>>) -> Option<Arc<Mutex<Element>>>{
+    fn append(&mut self, e: Arc<Mutex<Element>>) -> Option<Arc<Mutex<Element>>> {
         self.children.push(e);
         None
     }
-
 }
