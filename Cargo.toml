@@ -18,4 +18,5 @@ scan-rules = "*"
 font-kit = "*"
 lazy_static = "*"
 clipboard = "*"
+itertools = "*"
 

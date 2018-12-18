@@ -902,6 +902,7 @@ dependencies = [
  "font-kit 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "gleam 0.6.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "glutin 0.18.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "itertools 0.7.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 0.1.16 (registry+https://github.com/rust-lang/crates.io-index)",
  "scan-rules 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "webrender 0.57.2 (git+https://github.com/servo/webrender)",

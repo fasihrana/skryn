@@ -1,9 +1,11 @@
 use std::any::Any;
 use std::sync::Arc;
+use itertools::Itertools;
 
 use clipboard::{ClipboardContext, ClipboardProvider};
 use glutin::VirtualKeyCode;
 use webrender::api::*;
+//use str::strbuf::StrBuf;
 
 use elements::element::*;
 use gui::font;
@@ -158,9 +160,7 @@ impl Element for TextBox {
         self.ext_id = _id;
 
         let (mut cursor_x, mut cursor_y, cursor_i) = (0.0, 0.0, self.cursor);
-
-        //let mut cache = vec![];
-        //let mut glyphs = vec![];
+        
         let size = self.props.get_size() as f32;
         let family = self.props.get_family();
         let mut color = self.props.get_color();
@@ -185,83 +185,6 @@ impl Element for TextBox {
         }
 
         let (_f_key, fi_key) = font_store.get_font_instance(&family, size as i32);
-
-        /*let mut next_x = extent.x;
-        let mut next_y = extent.y + size;
-
-        let val_str = "●".repeat(self.value.len());
-        let char_set: HashSet<char> = if self.is_password {
-            HashSet::from_iter(val_str.chars())
-        } else {
-            HashSet::from_iter(self.value.chars())
-        };
-
-        let mappings = font_store.get_glyphs_for_set(f_key, fi_key, &char_set);
-
-        let val_str = if self.is_password {
-            val_str.chars()
-        } else {
-            self.value.chars()
-        };
-
-        let mut text_iter = val_str;//self.value.chars();
-
-        let mut max_x: f32 = 0.0;
-
-        let mut c_indx = 0;
-
-        let mut skip;
-
-        loop {
-            skip = false;
-            let _char = text_iter.next();
-            if _char.is_none() {
-                break;
-            }
-            let _char = _char.unwrap();
-
-            if !self.singleline && (_char == '\r' || _char == '\n') {
-                next_y = next_y + size;
-                next_x = extent.x;
-                skip = true;
-            }
-            if _char == ' ' || _char == '\t' {
-                next_x += size / 3.0;
-            }
-
-            let _glyph = mappings.get(&_char);
-
-            let (start_x, start_y) = (next_x, next_y);
-
-            if let Some((gi, gd)) = _glyph {
-                if !skip {
-                    glyphs.push(GlyphInstance {
-                        index: gi.to_owned(),
-                        point: LayoutPoint::new(next_x, next_y),
-                    });
-
-                    if c_indx == cursor_i {
-                        cursor_x = next_x;
-                        cursor_y = next_y;
-                    }
-
-                    next_x = next_x + gd.advance;
-                }
-            }
-
-            if max_x < next_x {
-                max_x = next_x;
-            }
-
-            cache.push(((start_x, start_y), (next_x, next_y)));
-
-            c_indx += 1;
-
-            if c_indx == cursor_i {
-                cursor_x = next_x;
-                cursor_y = next_y;
-            }
-        }*/
 
         let val_str = "●".repeat(self.value.len());
 
@@ -416,24 +339,29 @@ impl Element for TextBox {
                         if c == '\r' {
                             c = '\n';
                         }
+                        let mut tmp_chars = self.value.chars().collect_vec();
+
                         if self.singleline && c == '\n' {
                             //do not save the new line
                         } else {
-                            if self.cursor == 0 {
+                            /*if self.cursor == 0 {
                                 let mut newstr = format!("{}", c);
                                 newstr.push_str(&self.value[0..]);
                                 self.value = newstr;
-                            } else if self.cursor < self.value.len() {
-                                self.value = format!(
-                                    "{}{}{}",
-                                    &self.value[0..self.cursor],
-                                    c,
-                                    &self.value[self.cursor..]
-                                );
-                                ;
+                            } else if self.cursor < tmp_chars.len() {
+                                tmp_chars.insert(self.cursor,c);
+                                self.value = tmp_chars.into_iter().collect();
                             } else {
                                 self.value.push(c);
+                            }*/
+
+                            if self.cursor == tmp_chars.len() {
+                                self.value.push(c);
+                            } else {
+                                tmp_chars.insert(self.cursor,c);
+                                self.value = tmp_chars.into_iter().collect();
                             }
+
                             self.cursor += 1;
                         }
                     }
