@@ -13,6 +13,8 @@ extern crate font_kit;
 #[macro_use]
 extern crate lazy_static;
 extern crate itertools;
+extern crate unicode_normalization;
+extern crate unicode_segmentation;
 
 pub mod data;
 pub mod elements;

@@ -10,6 +10,7 @@ use webrender::api::*;
 use elements::element::*;
 use gui::font;
 use gui::properties;
+use util::unicode_compose;
 
 pub struct TextBox {
     ext_id: u64,
@@ -156,11 +157,13 @@ impl Element for TextBox {
         _props: Option<Arc<properties::Properties>>,
         gen: &mut properties::IdGenerator,
     ) {
+        let tmp_str_val = unicode_compose(&self.value);
+
         let _id = gen.get();
         self.ext_id = _id;
 
         let (mut cursor_x, mut cursor_y, cursor_i) = (0.0, 0.0, self.cursor);
-        
+
         let size = self.props.get_size() as f32;
         let family = self.props.get_family();
         let mut color = self.props.get_color();
@@ -189,7 +192,9 @@ impl Element for TextBox {
         let val_str = "●".repeat(self.value.len());
 
         let value = if !self.is_password {
-            &self.value
+            println!("len ===> {}", tmp_str_val.len());
+            //&self.value
+            &tmp_str_val
         } else {
             &val_str
         };

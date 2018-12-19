@@ -20,3 +20,6 @@ lazy_static = "*"
 clipboard = "*"
 itertools = "*"
 
+unicode-normalization = "*"
+unicode-segmentation = "*"
+
