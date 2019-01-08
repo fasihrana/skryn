@@ -1,9 +1,11 @@
 use itertools::Itertools;
 use webrender::api::*;
 //use unicode_segmentation::UnicodeSegmentation;
-use unicode_normalization::UnicodeNormalization;
-//use unicode_normalization::char::compose;
-use unicode_normalization::Recompositions;
+//use unicode_normalization::UnicodeNormalization;
+use unicode_normalization::char::compose;
+//use unicode_normalization::Recompositions;
+use unicode_bidi::BidiInfo;
+//use harfbuzz::Buffer;
 
 pub trait HandyDandyRectBuilder<T> {
     fn to(&self, x2: T, y2: T) -> LayoutRect;
@@ -41,8 +43,25 @@ impl HandyDandyRectBuilder<f32> for (f32, f32) {
 }
 
 pub fn unicode_compose(val: &String)->String {
-    /*let mut ch = val.chars().collect_vec();
-    ch.reverse();
+
+    let tmp = BidiInfo::new(&val, None);
+    //println!("{:?}", tmp);
+
+    let mut tmp_val = "".to_owned();
+
+    for _p in tmp.paragraphs.iter() {
+        let (_, levelrun) = tmp.visual_runs(_p,_p.range.clone());
+        for _lr in levelrun.iter() {
+            tmp_val.push_str(&tmp.reorder_line(_p, _lr.clone()).to_owned());
+        }
+    }
+
+    tmp_val
+
+    /*/let tmp = tmp_val.as_str().nfkc().collect::<String>();
+    //tmp_val
+    let mut ch = tmp_val.chars().collect_vec();
+    //ch.reverse();
     let mut ret = "".to_owned();
     let mut iter = ch.iter_mut();
     let mut tmp1 = iter.next().cloned();
@@ -61,13 +80,9 @@ pub fn unicode_compose(val: &String)->String {
                 tmp1 = tmp3;
             }
         }
-    }*/
+    }
 
-    let tmp = val.as_str().nfkc().collect::<String>();
-    //let ind = tmp.graphemes(true);
-    //let tmp = ind.collect::<String>();
-    //println!("matches? {:?}",tmp.matches(val));
-    tmp
+    ret*/
 }
 
 /*pub fn unicode_cluster(val: &String)->String {

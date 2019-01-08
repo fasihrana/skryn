@@ -1,11 +1,62 @@
 use app_units;
 use font_kit;
-use font_kit::{family_name::FamilyName, font::Font, source::SystemSource};
+use font_kit::{family_name::FamilyName, font, source::SystemSource};
 use gui::properties::*;
 use std::collections::{HashMap, HashSet};
+use std::sync::{Mutex, Arc};
 use webrender::api::*;
 
-fn load_font_by_name(name: &str) -> Font {
+mod harfbuzz{
+    use std::collections::HashMap;
+    use std::sync::{Mutex, Arc};
+    use std::os::raw::{c_char, c_uint, c_int, c_void};
+    use std::ptr;
+    use font_kit::font;
+    //harfbuzz functions
+    use harfbuzz_sys::{ hb_face_create, hb_font_create, hb_blob_create,
+                        hb_font_set_scale, hb_font_set_ppem};
+    //harfbuzz structs
+    use harfbuzz_sys::{hb_face_t,hb_font_t, hb_blob_t};
+    //harfbuzz consts
+    use harfbuzz_sys::{HB_MEMORY_MODE_READONLY};
+
+    lazy_static!(
+        static ref HB_FACES: Arc<Mutex<HashMap<String, Arc<Mutex<*mut hb_face_t>>>>> = Arc::new(Mutex::new(HashMap::new()));
+        //static ref HB_FONTS: Arc<Mutex<HashMap<u32, hb_font_t>>> = Arc::new(Mutex::new(HashMap::new()));
+        static ref HB_COUNTER: Arc<Mutex<u32>> = Arc::new(Mutex::new(0));
+    );
+
+    pub fn create_face(name:&String, size:u32, font:font::Font){
+        if !HB_FACES.lock().unwrap().contains_key(name) {
+            let tmp = &*font.copy_font_data().unwrap();
+            unsafe {
+                let blob = hb_blob_create(tmp.as_ptr() as *const c_char,
+                                          tmp.len() as c_uint,
+                                          HB_MEMORY_MODE_READONLY,
+                                          ptr::null_mut() as *mut c_void,
+                                          None);
+                let ind = {
+                    let mut x = HB_COUNTER.lock().unwrap();
+                    (*x) += 1;
+                    (*x).clone()
+                };
+                let face = hb_face_create(blob, ind as c_uint);
+
+                let font = hb_font_create(face);
+
+                hb_font_set_ppem(font, size, size);
+                hb_font_set_scale(font, size as c_int, size as c_int);
+
+                HB_FACES.lock().unwrap().insert(name.clone(), Arc::new(Mutex::new(face)));
+            }
+        }
+    }
+
+    //pub fn shape_text(val:String, )
+}
+
+
+fn load_font_by_name(name: &str) -> font::Font {
     let mut props = font_kit::properties::Properties::new();
 
     props.weight = font_kit::properties::Weight::NORMAL;
@@ -22,8 +73,6 @@ fn load_font_by_name(name: &str) -> Font {
 }
 
 fn add_font(font: &font_kit::font::Font, api: &RenderApi, document_id: DocumentId) -> FontKey {
-    //let font: font_kit::font::Font = load_font_by_name(name);
-
     let f = font.copy_font_data().unwrap();
     let key = api.generate_font_key();
 

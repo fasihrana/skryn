@@ -95,7 +95,9 @@ impl PersonElm {
     fn new(p: Arc<Mutex<Person>>) -> PersonElm {
         //Create two TextBoxes and display their initial value
         let mut _p = p.lock().unwrap();
-        let name = Arc::new(Mutex::new(TextBox::new(_p.name.get_value())));
+        let mut _tbox = TextBox::new(_p.name.get_value());
+        _tbox.set_placeholder("<Insert Name Here>".to_owned());
+        let name = Arc::new(Mutex::new( _tbox ));
         let age = Arc::new(Mutex::new(TextBox::new(String::from(format!(
             "{}",
             _p.age.get_value()
@@ -323,7 +325,7 @@ impl Alert {
 
 fn main() {
     //create the person.
-    let person = Person::new(String::from("<Insert name here>"), 0);
+    let person = Person::new(String::from(""), 0);
 
     let person = Arc::new(Mutex::new(person));
 

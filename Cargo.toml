@@ -10,7 +10,7 @@ exclude = [
 [dependencies]
 winit = "^0.17"
 glutin = "*"
-webrender = {git = "https://github.com/servo/webrender"}
+webrender = "^0.58"
 gleam = "*"
 app_units = "0.7"
 euclid = "0.19"
@@ -19,7 +19,9 @@ font-kit = "*"
 lazy_static = "*"
 clipboard = "*"
 itertools = "*"
+harfbuzz-sys = "*"
 
+unicode-bidi = "*"
 unicode-normalization = "*"
 unicode-segmentation = "*"
 

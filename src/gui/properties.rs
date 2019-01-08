@@ -4,6 +4,7 @@ use std::mem;
 use std::sync::{Arc, Mutex};
 
 use webrender::api::ColorF;
+//use webrender::api::DeviceSize
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Point {
@@ -168,7 +169,7 @@ impl Properties {
 
     pub fn default(&mut self) -> &mut Properties {
         self.set(Property::Size(12))
-            .set(Property::Family(String::from("Arial")))
+            .set(Property::Family(String::from("Times New Roman")))
             .set(Property::Left(Unit::Stretch(0.0)))
             .set(Property::Width(Unit::Stretch(1.0)))
             .set(Property::Right(Unit::Stretch(0.0)))
