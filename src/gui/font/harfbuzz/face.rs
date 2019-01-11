@@ -9,8 +9,8 @@ pub struct Face {
     blob: Blob,
 }
 
-impl Face{
+/*impl Face{
     pub fn new() -> Self {
 
     }
-}
+}*/

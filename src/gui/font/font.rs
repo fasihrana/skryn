@@ -6,53 +6,88 @@ use std::collections::{HashMap, HashSet};
 use std::sync::{Mutex, Arc};
 use webrender::api::*;
 
-mod harfbuzz{
+mod shaper{
     use std::collections::HashMap;
     use std::sync::{Mutex, Arc};
     use std::os::raw::{c_char, c_uint, c_int, c_void};
     use std::ptr;
+    use webrender::api::GlyphIndex;
     use font_kit::font;
     //harfbuzz functions
-    use harfbuzz_sys::{ hb_face_create, hb_font_create, hb_blob_create,
-                        hb_font_set_scale, hb_font_set_ppem};
+    use harfbuzz_sys::{ hb_face_create, hb_font_create, hb_blob_create, hb_buffer_create,
+                        hb_face_destroy, hb_font_destroy, hb_blob_destroy, hb_buffer_destroy,
+                        //hb_font_set_scale,
+                        //hb_font_set_ppem,
+                        hb_buffer_add_utf8,
+                        hb_shape,
+                        hb_buffer_get_glyph_infos,
+                        hb_buffer_get_glyph_positions,
+                        hb_buffer_set_direction};
     //harfbuzz structs
-    use harfbuzz_sys::{hb_face_t,hb_font_t, hb_blob_t};
+    use harfbuzz_sys::{ hb_face_t,hb_font_t, hb_blob_t, hb_buffer_t,
+                        hb_glyph_info_t, hb_glyph_position_t};
     //harfbuzz consts
-    use harfbuzz_sys::{HB_MEMORY_MODE_READONLY};
+    use harfbuzz_sys::{HB_MEMORY_MODE_READONLY, HB_DIRECTION_RTL};
 
-    lazy_static!(
-        static ref HB_FACES: Arc<Mutex<HashMap<String, Arc<Mutex<*mut hb_face_t>>>>> = Arc::new(Mutex::new(HashMap::new()));
-        //static ref HB_FONTS: Arc<Mutex<HashMap<u32, hb_font_t>>> = Arc::new(Mutex::new(HashMap::new()));
-        static ref HB_COUNTER: Arc<Mutex<u32>> = Arc::new(Mutex::new(0));
-    );
+    pub type Dimensions = ((f32, f32), (f32, f32));
+    pub type Glyph = (GlyphIndex, (f32, f32));
 
-    pub fn create_face(name:&String, size:u32, font:font::Font){
-        if !HB_FACES.lock().unwrap().contains_key(name) {
+    pub fn shape_text(val: &str, font:font::Font) -> Vec<Glyph>{
+        unsafe {
             let tmp = &*font.copy_font_data().unwrap();
-            unsafe {
-                let blob = hb_blob_create(tmp.as_ptr() as *const c_char,
-                                          tmp.len() as c_uint,
-                                          HB_MEMORY_MODE_READONLY,
-                                          ptr::null_mut() as *mut c_void,
-                                          None);
-                let ind = {
-                    let mut x = HB_COUNTER.lock().unwrap();
-                    (*x) += 1;
-                    (*x).clone()
-                };
-                let face = hb_face_create(blob, ind as c_uint);
+            let blob = hb_blob_create(tmp.as_ptr() as *const c_char,
+                                      tmp.len() as c_uint,
+                                      HB_MEMORY_MODE_READONLY,
+                                      ptr::null_mut() as *mut c_void,
+                                      None);
 
-                let font = hb_font_create(face);
+            let face = hb_face_create(blob, 1 as c_uint);
 
-                hb_font_set_ppem(font, size, size);
-                hb_font_set_scale(font, size as c_int, size as c_int);
+            let hb_font = hb_font_create(face);
 
-                HB_FACES.lock().unwrap().insert(name.clone(), Arc::new(Mutex::new(face)));
+            let buf = hb_buffer_create();
+            hb_buffer_add_utf8(buf,
+                               val.as_ptr() as *const c_char,
+                               val.len() as c_int,
+                               0,
+                               val.len() as c_int);
+            hb_buffer_set_direction(buf, HB_DIRECTION_RTL);
+
+            hb_shape(hb_font, buf, ptr::null_mut(), 0);
+
+            let mut g_count = 0;
+            let g_info = hb_buffer_get_glyph_infos(buf, &mut g_count);
+            let g_pos = hb_buffer_get_glyph_positions(buf, &mut g_count);
+
+            let mut g_vec = Vec::new();
+
+            let mut cursor_x = 0;
+            let mut cursor_y = 0;
+            for i in 0..(g_count-1) {
+                let info = g_info.offset(i as isize);
+                let pos = g_pos.offset(i as isize);
+                let glyphid = (*info).codepoint;
+                let x_offset = (*pos).x_offset;// / 64.0;
+                let y_offset = (*pos).y_offset;// / 64.0;
+                let x_advance = (*pos).x_advance;// / 64.0;
+                let y_advance = (*pos).y_advance;// / 64.0;
+                //draw_glyph(glyphid, cursor_x + x_offset, cursor_y + y_offset);
+
+                g_vec.push((glyphid, (x_offset as f32, y_offset as f32)) );
+
+                cursor_x += x_advance;
+                cursor_y += y_advance;
             }
+
+            //destroy all
+            hb_buffer_destroy(buf);
+            hb_font_destroy(hb_font);
+            hb_face_destroy(face);
+            hb_blob_destroy(blob);
+
+            g_vec
         }
     }
-
-    //pub fn shape_text(val:String, )
 }
 
 
@@ -235,8 +270,9 @@ impl FontStore {
 
 pub struct FontRaster;
 
-pub type Dimensions = ((f32, f32), (f32, f32));
-pub type Glyph = (GlyphIndex, (f32, f32), char);
+//pub type Dimensions = ((f32, f32), (f32, f32));
+//pub type pub type Dimensions = ((f32, f32), (f32, f32));
+//pub type Glyph = (GlyphIndex, (f32, f32), char);
 
 impl FontRaster {
     pub fn place_lines(
@@ -249,7 +285,7 @@ impl FontRaster {
         family: &str,
         text_align: &Align,
         font_store: &mut FontStore,
-    ) -> (Vec<GlyphInstance>, Extent, Vec<Dimensions>) {
+    ) -> (Vec<GlyphInstance>, Extent, Vec<shaper::Dimensions>) {
         let mut line_glyphs = vec![];
         let mut max_len = 0.0;
 
@@ -284,7 +320,8 @@ impl FontRaster {
                         dims.push(((_x, _y), (_x, _y + size)));
                     }
 
-                    for (gi, _offset, _char) in l_g {
+                    //for (gi, _offset, _char) in l_g {
+                    for (gi, _offset) in l_g {
                         glyphs.push(GlyphInstance {
                             index: gi,
                             point: LayoutPoint::new(_x, _y + _offset.1),
@@ -321,7 +358,8 @@ impl FontRaster {
                         dims.push(((_x, _y), (_x, _y + size)));
                     }
 
-                    for (gi, _offset, _char) in l_g {
+                    //for (gi, _offset, _char) in l_g {
+                    for (gi, _offset) in l_g {
                         glyphs.push(GlyphInstance {
                             index: gi,
                             point: LayoutPoint::new(_x, _y + _offset.1),
@@ -360,7 +398,8 @@ impl FontRaster {
                         dims.push(((_x, _y), (_x, _y + size)));
                     }
 
-                    for (gi, _offset, _char) in l_g {
+                    //for (gi, _offset, _char) in l_g {
+                    for (gi, _offset) in l_g {
                         glyphs.push(GlyphInstance {
                             index: gi,
                             point: LayoutPoint::new(_x, _y + _offset.1),
@@ -399,8 +438,19 @@ impl FontRaster {
         size: f32,
         family: &str,
         font_store: &mut FontStore,
-    ) -> (Vec<Glyph>, f32, f32) {
-        let val_vec: Vec<char> = value.chars().collect();
+    ) -> (Vec<shaper::Glyph>, f32, f32) {
+
+        let glyphs = shaper::shape_text(value, load_font_by_name(family));
+
+        let mut max_x= 0.;
+
+        for (_,d) in &glyphs {
+            max_x = d.0.clone();
+        }
+
+        (glyphs, max_x, size)
+
+        /*let val_vec: Vec<char> = value.chars().collect();
 
         let metrics = font_store.get_font_metrics(family).unwrap();
 
@@ -423,11 +473,11 @@ impl FontRaster {
                     _ => _offset.0 = size / 2.0,      //next_x += size/2.0,
                 }
                 next_x += _offset.0;
-                glyphs.push((gi, _offset, val_vec[i]));
+                glyphs.push((gi, _offset));//, val_vec[i]));
             }
         }
 
-        (glyphs, next_x, size)
+        (glyphs, next_x, size)*/
     }
 
     /*pub fn place_glyphs(value: &String,
