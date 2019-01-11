@@ -16,23 +16,26 @@ mod shaper{
     //harfbuzz functions
     use harfbuzz_sys::{ hb_face_create, hb_font_create, hb_blob_create, hb_buffer_create,
                         hb_face_destroy, hb_font_destroy, hb_blob_destroy, hb_buffer_destroy,
-                        //hb_font_set_scale,
-                        //hb_font_set_ppem,
+                        hb_font_set_scale,
+                        hb_font_set_ppem,
                         hb_buffer_add_utf8,
                         hb_shape,
                         hb_buffer_get_glyph_infos,
                         hb_buffer_get_glyph_positions,
-                        hb_buffer_set_direction};
+                        hb_buffer_set_direction,
+                        hb_buffer_set_script,
+                        hb_buffer_set_language,
+                        hb_language_from_string};
     //harfbuzz structs
     use harfbuzz_sys::{ hb_face_t,hb_font_t, hb_blob_t, hb_buffer_t,
-                        hb_glyph_info_t, hb_glyph_position_t};
+                        hb_glyph_info_t, hb_glyph_position_t, hb_language_t};
     //harfbuzz consts
-    use harfbuzz_sys::{HB_MEMORY_MODE_READONLY, HB_DIRECTION_RTL};
+    use harfbuzz_sys::{HB_MEMORY_MODE_READONLY, HB_DIRECTION_RTL, HB_SCRIPT_ARABIC};
 
     pub type Dimensions = ((f32, f32), (f32, f32));
     pub type Glyph = (GlyphIndex, (f32, f32));
 
-    pub fn shape_text(val: &str, font:font::Font) -> Vec<Glyph>{
+    pub fn shape_text(val: &str, size: u32, font:font::Font) -> Vec<Glyph>{
         unsafe {
             let tmp = &*font.copy_font_data().unwrap();
             let blob = hb_blob_create(tmp.as_ptr() as *const c_char,
@@ -44,6 +47,8 @@ mod shaper{
             let face = hb_face_create(blob, 1 as c_uint);
 
             let hb_font = hb_font_create(face);
+            hb_font_set_ppem(hb_font,size,size);
+            hb_font_set_scale(hb_font, size as i32, size as i32);
 
             let buf = hb_buffer_create();
             hb_buffer_add_utf8(buf,
@@ -52,6 +57,9 @@ mod shaper{
                                0,
                                val.len() as c_int);
             hb_buffer_set_direction(buf, HB_DIRECTION_RTL);
+            hb_buffer_set_script(buf,HB_SCRIPT_ARABIC);
+            let lang = hb_language_from_string("URD".as_ptr() as *const c_char, 3);
+            hb_buffer_set_language(buf,lang);
 
             hb_shape(hb_font, buf, ptr::null_mut(), 0);
 
@@ -61,19 +69,19 @@ mod shaper{
 
             let mut g_vec = Vec::new();
 
-            let mut cursor_x = 0;
-            let mut cursor_y = 0;
+            let mut cursor_x = 8;
+            let mut cursor_y = size as i32;
             for i in 0..(g_count-1) {
                 let info = g_info.offset(i as isize);
                 let pos = g_pos.offset(i as isize);
                 let glyphid = (*info).codepoint;
-                let x_offset = (*pos).x_offset;// / 64.0;
-                let y_offset = (*pos).y_offset;// / 64.0;
-                let x_advance = (*pos).x_advance;// / 64.0;
-                let y_advance = (*pos).y_advance;// / 64.0;
+                let x_offset = (*pos).x_offset / 64;
+                let y_offset = (*pos).y_offset / 64;
+                let x_advance = (*pos).x_advance / 64;
+                let y_advance = (*pos).y_advance / 64;
                 //draw_glyph(glyphid, cursor_x + x_offset, cursor_y + y_offset);
 
-                g_vec.push((glyphid, (x_offset as f32, y_offset as f32)) );
+                g_vec.push((glyphid, ((cursor_x + x_offset) as f32, (cursor_y +y_offset) as f32)) );
 
                 cursor_x += x_advance;
                 cursor_y += y_advance;
@@ -440,7 +448,7 @@ impl FontRaster {
         font_store: &mut FontStore,
     ) -> (Vec<shaper::Glyph>, f32, f32) {
 
-        let glyphs = shaper::shape_text(value, load_font_by_name(family));
+        let glyphs = shaper::shape_text(value, size as u32,load_font_by_name(family));
 
         let mut max_x= 0.;
 
