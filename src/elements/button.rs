@@ -9,7 +9,6 @@ use gui::properties;
 
 pub struct Button {
     ext_id: u64,
-    //value: String,
     value: Vec<char>,
     props: properties::Properties,
     bounds: properties::Extent,
@@ -140,7 +139,7 @@ impl Element for Button {
         _props: Option<Arc<properties::Properties>>,
         gen: &mut properties::IdGenerator,
     ) {
-        let _id = gen.get();
+        /*let _id = gen.get();
         self.ext_id = _id;
 
         let mut color = self.props.get_color();
@@ -271,7 +270,7 @@ impl Element for Button {
             LayoutSize::new(tbounds.w, tbounds.h),
         ));
 
-        builder.push_text(&info, &glyphs, fi_key, color, Some(GlyphOptions::default()));
+        builder.push_text(&info, &glyphs, fi_key, color, Some(GlyphOptions::default()));*/
     }
 
     fn get_bounds(&self) -> properties::Extent {
