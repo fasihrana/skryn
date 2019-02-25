@@ -14,8 +14,10 @@ use util::unicode_compose;
 
 pub struct TextBox {
     ext_id: u64,
-    value: String,
-    placeholder: String,
+    //value: String,
+    //placeholder: String,
+    value: Vec<char>,
+    placeholder: Vec<char>,
     props: properties::Properties,
     bounds: properties::Extent,
     cache: Vec<((f32, f32), (f32, f32))>,
@@ -37,8 +39,8 @@ impl TextBox {
         props.set(properties::Property::Height(properties::Unit::Natural));
         TextBox {
             ext_id: 0,
-            value: s,
-            placeholder: "".to_owned(),
+            value: s.chars().collect(),
+            placeholder: "".chars().collect(),
             props,
             bounds: properties::Extent {
                 x: 0.0,
@@ -62,21 +64,18 @@ impl TextBox {
     }
 
     pub fn set_value(&mut self, s: String) {
-        self.value = s;
-        //self.cache.clear();
-        //self.char_ext.clear();
+        self.value = s.chars().collect();
         self.drawn = 0;
     }
 
     pub fn append_value(&mut self, s: &str) {
-        self.value = format!("{}{}", self.value, s);
-        //self.cache.clear();
-        //self.char_ext.clear();
+        let mut s: Vec<char> = s.chars().collect();
+        self.value.append(&mut s);
         self.drawn = 0;
     }
 
     pub fn get_value(&self) -> String {
-        self.value.clone()
+        self.value.clone().iter().collect()
     }
 
     pub fn set_editable(&mut self, editable: bool) {
@@ -123,11 +122,11 @@ impl TextBox {
     }
 
     pub fn set_placeholder(&mut self, p: String) {
-        self.placeholder = p;
+        self.placeholder = p.chars().collect();
     }
 
     pub fn get_placeholder(&self) -> String {
-        self.placeholder.clone()
+        self.placeholder.clone().iter().collect()
     }
 }
 
@@ -157,7 +156,8 @@ impl Element for TextBox {
         _props: Option<Arc<properties::Properties>>,
         gen: &mut properties::IdGenerator,
     ) {
-        let tmp_str_val = unicode_compose(&self.value);
+        let tmp_str_val = self.value.iter().collect();
+        let tmp_str_val = unicode_compose(&tmp_str_val).chars().collect();
 
         let _id = gen.get();
         self.ext_id = _id;
@@ -189,11 +189,9 @@ impl Element for TextBox {
 
         let (_f_key, fi_key) = font_store.get_font_instance(&family, size as i32);
 
-        let val_str = "●".repeat(self.value.len());
+        let val_str = "●".repeat(self.value.len()).chars().collect();
 
         let value = if !self.is_password {
-            println!("len ===> {}", tmp_str_val.len());
-            //&self.value
             &tmp_str_val
         } else {
             &val_str
@@ -311,7 +309,7 @@ impl Element for TextBox {
 
     fn on_primitive_event(&mut self, ext_ids: &[ItemTag], e: PrimitiveEvent) -> bool {
         let mut handled = false;
-        match e {
+        /*match e {
             PrimitiveEvent::Char(mut c) => {
                 if self.focus && self.enabled && self.editable {
                     if c == '\x08' {
@@ -415,7 +413,7 @@ impl Element for TextBox {
                 }
             }
             _ => (),
-        }
+        }*/
         handled
     }
 

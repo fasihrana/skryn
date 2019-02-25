@@ -204,7 +204,7 @@ impl FontStore {
         (fkey, ikey)
     }
 
-    pub fn get_font_metrics(&self, family: &str) -> Option<font_kit::metrics::Metrics> {
+    /*pub fn get_font_metrics(&self, family: &str) -> Option<font_kit::metrics::Metrics> {
         let ikeys = self.store.get(family);
         if let Some(keys) = ikeys {
             Some(keys.font.metrics())
@@ -262,7 +262,7 @@ impl FontStore {
         let gd = self.api.get_glyph_dimensions(fi_key, gi_z);
 
         (gi, gd)
-    }
+    }*/
 
     pub fn deinit(&mut self) {
         let mut txn = Transaction::new();
@@ -284,7 +284,7 @@ pub struct FontRaster;
 
 impl FontRaster {
     pub fn place_lines(
-        value: &str,
+        value: &Vec<char>,
         x: f32,
         y: f32,
         _width: f32,
@@ -298,15 +298,16 @@ impl FontRaster {
         let mut max_len = 0.0;
 
         let linefeed_at_end = if !value.is_empty() {
-            let tmp: Vec<char> = value.chars().collect();
-            tmp[tmp.len() - 1] == '\n' || tmp[tmp.len() - 1] == '\r'
+            value[value.len() - 1] == '\n' || value[value.len() - 1] == '\r'
         } else {
             false
         };
 
         let mut total_lines = 0;
-        for line in value.lines() {
-            let (t_g, w, h) = Self::get_line_glyphs(line, size, family, font_store);
+        let tmp_value: String = value.clone().iter().collect();
+        for line in tmp_value.lines() {
+            let line : Vec<char> = line.chars().collect();
+            let (t_g, w, h) = Self::get_line_glyphs(&line, size, family, font_store);
             if max_len < w {
                 max_len = w;
             }
@@ -442,13 +443,14 @@ impl FontRaster {
     }
 
     fn get_line_glyphs(
-        value: &str,
+        value: &Vec<char>,
         size: f32,
         family: &str,
         font_store: &mut FontStore,
     ) -> (Vec<shaper::Glyph>, f32, f32) {
 
-        let glyphs = shaper::shape_text(value, size as u32,load_font_by_name(family));
+        let value : String = value.iter().collect();
+        let glyphs = shaper::shape_text(value.as_str(), size as u32,load_font_by_name(family));
 
         let mut max_x= 0.;
 
@@ -457,95 +459,5 @@ impl FontRaster {
         }
 
         (glyphs, max_x, size)
-
-        /*let val_vec: Vec<char> = value.chars().collect();
-
-        let metrics = font_store.get_font_metrics(family).unwrap();
-
-        let units = size / (metrics.ascent + (metrics.descent * -1.0));
-
-        let (f_key, fi_key) = font_store.get_font_instance(family, size as i32);
-
-        let (indices, dimens) = font_store.get_glyphs_for_slice(f_key, fi_key, value);
-
-        let mut next_x = 0.0;
-        let baseline = units * metrics.ascent;
-
-        let mut glyphs = vec![];
-
-        for i in 0..indices.len() {
-            if let Some(gi) = indices[i] {
-                let mut _offset = (0.0, baseline);
-                match dimens[i] {
-                    Some(d) => _offset.0 = d.advance, //next_x += d.advance,
-                    _ => _offset.0 = size / 2.0,      //next_x += size/2.0,
-                }
-                next_x += _offset.0;
-                glyphs.push((gi, _offset));//, val_vec[i]));
-            }
-        }
-
-        (glyphs, next_x, size)*/
     }
-
-    /*pub fn place_glyphs(value: &String,
-                    x:f32,
-                    y:f32,
-                    _width: f32,
-                    _height: f32,
-                    size: f32,
-                    family: &String,
-                    text_align: Align,
-                    font_store: &mut FontStore) -> (Vec<GlyphInstance>, f32, f32)
-    {
-
-        let (f_key, fi_key) = font_store.get_font_instance(&family, size as i32);
-
-        let mut glyphs = vec![];
-
-        let char_set: HashSet<char> = HashSet::from_iter(value.chars());
-
-        let mappings = font_store.get_glyphs_for_set(f_key, fi_key, &char_set);
-
-        let mut text_iter = value.chars();
-        let mut next_x = x;
-        let mut next_y = y + size;
-        let mut max_x = x;
-
-        loop {
-            let _char = text_iter.next();
-            if _char.is_none() {
-                break;
-            }
-            let _char = _char.unwrap();
-
-            if _char == '\r' || _char == '\n' {
-                next_y = next_y + size;
-                next_x = x;
-                continue;
-            }
-
-            if _char == ' ' || _char == '\t' {
-                next_x += size/3.0;
-                continue;
-            }
-
-            let _glyph = mappings.get(&_char);
-
-            if let Some((gi, gd)) = _glyph {
-                glyphs.push(GlyphInstance {
-                    index: gi.to_owned(),
-                    point: LayoutPoint::new(next_x, next_y),
-                });
-
-                next_x = next_x + gd.advance;
-            }
-
-            if max_x < next_x {
-                max_x = next_x;
-            }
-        }
-
-        (glyphs, max_x, next_y)
-    }*/
 }

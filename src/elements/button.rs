@@ -9,7 +9,8 @@ use gui::properties;
 
 pub struct Button {
     ext_id: u64,
-    value: String,
+    //value: String,
+    value: Vec<char>,
     props: properties::Properties,
     bounds: properties::Extent,
     event_handlers: EventHandlers,
@@ -32,7 +33,7 @@ impl Button {
             )));
         Button {
             ext_id: 0,
-            value: s,
+            value: s.chars().collect(),
             props,
             bounds: properties::Extent {
                 x: 0.0,
@@ -49,13 +50,13 @@ impl Button {
     }
 
     pub fn set_value(&mut self, s: String) {
-        self.value = s;
+        self.value = s.chars().collect();
         //self.cache.clear();
         self.drawn = 0;
     }
 
     pub fn get_value(&self) -> String {
-        self.value.clone()
+        self.value.clone().iter().collect()
     }
 
     fn get_width_sums(&mut self) -> (f32, f32) {
@@ -92,7 +93,10 @@ impl Button {
         let bottom = self.props.get_bottom();
 
         let mut stretchy: f32 = 0.0;
-        let mut pixel: f32 = (self.props.get_size() * self.value.lines().count() as i32) as f32;
+        let num_lines = {
+            let tmp: String = self.value.iter().collect();
+            tmp.lines().count() as i32};
+        let mut pixel: f32 = (self.props.get_size() * num_lines) as f32;
 
         match top {
             properties::Unit::Stretch(_s) => stretchy += _s,
