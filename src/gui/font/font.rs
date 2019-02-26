@@ -65,7 +65,7 @@ mod shaper{
                 //hb_buffer_set_language(buf,lang);
             } else {
                 hb_buffer_set_direction(buf, HB_DIRECTION_LTR);
-                hb_buffer_set_script(buf, HB_SCRIPT_LATIN);
+                //hb_buffer_set_script(buf, HB_SCRIPT_LATIN);
                 //let lang = hb_language_from_string("ENG".as_ptr() as *const c_char, 3);
                 //hb_buffer_set_language(buf,lang);
             }
@@ -80,16 +80,16 @@ mod shaper{
 
             let mut g_vec = Vec::new();
 
-            let mut cursor_x = 8;
+            let mut cursor_x = size as i32;
             let mut cursor_y = size as i32;
             for i in 0..g_count {
                 let info = g_info.offset(i as isize);
                 let pos = g_pos.offset(i as isize);
                 let glyphid = (*info).codepoint;
-                let x_offset = (*pos).x_offset / 64;
-                let y_offset = (*pos).y_offset / 64;
-                let x_advance = (*pos).x_advance / 64;
-                let y_advance = (*pos).y_advance / 64;
+                let x_offset = (*pos).x_offset / size as i32;
+                let y_offset = (*pos).y_offset / size as i32;
+                let x_advance = (*pos).x_advance / size as i32;
+                let y_advance = (*pos).y_advance / size as i32;
 
                 g_vec.push((glyphid, ((cursor_x + x_offset) as f32, (cursor_y +y_offset) as f32)) );
 
@@ -227,29 +227,45 @@ impl TextRun{
                     if text_run.words.len() > 0 {
                         arr.push(text_run);
                     }
-                    text_run = TextRun{ words: Vec::new(), RTL: !bidi.paragraphs[0].level.is_rtl()};
+                    text_run = TextRun{ words: Vec::new(), RTL: bidi.paragraphs[0].level.is_rtl()};
                 }
 
-                text_run.words.push(Word{
-                    text: word.chars().collect(),
-                    //normalized: ucs.chars().collect(),
-                    glyphs: vec![],
-                    dim: vec![],
-                    RTL: bidi.paragraphs[0].level.is_rtl(),
-                    extent: Extent {
-                        x: 0.0,
-                        y: 0.0,
-                        w: 0.0,
-                        h: 0.0,
-                        dpi: 0.0,
-                    },
-                });
+                if bidi.paragraphs[0].level.is_rtl() {
+                    text_run.words.insert(0,Word {
+                        text: word.chars().collect(),
+                        //normalized: ucs.chars().collect(),
+                        glyphs: vec![],
+                        dim: vec![],
+                        RTL: true,
+                        extent: Extent {
+                            x: 0.0,
+                            y: 0.0,
+                            w: 0.0,
+                            h: 0.0,
+                            dpi: 0.0,
+                        },
+                    });
+                }
+                else {
+                    text_run.words.push(Word {
+                        text: word.chars().collect(),
+                        //normalized: ucs.chars().collect(),
+                        glyphs: vec![],
+                        dim: vec![],
+                        RTL: false,
+                        extent: Extent {
+                            x: 0.0,
+                            y: 0.0,
+                            w: 0.0,
+                            h: 0.0,
+                            dpi: 0.0,
+                        },
+                    });
+                }
             }
         }
 
         arr.push(text_run);
-
-        println!("t_run ---- > {:?}",arr);
 
         arr
     }
