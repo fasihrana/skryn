@@ -139,7 +139,7 @@ impl Element for Button {
         _props: Option<Arc<properties::Properties>>,
         gen: &mut properties::IdGenerator,
     ) {
-        /*let _id = gen.get();
+        let _id = gen.get();
         self.ext_id = _id;
 
         let mut color = self.props.get_color();
@@ -153,6 +153,11 @@ impl Element for Button {
         let right = self.props.get_right();
         let bottom = self.props.get_bottom();
         let left = self.props.get_left();
+
+        if self.hovering && self.enabled {
+            color = self.props.get_hover_color();
+            bgcolor = self.props.get_hover_bg_color();
+        }
 
         let (wp_sum, ws_sum) = self.get_width_sums();
         let mut remaining_width = extent.w - wp_sum;
@@ -174,13 +179,6 @@ impl Element for Button {
             h_stretchy_factor = 0.0;
         }
 
-        if self.hovering && self.enabled {
-            color = self.props.get_hover_color();
-            bgcolor = self.props.get_hover_bg_color();
-        }
-
-        let (_, fi_key) = font_store.get_font_instance(&family, size as i32);
-
         let mut calc_x = extent.x;
         let mut calc_y = extent.y;
         let mut calc_w = extent.w;
@@ -197,13 +195,11 @@ impl Element for Button {
             }
             _ => (),
         }
-
         match bottom {
             properties::Unit::Pixel(_p) => calc_h -= _p,
             properties::Unit::Stretch(_s) => calc_h -= _s * h_stretchy_factor,
             _ => (),
         }
-
         match left {
             properties::Unit::Pixel(_p) => {
                 calc_x += _p;
@@ -221,17 +217,15 @@ impl Element for Button {
             _ => (),
         }
 
-        let (glyphs, tbounds, _) = font::FontRaster::place_lines(
-            &self.value,
-            calc_x,
-            calc_y,
-            calc_w,
-            calc_h,
-            size,
-            &family,
-            &text_align,
-            font_store,
-        );
+        let valstr: String = self.value.iter().collect();
+        let mut paras = font::Paragraph::from_string(valstr);
+        let tbounds = font::shape_paragraphs(&mut paras,
+                               calc_x,
+                               calc_y,
+                               calc_w,
+                               calc_h,
+                               size,
+                               &family);
 
         let mut calc_w = tbounds.w;
         let mut calc_h = tbounds.h;
@@ -258,6 +252,7 @@ impl Element for Button {
             dpi: extent.dpi,
         };
 
+
         let mut info = LayoutPrimitiveInfo::new(LayoutRect::new(
             LayoutPoint::new(extent.x, extent.y),
             LayoutSize::new(self.bounds.w, self.bounds.h),
@@ -270,7 +265,10 @@ impl Element for Button {
             LayoutSize::new(tbounds.w, tbounds.h),
         ));
 
-        builder.push_text(&info, &glyphs, fi_key, color, Some(GlyphOptions::default()));*/
+        let glyphs = font::glyphs_from_paragraphs(&paras);
+
+        let (_, fi_key) = font_store.get_font_instance(&family, size as i32);
+        builder.push_text(&info, &glyphs, fi_key, color, Some(GlyphOptions::default()));
     }
 
     fn get_bounds(&self) -> properties::Extent {

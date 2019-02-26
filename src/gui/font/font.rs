@@ -6,6 +6,8 @@ use std::collections::{HashMap, HashSet};
 use std::sync::{Mutex, Arc};
 use webrender::api::*;
 
+use util::unicode_compose;
+
 mod shaper{
     use std::collections::HashMap;
     use std::sync::{Mutex, Arc};
@@ -30,12 +32,12 @@ mod shaper{
     use harfbuzz_sys::{ hb_face_t,hb_font_t, hb_blob_t, hb_buffer_t,
                         hb_glyph_info_t, hb_glyph_position_t, hb_language_t};
     //harfbuzz consts
-    use harfbuzz_sys::{HB_MEMORY_MODE_READONLY, HB_DIRECTION_RTL, HB_SCRIPT_ARABIC};
+    use harfbuzz_sys::{HB_MEMORY_MODE_READONLY, HB_DIRECTION_RTL, HB_SCRIPT_ARABIC, HB_SCRIPT_LATIN, HB_DIRECTION_LTR};
 
     pub type Dimensions = ((f32, f32), (f32, f32));
     pub type Glyph = (GlyphIndex, (f32, f32));
 
-    pub fn shape_text(val: &str, size: u32, font:font::Font) -> Vec<Glyph>{
+    pub fn shape_text(val: &str, size: u32, font:font::Font, RTL: bool) -> Vec<Glyph>{
         unsafe {
             let tmp = &*font.copy_font_data().unwrap();
             let blob = hb_blob_create(tmp.as_ptr() as *const c_char,
@@ -56,22 +58,31 @@ mod shaper{
                                val.len() as c_int,
                                0,
                                val.len() as c_int);
-            hb_buffer_set_direction(buf, HB_DIRECTION_RTL);
-            hb_buffer_set_script(buf,HB_SCRIPT_ARABIC);
-            let lang = hb_language_from_string("URD".as_ptr() as *const c_char, 3);
-            hb_buffer_set_language(buf,lang);
+            if RTL {
+                hb_buffer_set_direction(buf, HB_DIRECTION_RTL);
+                hb_buffer_set_script(buf, HB_SCRIPT_ARABIC);
+                //let lang = hb_language_from_string("URD".as_ptr() as *const c_char, 3);
+                //hb_buffer_set_language(buf,lang);
+            } else {
+                hb_buffer_set_direction(buf, HB_DIRECTION_LTR);
+                hb_buffer_set_script(buf, HB_SCRIPT_LATIN);
+                //let lang = hb_language_from_string("ENG".as_ptr() as *const c_char, 3);
+                //hb_buffer_set_language(buf,lang);
+            }
+
 
             hb_shape(hb_font, buf, ptr::null_mut(), 0);
 
             let mut g_count = 0;
+            let mut p_count = 0;
             let g_info = hb_buffer_get_glyph_infos(buf, &mut g_count);
-            let g_pos = hb_buffer_get_glyph_positions(buf, &mut g_count);
+            let g_pos = hb_buffer_get_glyph_positions(buf, &mut p_count);
 
             let mut g_vec = Vec::new();
 
             let mut cursor_x = 8;
             let mut cursor_y = size as i32;
-            for i in 0..(g_count-1) {
+            for i in 0..g_count {
                 let info = g_info.offset(i as isize);
                 let pos = g_pos.offset(i as isize);
                 let glyphid = (*info).codepoint;
@@ -79,9 +90,10 @@ mod shaper{
                 let y_offset = (*pos).y_offset / 64;
                 let x_advance = (*pos).x_advance / 64;
                 let y_advance = (*pos).y_advance / 64;
-                //draw_glyph(glyphid, cursor_x + x_offset, cursor_y + y_offset);
 
                 g_vec.push((glyphid, ((cursor_x + x_offset) as f32, (cursor_y +y_offset) as f32)) );
+
+
 
                 cursor_x += x_advance;
                 cursor_y += y_advance;
@@ -125,6 +137,230 @@ fn add_font(font: &font_kit::font::Font, api: &RenderApi, document_id: DocumentI
 
     key
 }
+
+#[derive(Debug, Clone)]
+pub struct Char{
+    char: char,
+    RTL: bool,
+    index: usize,
+    visual_index: usize,
+}
+
+#[derive(Debug, Clone)]
+pub struct Word{
+    text: Vec<char>,
+    //normalized: Vec<char>,
+    //indexed: Vec<Char>,
+    glyphs: Vec<GlyphInstance>,
+    dim: Vec<shaper::Dimensions>,
+    RTL: bool,
+    extent: Extent,
+}
+
+impl Word {
+    fn shape(
+        &mut self,
+        x: f32,
+        y: f32,
+        _width: f32,
+        _height: f32,
+        size: f32,
+        family: &str,
+        //font_store: &mut FontStore,
+    ) {
+
+        self.extent.x = x.clone();
+        self.extent.y = y.clone();
+        self.extent.h = size.clone();
+
+        let mut value : String = //if self.RTL {
+            //print!("is RTL --- ");
+            //self.normalized.iter().collect()
+        //} else
+        {
+            self.text.iter().collect()
+        };
+        //value.push('\x00');
+        //dbg!(value.as_str());
+
+        let glyphs = shaper::shape_text(value.as_str(), size as u32,load_font_by_name(family), self.RTL);
+        //dbg!(&glyphs);
+
+        self.glyphs.clear();
+        self.dim.clear();
+
+        let mut _x = x;
+
+        for (gi, _offset) in glyphs {
+            self.glyphs.push(GlyphInstance{ index: gi, point: LayoutPoint::new(_x, y + _offset.1) });
+            let tmp_x = _x + _offset.0;
+            self.dim.push(((_x,y),(tmp_x,y+size)));
+            _x = tmp_x;
+        }
+
+        self.extent.w = _x - x;
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct TextRun{
+    words: Vec<Word>,
+    RTL: bool
+}
+
+impl TextRun{
+    pub fn from_string(value: String) -> Vec<TextRun> {
+        //let mut charr = value.chars();
+        let mut arr = vec![];
+
+        let mut text_run = TextRun{ words: Vec::new(), RTL: false };
+
+        let lines = value.lines();
+        for line in lines {
+            let words: Vec<&str> = value.split(' ').collect();
+            for word in words {
+                let word = word.to_string();
+                let word_tmp = word.clone();
+                let (ucs, bidi) = unicode_compose(&word_tmp);
+
+                if bidi.paragraphs[0].level.is_rtl() != text_run.RTL {
+                    if text_run.words.len() > 0 {
+                        arr.push(text_run);
+                    }
+                    text_run = TextRun{ words: Vec::new(), RTL: !bidi.paragraphs[0].level.is_rtl()};
+                }
+
+                text_run.words.push(Word{
+                    text: word.chars().collect(),
+                    //normalized: ucs.chars().collect(),
+                    glyphs: vec![],
+                    dim: vec![],
+                    RTL: bidi.paragraphs[0].level.is_rtl(),
+                    extent: Extent {
+                        x: 0.0,
+                        y: 0.0,
+                        w: 0.0,
+                        h: 0.0,
+                        dpi: 0.0,
+                    },
+                });
+            }
+        }
+
+        arr.push(text_run);
+
+        println!("t_run ---- > {:?}",arr);
+
+        arr
+    }
+
+    fn shape(
+        &mut self,
+        x: f32,
+        y: f32,
+        _width: f32,
+        _height: f32,
+        size: f32,
+        family: &str,
+    ){
+        let mut _x = x;
+
+        for word in self.words.iter_mut() {
+            word.shape(_x,y,_width,_height,size,family);
+            _x += word.extent.w;
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Paragraph {
+    lines: Vec<TextRun>,
+    RTL: bool
+}
+
+impl Paragraph {
+    pub fn from_string(text: String) -> Vec<Paragraph> {
+        let mut arr = vec![];
+
+        for line in text.lines(){
+            let text_run = TextRun::from_string(line.to_owned());
+            let rtl = if text_run.len() > 0 {
+                text_run[0].RTL
+            } else {
+                false
+            };
+            let para = Paragraph{ lines: text_run, RTL: rtl };
+            arr.push(para);
+        }
+
+        //println!("{:?}", arr);
+
+        arr
+    }
+
+    fn shape(
+        &mut self,
+        x: f32,
+        y: f32,
+        _width: f32,
+        _height: f32,
+        size: f32,
+        family: &str,
+    ){
+        let mut _y = y;
+
+        for line in self.lines.iter_mut() {
+            line.shape(x,_y,_width,_height,size,family);
+            _y += size;
+        }
+    }
+}
+
+pub fn shape_paragraphs(
+    paras: &mut Vec<Paragraph>,
+    x: f32,
+    y: f32,
+    w: f32,
+    h: f32,
+    size: f32,
+    family: &str,
+) -> Extent {
+    let mut extent = Extent{
+        x,
+        y,
+        w,
+        h: size,
+        dpi: 0.0,
+    };
+
+    if paras.len() > 0 {
+        paras[0].shape(x,y,w,h,size,family);
+        if paras.len() > 1 {
+            for i in 1..paras.len()-1 {
+                paras[i].shape(x,y,w,h,size,family);
+
+            }
+        }
+    }
+
+    extent
+}
+
+pub fn glyphs_from_paragraphs(paras: &Vec<Paragraph>) -> Vec<GlyphInstance> {
+    let mut arr = vec![];
+    for para in paras.iter() {
+        for line in para.lines.iter() {
+            for word in line.words.iter() {
+                arr.append(&mut word.glyphs.clone());
+            }
+        }
+    }
+
+    arr
+}
+
+
+
 
 struct InstanceKeys {
     key: FontKey,
@@ -450,7 +686,7 @@ impl FontRaster {
     ) -> (Vec<shaper::Glyph>, f32, f32) {
 
         let value : String = value.iter().collect();
-        let glyphs = shaper::shape_text(value.as_str(), size as u32,load_font_by_name(family));
+        let glyphs = shaper::shape_text(value.as_str(), size as u32,load_font_by_name(family), false);
 
         let mut max_x= 0.;
 

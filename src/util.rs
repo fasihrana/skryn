@@ -42,7 +42,7 @@ impl HandyDandyRectBuilder<f32> for (f32, f32) {
     }
 }
 
-pub fn unicode_compose(val: &String)->String {
+pub fn unicode_compose(val: &String)-> (String, BidiInfo) {
 
     let tmp = BidiInfo::new(&val, None);
     //println!("{:?}", tmp);
@@ -56,7 +56,9 @@ pub fn unicode_compose(val: &String)->String {
         }
     }
 
-    tmp_val
+    //println!("----------\n{}\n{:?}", tmp_val, tmp);
+
+    (tmp_val, tmp)
 
     /*/let tmp = tmp_val.as_str().nfkc().collect::<String>();
     //tmp_val

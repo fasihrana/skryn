@@ -15,6 +15,7 @@ use util::unicode_compose;
 pub struct TextBox {
     ext_id: u64,
     value: Vec<char>,
+    normalized_value: Vec<char>,
     placeholder: Vec<char>,
     props: properties::Properties,
     bounds: properties::Extent,
@@ -38,6 +39,7 @@ impl TextBox {
         TextBox {
             ext_id: 0,
             value: s.chars().collect(),
+            normalized_value: vec![],
             placeholder: "".chars().collect(),
             props,
             bounds: properties::Extent {
@@ -96,7 +98,7 @@ impl TextBox {
         self.singleline = singleline;
     }
 
-    pub fn get_index_at(&self, p: &properties::Position) -> usize {
+    /*pub fn get_index_at(&self, p: &properties::Position) -> usize {
         let size = self.props.get_size() as f32;
         let mut i = 0;
         let mut cursor = 0;
@@ -117,7 +119,7 @@ impl TextBox {
         }
 
         cursor
-    }
+    }*/
 
     pub fn set_placeholder(&mut self, p: String) {
         self.placeholder = p.chars().collect();
@@ -154,8 +156,8 @@ impl Element for TextBox {
         _props: Option<Arc<properties::Properties>>,
         gen: &mut properties::IdGenerator,
     ) {
-        let tmp_str_val = self.value.iter().collect();
-        let tmp_str_val = unicode_compose(&tmp_str_val).chars().collect();
+        /*let tmp_str_val = self.value.clone();//self.value.iter().collect();
+        //let tmp_str_val = unicode_compose(&tmp_str_val).chars().collect();
 
         let _id = gen.get();
         self.ext_id = _id;
@@ -298,7 +300,7 @@ impl Element for TextBox {
                 LayoutSize::new(1.0, size),
             ));
             builder.push_rect(&info, color);
-        }
+        }*/
     }
 
     fn get_bounds(&self) -> properties::Extent {
@@ -396,7 +398,8 @@ impl Element for TextBox {
                     && b == properties::Button::Left
                     && s == properties::ButtonState::Released
                     {
-                        self.cursor = self.get_index_at(&p);
+                        //TODO: uncomment the following
+                        //self.cursor = self.get_index_at(&p);
                         handled = self.exec_handler(ElementEvent::Clicked, &m);
                     }
             },
