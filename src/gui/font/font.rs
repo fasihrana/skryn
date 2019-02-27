@@ -20,6 +20,7 @@ mod shaper{
                         hb_face_destroy, hb_font_destroy, hb_blob_destroy, hb_buffer_destroy,
                         hb_font_set_scale,
                         hb_font_set_ppem,
+                        hb_font_get_glyph_extents,
                         hb_buffer_add_utf8,
                         hb_shape,
                         hb_buffer_get_glyph_infos,
@@ -29,13 +30,28 @@ mod shaper{
                         hb_buffer_set_language,
                         hb_language_from_string};
     //harfbuzz structs
-    use harfbuzz_sys::{ hb_face_t,hb_font_t, hb_blob_t, hb_buffer_t,
+    use harfbuzz_sys::{ hb_face_t,hb_font_t, hb_blob_t, hb_buffer_t, hb_glyph_extents_t,
                         hb_glyph_info_t, hb_glyph_position_t, hb_language_t};
     //harfbuzz consts
     use harfbuzz_sys::{HB_MEMORY_MODE_READONLY, HB_DIRECTION_RTL, HB_SCRIPT_ARABIC, HB_SCRIPT_LATIN, HB_DIRECTION_LTR};
 
     pub type Dimensions = ((f32, f32), (f32, f32));
-    pub type Glyph = (GlyphIndex, (f32, f32));
+    pub type Glyph = (GlyphIndex, GlyphMetric);
+
+    #[derive(Debug, Clone)]
+    pub struct Point{
+        pub x: i32,
+        pub y: i32,
+    }
+
+    #[derive(Debug, Clone)]
+    pub struct GlyphMetric{
+        pub advance: Point,
+        pub offset: Point,
+        pub bearing: Point,
+        pub width: i32,
+        pub height: i32,
+    }
 
     pub fn shape_text(val: &str, size: u32, font:font::Font, RTL: bool) -> Vec<Glyph>{
         unsafe {
@@ -78,16 +94,37 @@ mod shaper{
             let g_info = hb_buffer_get_glyph_infos(buf, &mut g_count);
             let g_pos = hb_buffer_get_glyph_positions(buf, &mut p_count);
 
+
             let mut g_vec = Vec::new();
 
             let mut cursor_x = 0;
             for i in 0..g_count {
                 let info = g_info.offset(i as isize);
                 let pos = g_pos.offset(i as isize);
+
+                let mut extent = hb_glyph_extents_t{
+                    x_bearing: 0,
+                    y_bearing: 0,
+                    width: 0,
+                    height: 0,
+                };
+                hb_font_get_glyph_extents(hb_font,(*info).codepoint,&mut extent as *mut hb_glyph_extents_t);
+
+                //dbg!(extent);
+                //dbg!(*pos);
+
+                let metric = GlyphMetric{
+                    advance: Point{ x: (*pos).x_advance, y: (*pos).y_advance },
+                    offset: Point{ x: (*pos).x_offset, y: (*pos).y_offset },
+                    bearing: Point{ x: extent.x_bearing, y: extent.y_bearing },
+                    width: extent.width,
+                    height: extent.height,
+                };
+
                 let glyphid = (*info).codepoint;
                 let x_advance = (*pos).x_advance;
 
-                g_vec.push((glyphid, (x_advance as f32, size as f32)) );
+                g_vec.push((glyphid, metric) );
 
                 cursor_x += x_advance;
             }
@@ -165,9 +202,12 @@ impl Word {
 
         let mut _x = x;
 
-        for (gi, _offset) in glyphs {
-            self.glyphs.push(GlyphInstance{ index: gi, point: LayoutPoint::new(_x, y + _offset.1) });
-            let tmp_x = _x + _offset.0;
+        for (gi,  metric) in glyphs {
+
+            //println!("{:?}", metric);
+
+            self.glyphs.push(GlyphInstance{ index: gi, point: LayoutPoint::new(_x, y + size)});
+            let tmp_x = _x + metric.advance.x as f32;
             self.dim.push(((_x,y),(tmp_x,y+size)));
             _x = tmp_x;
         }
@@ -432,6 +472,34 @@ impl FontStore {
         } else {
             None
         }
+    }
+
+    pub fn get_glyphs_for_set(
+        &self,
+        f_key: FontKey,
+        fi_key: FontInstanceKey,
+        val: &HashSet<char>,
+    ) -> HashMap<char, (GlyphIndex, GlyphDimensions)> {
+        let mut map: HashMap<char, (GlyphIndex, GlyphDimensions)> = HashMap::new();
+        let mut str_val = "".to_owned();
+        for _c in val.iter() {
+            str_val = format!("{}{}", str_val, _c);
+        }
+        let gi = self.api.get_glyph_indices(f_key, &str_val);
+        let gi: Vec<u32> = gi
+            .iter()
+            .map(|gi| match gi {
+                Some(v) => *v,
+                _ => 0,
+            })
+            .collect();
+        let gd = self.api.get_glyph_dimensions(fi_key, gi.clone());
+        for (i, c) in val.iter().cloned().enumerate() {
+            if let Some(gd) = gd[i] {
+                map.insert(c, (gi[i], gd));
+            }
+        }
+        map
     }
 
     pub fn deinit(&mut self) {
