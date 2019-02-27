@@ -80,23 +80,16 @@ mod shaper{
 
             let mut g_vec = Vec::new();
 
-            let mut cursor_x = size as i32;
-            let mut cursor_y = size as i32;
+            let mut cursor_x = 0;
             for i in 0..g_count {
                 let info = g_info.offset(i as isize);
                 let pos = g_pos.offset(i as isize);
                 let glyphid = (*info).codepoint;
-                let x_offset = (*pos).x_offset / size as i32;
-                let y_offset = (*pos).y_offset / size as i32;
-                let x_advance = (*pos).x_advance / size as i32;
-                let y_advance = (*pos).y_advance / size as i32;
+                let x_advance = (*pos).x_advance;
 
-                g_vec.push((glyphid, ((cursor_x + x_offset) as f32, (cursor_y +y_offset) as f32)) );
-
-
+                g_vec.push((glyphid, (x_advance as f32, size as f32)) );
 
                 cursor_x += x_advance;
-                cursor_y += y_advance;
             }
 
             //destroy all
@@ -139,18 +132,8 @@ fn add_font(font: &font_kit::font::Font, api: &RenderApi, document_id: DocumentI
 }
 
 #[derive(Debug, Clone)]
-pub struct Char{
-    char: char,
-    RTL: bool,
-    index: usize,
-    visual_index: usize,
-}
-
-#[derive(Debug, Clone)]
 pub struct Word{
     text: Vec<char>,
-    //normalized: Vec<char>,
-    //indexed: Vec<Char>,
     glyphs: Vec<GlyphInstance>,
     dim: Vec<shaper::Dimensions>,
     RTL: bool,
@@ -173,18 +156,9 @@ impl Word {
         self.extent.y = y.clone();
         self.extent.h = size.clone();
 
-        let mut value : String = //if self.RTL {
-            //print!("is RTL --- ");
-            //self.normalized.iter().collect()
-        //} else
-        {
-            self.text.iter().collect()
-        };
-        //value.push('\x00');
-        //dbg!(value.as_str());
+        let mut value : String = self.text.iter().collect();
 
         let glyphs = shaper::shape_text(value.as_str(), size as u32,load_font_by_name(family), self.RTL);
-        //dbg!(&glyphs);
 
         self.glyphs.clear();
         self.dim.clear();
@@ -210,7 +184,6 @@ pub struct TextRun{
 
 impl TextRun{
     pub fn from_string(value: String) -> Vec<TextRun> {
-        //let mut charr = value.chars();
         let mut arr = vec![];
 
         let mut text_run = TextRun{ words: Vec::new(), RTL: false };
@@ -233,7 +206,6 @@ impl TextRun{
                 if bidi.paragraphs[0].level.is_rtl() {
                     text_run.words.insert(0,Word {
                         text: word.chars().collect(),
-                        //normalized: ucs.chars().collect(),
                         glyphs: vec![],
                         dim: vec![],
                         RTL: true,
@@ -249,7 +221,6 @@ impl TextRun{
                 else {
                     text_run.words.push(Word {
                         text: word.chars().collect(),
-                        //normalized: ucs.chars().collect(),
                         glyphs: vec![],
                         dim: vec![],
                         RTL: false,
@@ -283,7 +254,7 @@ impl TextRun{
 
         for word in self.words.iter_mut() {
             word.shape(_x,y,_width,_height,size,family);
-            _x += word.extent.w;
+            _x += word.extent.w + (size/4.);
         }
     }
 }
@@ -308,8 +279,6 @@ impl Paragraph {
             let para = Paragraph{ lines: text_run, RTL: rtl };
             arr.push(para);
         }
-
-        //println!("{:?}", arr);
 
         arr
     }
@@ -456,7 +425,7 @@ impl FontStore {
         (fkey, ikey)
     }
 
-    /*pub fn get_font_metrics(&self, family: &str) -> Option<font_kit::metrics::Metrics> {
+    pub fn get_font_metrics(&self, family: &str) -> Option<font_kit::metrics::Metrics> {
         let ikeys = self.store.get(family);
         if let Some(keys) = ikeys {
             Some(keys.font.metrics())
@@ -464,57 +433,6 @@ impl FontStore {
             None
         }
     }
-
-    pub fn get_glyphs_for_set(
-        &self,
-        f_key: FontKey,
-        fi_key: FontInstanceKey,
-        val: &HashSet<char>,
-    ) -> HashMap<char, (GlyphIndex, GlyphDimensions)> {
-        let mut map: HashMap<char, (GlyphIndex, GlyphDimensions)> = HashMap::new();
-
-        let mut str_val = "".to_owned();
-        for _c in val.iter() {
-            str_val = format!("{}{}", str_val, _c);
-        }
-
-        let gi = self.api.get_glyph_indices(f_key, &str_val);
-        let gi: Vec<u32> = gi
-            .iter()
-            .map(|gi| match gi {
-                Some(v) => *v,
-                _ => 0,
-            })
-            .collect();
-        let gd = self.api.get_glyph_dimensions(fi_key, gi.clone());
-
-        for (i, c) in val.iter().cloned().enumerate() {
-            if let Some(gd) = gd[i] {
-                map.insert(c, (gi[i], gd));
-            }
-        }
-
-        map
-    }
-
-    pub fn get_glyphs_for_slice(
-        &self,
-        f_key: FontKey,
-        fi_key: FontInstanceKey,
-        s: &str,
-    ) -> (Vec<Option<u32>>, Vec<Option<GlyphDimensions>>) {
-        let gi = self.api.get_glyph_indices(f_key, s);
-        let gi_z: Vec<u32> = gi
-            .iter()
-            .map(|gi| match gi {
-                Some(v) => *v,
-                _ => 0,
-            })
-            .collect();
-        let gd = self.api.get_glyph_dimensions(fi_key, gi_z);
-
-        (gi, gd)
-    }*/
 
     pub fn deinit(&mut self) {
         let mut txn = Transaction::new();
@@ -525,191 +443,5 @@ impl FontStore {
             txn.delete_font(ik.key);
         }
         self.api.send_transaction(self.document_id, txn);
-    }
-}
-
-pub struct FontRaster;
-
-//pub type Dimensions = ((f32, f32), (f32, f32));
-//pub type pub type Dimensions = ((f32, f32), (f32, f32));
-//pub type Glyph = (GlyphIndex, (f32, f32), char);
-
-impl FontRaster {
-    pub fn place_lines(
-        value: &Vec<char>,
-        x: f32,
-        y: f32,
-        _width: f32,
-        _height: f32,
-        size: f32,
-        family: &str,
-        text_align: &Align,
-        font_store: &mut FontStore,
-    ) -> (Vec<GlyphInstance>, Extent, Vec<shaper::Dimensions>) {
-        let mut line_glyphs = vec![];
-        let mut max_len = 0.0;
-
-        let linefeed_at_end = if !value.is_empty() {
-            value[value.len() - 1] == '\n' || value[value.len() - 1] == '\r'
-        } else {
-            false
-        };
-
-        let mut total_lines = 0;
-        let tmp_value: String = value.clone().iter().collect();
-        for line in tmp_value.lines() {
-            let line : Vec<char> = line.chars().collect();
-            let (t_g, w, h) = Self::get_line_glyphs(&line, size, family, font_store);
-            if max_len < w {
-                max_len = w;
-            }
-            line_glyphs.push((t_g, w, h));
-            total_lines += 1;
-        }
-
-        let mut glyphs = vec![];
-        let bounds;
-        let mut dims = vec![];
-
-        let mut line_index = 0;
-
-        match text_align {
-            Align::Left => {
-                let (mut _x, mut _y) = (x, y);
-                for (l_g, _w, _h) in line_glyphs {
-                    if line_index > 0 && line_index < total_lines {
-                        dims.push(((_x, _y), (_x, _y + size)));
-                    }
-
-                    //for (gi, _offset, _char) in l_g {
-                    for (gi, _offset) in l_g {
-                        glyphs.push(GlyphInstance {
-                            index: gi,
-                            point: LayoutPoint::new(_x, _y + _offset.1),
-                        });
-                        dims.push(((_x, _y), (_x + _offset.0, _y + size)));
-                        _x += _offset.0;
-                    }
-                    _x = x;
-                    _y += size;
-                    line_index += 1;
-                }
-                if linefeed_at_end {
-                    glyphs.push(GlyphInstance {
-                        index: 1,
-                        point: LayoutPoint::new(_x, _y),
-                    });
-                    dims.push(((_x, _y), (_x, _y + size)));
-                }
-                bounds = Extent {
-                    x,
-                    y,
-                    w: max_len,
-                    h: _y,
-                    dpi: 0.0,
-                };
-            }
-            Align::Right => {
-                let mut _y = y;
-                let mut _x = x + _width;
-                for (l_g, w, _h) in line_glyphs {
-                    _x = x + _width - w;
-
-                    if line_index > 0 && line_index < total_lines {
-                        dims.push(((_x, _y), (_x, _y + size)));
-                    }
-
-                    //for (gi, _offset, _char) in l_g {
-                    for (gi, _offset) in l_g {
-                        glyphs.push(GlyphInstance {
-                            index: gi,
-                            point: LayoutPoint::new(_x, _y + _offset.1),
-                        });
-                        dims.push(((_x, _y), (_x + _offset.0, _y + size)));
-                        _x += _offset.0;
-                    }
-
-                    _y += size;
-                    //just so if it ends, it has the starting value for next line cursor
-                    _x = x + _width;
-                    line_index += 1;
-                }
-                if linefeed_at_end {
-                    glyphs.push(GlyphInstance {
-                        index: 1,
-                        point: LayoutPoint::new(_x, _y),
-                    });
-                    dims.push(((_x, _y), (_x, _y + size)));
-                }
-                bounds = Extent {
-                    x: x + _width - max_len,
-                    y,
-                    w: max_len,
-                    h: _y,
-                    dpi: 0.0,
-                };
-            }
-            Align::Middle => {
-                let mut _y = y;
-                let mut _x = x + _width;
-                for (l_g, w, _h) in line_glyphs {
-                    _x = x + (_width - w) / 2.0;
-
-                    if line_index > 0 && line_index < total_lines {
-                        dims.push(((_x, _y), (_x, _y + size)));
-                    }
-
-                    //for (gi, _offset, _char) in l_g {
-                    for (gi, _offset) in l_g {
-                        glyphs.push(GlyphInstance {
-                            index: gi,
-                            point: LayoutPoint::new(_x, _y + _offset.1),
-                        });
-                        dims.push(((_x, _y), (_x + _offset.0, _y + size)));
-                        _x += _offset.0;
-                    }
-
-                    _y += size;
-                    //just so if it ends, it has the starting value for next line cursor
-                    _x = x + _width / 2.0;
-                    line_index += 1;
-                }
-                if linefeed_at_end {
-                    glyphs.push(GlyphInstance {
-                        index: 1,
-                        point: LayoutPoint::new(_x, _y),
-                    });
-                    dims.push(((_x, _y), (_x, _y + size)));
-                }
-                bounds = Extent {
-                    x: x + (_width - max_len) / 2.0,
-                    y,
-                    w: max_len,
-                    h: _y,
-                    dpi: 0.0,
-                };
-            }
-        }
-
-        (glyphs, bounds, dims)
-    }
-
-    fn get_line_glyphs(
-        value: &Vec<char>,
-        size: f32,
-        family: &str,
-        font_store: &mut FontStore,
-    ) -> (Vec<shaper::Glyph>, f32, f32) {
-
-        let value : String = value.iter().collect();
-        let glyphs = shaper::shape_text(value.as_str(), size as u32,load_font_by_name(family), false);
-
-        let mut max_x= 0.;
-
-        for (_,d) in &glyphs {
-            max_x = d.0.clone();
-        }
-
-        (glyphs, max_x, size)
     }
 }

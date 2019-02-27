@@ -261,8 +261,10 @@ impl Element for Button {
         builder.push_rect(&info, bgcolor);
 
         let info = LayoutPrimitiveInfo::new(LayoutRect::new(
-            LayoutPoint::new(tbounds.x, tbounds.y),
-            LayoutSize::new(tbounds.w, tbounds.h),
+            LayoutPoint::new(extent.x, extent.y),
+            LayoutSize::new(self.bounds.w, self.bounds.h),
+            //LayoutPoint::new(tbounds.x, tbounds.y),
+            //LayoutSize::new(tbounds.w, tbounds.h),
         ));
 
         let glyphs = font::glyphs_from_paragraphs(&paras);
