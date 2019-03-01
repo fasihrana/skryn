@@ -151,13 +151,13 @@ impl PersonElm {
             .lock()
             .unwrap()
             .set(skryn::gui::properties::Property::Width(
-                skryn::gui::properties::Unit::Pixel(75.0),
+                skryn::gui::properties::Unit::Pixel(100.0),
             ));
         cancel_button
             .lock()
             .unwrap()
             .set(skryn::gui::properties::Property::Width(
-                skryn::gui::properties::Unit::Pixel(75.0),
+                skryn::gui::properties::Unit::Pixel(100.0),
             ));
         //Here we have used the Stretch unit for elements above to make sure our VBox below is utilized to the full.
         let v = Arc::new(Mutex::new(VBox::new()));

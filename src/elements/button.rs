@@ -220,12 +220,13 @@ impl Element for Button {
         let valstr: String = self.value.iter().collect();
         let mut paras = font::Paragraph::from_string(valstr);
         let tbounds = font::shape_paragraphs(&mut paras,
-                               calc_x,
-                               calc_y,
-                               calc_w,
-                               calc_h,
-                               size,
-                               &family);
+                                                    calc_x,
+                                                    calc_y,
+                                                    calc_w,
+                                                    calc_h,
+                                                    size,
+                                                    &family,
+                                                    text_align);
 
         let mut calc_w = tbounds.w;
         let mut calc_h = tbounds.h;
@@ -261,8 +262,8 @@ impl Element for Button {
         builder.push_rect(&info, bgcolor);
 
         let info = LayoutPrimitiveInfo::new(LayoutRect::new(
-            LayoutPoint::new(extent.x, extent.y),
-            LayoutSize::new(self.bounds.w, self.bounds.h),
+            LayoutPoint::new(tbounds.x, extent.y),
+            LayoutSize::new(tbounds.w, self.bounds.h),
             //LayoutPoint::new(tbounds.x, tbounds.y),
             //LayoutSize::new(tbounds.w, tbounds.h),
         ));

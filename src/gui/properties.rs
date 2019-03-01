@@ -168,7 +168,7 @@ impl Properties {
     }
 
     pub fn default(&mut self) -> &mut Properties {
-        self.set(Property::Size(12))
+        self.set(Property::Size(16))
             .set(Property::Family(String::from("Arial")))
             .set(Property::Left(Unit::Stretch(0.0)))
             .set(Property::Width(Unit::Stretch(1.0)))

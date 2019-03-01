@@ -13,9 +13,9 @@ extern crate font_kit;
 //#[macro_use] extern crate scan_rules;
 #[macro_use]
 extern crate lazy_static;
-extern crate itertools;
-extern crate unicode_normalization;
-extern crate unicode_segmentation;
+//extern crate itertools;
+//extern crate unicode_normalization;
+//extern crate unicode_segmentation;
 extern crate unicode_bidi;
 extern crate harfbuzz_sys;
 

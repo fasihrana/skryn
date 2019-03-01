@@ -1,6 +1,6 @@
 use std::any::Any;
 use std::sync::Arc;
-use itertools::Itertools;
+//use itertools::Itertools;
 
 use clipboard::{ClipboardContext, ClipboardProvider};
 use glutin::VirtualKeyCode;
@@ -10,7 +10,7 @@ use webrender::api::*;
 use elements::element::*;
 use gui::font;
 use gui::properties;
-use util::unicode_compose;
+//use util::unicode_compose;
 
 pub struct TextBox {
     ext_id: u64,

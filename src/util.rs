@@ -1,8 +1,8 @@
-use itertools::Itertools;
+//use itertools::Itertools;
 use webrender::api::*;
 //use unicode_segmentation::UnicodeSegmentation;
 //use unicode_normalization::UnicodeNormalization;
-use unicode_normalization::char::compose;
+//use unicode_normalization::char::compose;
 //use unicode_normalization::Recompositions;
 use unicode_bidi::BidiInfo;
 //use harfbuzz::Buffer;
