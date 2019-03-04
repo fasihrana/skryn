@@ -497,10 +497,14 @@ impl Paragraph {
         let line_x = x;
         let mut _y = y;
         let mut max_w = 0.;
-        //TODO: caculate proper paragraph height
+        let mut h = size;
 
         for run in self.runs.iter_mut() {
             run.position(line_x,x,y,w,h,size,text_align);
+
+            if run.extent.h > size {
+                h+= run.extent.h - size;
+            }
 
             if run.extent.w > max_w {
                 max_w = run.extent.w;
@@ -510,9 +514,9 @@ impl Paragraph {
         self.extent.x = x;
         self.extent.y = y;
         self.extent.w = max_w;
-        self.extent.h = _y;
+        self.extent.h = h;
 
-        println!("para extent -> {:?}", self.extent);
+        //println!("para extent -> {:?}", self.extent);
     }
 }
 
@@ -588,9 +592,9 @@ impl Paragraphs{
         self.extent.x = x;
         self.extent.y = y;
         self.extent.w = max_w;
-        self.extent.h = _y;
+        self.extent.h = _y - y;
 
-        println!("parasss extent -> {:?}", self.extent);
+        //println!("parasss extent -> {:?}", self.extent);
     }
 
     pub fn glyphs(&self) -> Vec<GlyphInstance> {
