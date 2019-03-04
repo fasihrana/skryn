@@ -121,7 +121,7 @@ impl PersonElm {
                 h.append(alert_button.clone());
                 h.append(cancel_button.clone());
                 h.set(skryn::gui::properties::Property::Height(
-                    skryn::gui::properties::Unit::Pixel(25.0),
+                    skryn::gui::properties::Unit::Pixel(100.0),
                 ));
                 h.set(skryn::gui::properties::Property::BgColor(ColorF::new(
                     0.2, 1.0, 0.2, 1.0,

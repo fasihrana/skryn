@@ -217,7 +217,6 @@ impl Element for Button {
             _ => (),
         }
 
-        //let valstr: String = self.value.iter().collect();
         let mut paras = font::Paragraphs::from_chars(&self.value);
         let tbounds = paras.shape(calc_x,
                                   calc_y,
@@ -226,6 +225,7 @@ impl Element for Button {
                                   size,
                                   &family,
                                   &text_align);
+        paras.position(calc_x, calc_y, calc_w, calc_h, size, &text_align);
 
         let mut calc_w = tbounds.w;
         let mut calc_h = tbounds.h;

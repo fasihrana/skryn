@@ -157,7 +157,6 @@ mod shaper{
                 };
 
                 let glyphid = (*info).codepoint;
-                let x_advance = (*pos).x_advance;
 
                 g_vec.push((glyphid, metric) );
             }
@@ -205,6 +204,7 @@ pub struct Char{
     index: usize,
     position: shaper::Point,
     rtl: bool,
+    glyph: GlyphIndex,
 }
 
 impl Char {
@@ -220,7 +220,8 @@ impl Char {
             },
             index,
             position: shaper::Point { x: 0.0, y: 0.0 },
-            rtl
+            rtl,
+            glyph: 0
         }
     }
 }
@@ -228,8 +229,7 @@ impl Char {
 #[derive(Debug, Clone)]
 pub struct Word{
     text: Vec<Char>,
-    //glyphs: Vec<GlyphInstance>,
-    //dim: Vec<shaper::Dimensions>,
+    glyphs: Vec<GlyphInstance>,
     rtl: bool,
     extent: Extent,
 }
@@ -239,6 +239,7 @@ impl Word {
     {
         let mut word = Word{
             text: vec![],
+            glyphs: vec![],
             rtl,
             extent: Extent {
                 x: 0.0,
@@ -267,49 +268,101 @@ impl Word {
 
     fn shape(
         &mut self,
-        x: f32,
-        y: f32,
-        _width: f32,
-        _height: f32,
         size: f32,
         family: &str,
-        //font_store: &mut FontStore,
     ) {
 
-        self.extent.x = x.clone();
-        self.extent.y = y.clone();
-        self.extent.h = size.clone();
+        let value : String = /*if self.rtl {
+            let tmp = self.text.iter().rev();
+            let mut val = String::new();
+            for x in tmp {
+                val.push(x.char.clone());
+            }
+            val
+        } else {*/
+            self.text.iter().map(|c|{c.char.clone()}).collect()
+        //}
+        ;
 
-        /*let mut value : String = self.text.iter().collect();
+
 
         let glyphs = shaper::shape_text(value.as_str(), size as u32, family, self.rtl);
 
         self.glyphs.clear();
-        self.dim.clear();
 
-        let mut _x = x;
+        let mut _x = 0.;
 
-        for (gi,  metric) in glyphs {
+        let mut i = 0;
+        while i < self.text.len() {
+            let (glyph, ref metric) = glyphs[i];
 
-            //println!("{:?}", metric);
+            self.text[i].glyph = glyph;
+            self.text[i].metric = metric.clone();
+            self.text[i].position.x = _x;
+            self.text[i].position.y = size;
 
-            self.glyphs.push(GlyphInstance{ index: gi, point: LayoutPoint::new(_x, y + size)});
-            let tmp_x = _x + metric.advance.x as f32;
-            self.dim.push(((_x,y),(tmp_x,y+size)));
-            _x = tmp_x;
+            i+=1;
+            _x += metric.advance.x;
         }
 
-        self.extent.w = _x - x;*/
+        self.extent.h = size;
+        self.extent.w = _x;
+    }
+
+    fn position(&mut self, x: f32, y: f32) {
+        self.glyphs.clear();
+        for ch in self.text.iter_mut() {
+            ch.position.x += x;
+            ch.position.y += y;
+
+            self.glyphs.push(GlyphInstance{ index: ch.glyph, point: LayoutPoint::new(ch.position.x, ch.position.y) });
+        }
     }
 }
 
 #[derive(Debug, Clone)]
 pub struct TextRun{
     words: Vec<Word>,
+    extent: Extent,
     rtl: bool
 }
 
 impl TextRun{
+    fn shape(
+        &mut self,
+        size: f32,
+        family: &str,
+    ){
+        for word in self.words.iter_mut() {
+            word.shape(size,family);
+        }
+    }
+
+    fn position (&mut self, line_x: f32, x:f32, y:f32, w:f32, h:f32, size: f32, text_align:&Align) {
+        let mut _x = x;
+        let mut _y = y;
+        let mut _w = 0.;
+        let mut max_w = 0.;
+
+        for word in self.words.iter_mut() {
+            if x + word.extent.w > w {
+                if max_w < _w {
+                    max_w = _w;
+                }
+                _x = line_x;
+                _y += size;
+                _w = 0.;
+            }
+            word.position(_x,_y);
+            _w += word.extent.w;
+
+            _x += word.extent.w + size/4.;
+        }
+
+        self.extent.w = max_w;
+        self.extent.h = _y - y;
+    }
+
     fn len(&self) -> usize {
         let mut len = 0;
         for word in self.words.iter() {
@@ -322,7 +375,13 @@ impl TextRun{
     fn append(arr: &mut Vec<TextRun>, word: Word){
         if arr.len() == 0 {
             let rtl = word.rtl;
-            arr.push(TextRun{ words: vec![word], rtl });
+            arr.push(TextRun{ words: vec![word], extent: Extent {
+                x: 0.0,
+                y: 0.0,
+                w: 0.0,
+                h: 0.0,
+                dpi: 0.0
+            }, rtl });
             return;
         }
 
@@ -336,7 +395,13 @@ impl TextRun{
             }
         } else {
             let rtl = word.rtl;
-            arr.push(TextRun{ words: vec![word], rtl });
+            arr.push(TextRun{ words: vec![word], extent: Extent {
+                x: 0.0,
+                y: 0.0,
+                w: 0.0,
+                h: 0.0,
+                dpi: 0.0
+            }, rtl });
         }
     }
 
@@ -365,6 +430,7 @@ impl TextRun{
                         ch.index = curr;
                         curr+=1;
                     }
+                    curr+=1;
                 }
             }
         }
@@ -400,23 +466,7 @@ impl TextRun{
         arr
     }
 
-    fn shape(
-        &mut self,
-        x: f32,
-        y: f32,
-        _width: f32,
-        _height: f32,
-        size: f32,
-        family: &str,
-        text_align: &Align,
-    ){
-        let mut _x = x;
 
-        for word in self.words.iter_mut() {
-            word.shape(_x,y,_width,_height,size,family);
-            _x += word.extent.w + (size/4.);
-        }
-    }
 }
 
 #[derive(Debug, Clone)]
@@ -437,24 +487,38 @@ impl Paragraph {
 
     fn shape(
         &mut self,
-        x: f32,
-        y: f32,
-        _width: f32,
-        _height: f32,
         size: f32,
         family: &str,
-        text_align: &Align,
     ){
-        let mut _x = x;
+        for run in self.runs.iter_mut() {
+            run.shape(size,family);
+        }
+    }
+
+    fn positon(
+        &mut self,
+        x: f32,
+        y: f32,
+        w: f32,
+        h: f32,
+        size: f32,
+        text_align: &Align
+    ){
+        let line_x = x;
+        let mut _y = y;
 
         for run in self.runs.iter_mut() {
-            run.shape(_x,y,_width,_height,size,family, text_align);
+            run.position(line_x,x,y,w,h,size,text_align);
+
+            _y += run.extent.y;
         }
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct Paragraphs{
-    list: Vec<Paragraph>
+    list: Vec<Paragraph>,
+    extent: Extent,
 }
 
 impl Paragraphs{
@@ -478,7 +542,13 @@ impl Paragraphs{
 
         arr.push(Paragraph{runs,rtl});
 
-        Paragraphs{list:arr}
+        Paragraphs{list:arr, extent: Extent {
+            x: 0.0,
+            y: 0.0,
+            w: 0.0,
+            h: 0.0,
+            dpi: 0.0
+        } }
     }
 
     pub fn shape(
@@ -501,7 +571,7 @@ impl Paragraphs{
 
         let mut _y = y;
         for para in self.list.iter_mut() {
-            para.shape(x,_y,w,h,size,family,text_align);
+            para.shape(size,family);
             _y += size;
         }
 
@@ -523,23 +593,27 @@ impl Paragraphs{
         y: f32,
         w: f32,
         h: f32,
-        multi_line: bool
+        size: f32,
+        text_align: &Align
     ){
+        let mut _y = y;
         for para in self.list.iter_mut() {
+            para.positon(x,_y,w,h,size,text_align);
 
+            //CHNAGE THIS
+            _y+=size;
         }
     }
 
     pub fn glyphs(&self) -> Vec<GlyphInstance> {
         let mut arr = vec![];
         for para in self.list.iter() {
-            /*for line in para.lines.iter() {
+            for line in para.runs.iter() {
                 for word in line.words.iter() {
                     arr.append(&mut word.glyphs.clone());
                 }
-            }*/
+            }
         }
-
         arr
     }
 }
