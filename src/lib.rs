@@ -18,6 +18,8 @@ extern crate lazy_static;
 //extern crate unicode_segmentation;
 extern crate unicode_bidi;
 extern crate harfbuzz_sys;
+extern crate itertools;
+//extern crate term;
 
 mod util;
 pub mod data;

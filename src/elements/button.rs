@@ -217,16 +217,15 @@ impl Element for Button {
             _ => (),
         }
 
-        let valstr: String = self.value.iter().collect();
-        let mut paras = font::Paragraph::from_string(valstr);
-        let tbounds = font::shape_paragraphs(&mut paras,
-                                                    calc_x,
-                                                    calc_y,
-                                                    calc_w,
-                                                    calc_h,
-                                                    size,
-                                                    &family,
-                                                    text_align);
+        //let valstr: String = self.value.iter().collect();
+        let mut paras = font::Paragraphs::from_chars(&self.value);
+        let tbounds = paras.shape(calc_x,
+                                  calc_y,
+                                  calc_w,
+                                  calc_h,
+                                  size,
+                                  &family,
+                                  &text_align);
 
         let mut calc_w = tbounds.w;
         let mut calc_h = tbounds.h;
@@ -268,7 +267,7 @@ impl Element for Button {
             //LayoutSize::new(tbounds.w, tbounds.h),
         ));
 
-        let glyphs = font::glyphs_from_paragraphs(&paras);
+        let glyphs = paras.glyphs();
 
         let (_, fi_key) = font_store.get_font_instance(&family, size as i32);
         builder.push_text(&info, &glyphs, fi_key, color, Some(GlyphOptions::default()));
