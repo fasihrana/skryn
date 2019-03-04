@@ -280,7 +280,7 @@ impl Word {
             }
             val
         } else {*/
-            self.text.iter().map(|c|{c.char.clone()}).collect()
+            self.text.iter().map(|c|{c.char}).collect()
         //}
         ;
 
@@ -343,9 +343,12 @@ impl TextRun{
         let mut _y = y;
         let mut _w = 0.;
         let mut max_w = 0.;
-
         for word in self.words.iter_mut() {
-            if x + word.extent.w > w {
+
+
+            println!{"{}, {} ---> {:?}", _x, _y, word};
+
+            if _x + word.extent.w > (x+w) {
                 if max_w < _w {
                     max_w = _w;
                 }
@@ -388,11 +391,7 @@ impl TextRun{
         let indx = arr.len() - 1;
 
         if arr[indx].rtl == word.rtl {
-            if word.rtl {
-                arr[indx].words.insert(0, word);
-            } else {
-                arr[indx].words.push(word);
-            }
+            arr[indx].words.push(word);
         } else {
             let rtl = word.rtl;
             arr.push(TextRun{ words: vec![word], extent: Extent {
@@ -575,15 +574,6 @@ impl Paragraphs{
             _y += size;
         }
 
-        /*if self.list.len() > 0 {
-            self.list[0].shape(x,y,w,h,size,family, text_align);
-            if self.list.len() > 1 {
-                for i in 1..self.list.len()-1 {
-                    self.list[i].shape(x,y,w,h,size,family, text_align);
-                }
-            }
-        }*/
-
         extent
     }
 
@@ -600,7 +590,6 @@ impl Paragraphs{
         for para in self.list.iter_mut() {
             para.positon(x,_y,w,h,size,text_align);
 
-            //CHNAGE THIS
             _y+=size;
         }
     }
@@ -695,43 +684,6 @@ impl FontStore {
 
         (fkey, ikey)
     }
-
-    /*pub fn get_font_metrics(&self, family: &str) -> Option<font_kit::metrics::Metrics> {
-        let ikeys = self.store.get(family);
-        if let Some(keys) = ikeys {
-            Some(keys.font.metrics())
-        } else {
-            None
-        }
-    }
-
-    pub fn get_glyphs_for_set(
-        &self,
-        f_key: FontKey,
-        fi_key: FontInstanceKey,
-        val: &HashSet<char>,
-    ) -> HashMap<char, (GlyphIndex, GlyphDimensions)> {
-        let mut map: HashMap<char, (GlyphIndex, GlyphDimensions)> = HashMap::new();
-        let mut str_val = "".to_owned();
-        for _c in val.iter() {
-            str_val = format!("{}{}", str_val, _c);
-        }
-        let gi = self.api.get_glyph_indices(f_key, &str_val);
-        let gi: Vec<u32> = gi
-            .iter()
-            .map(|gi| match gi {
-                Some(v) => *v,
-                _ => 0,
-            })
-            .collect();
-        let gd = self.api.get_glyph_dimensions(fi_key, gi.clone());
-        for (i, c) in val.iter().cloned().enumerate() {
-            if let Some(gd) = gd[i] {
-                map.insert(c, (gi[i], gd));
-            }
-        }
-        map
-    }*/
 
     pub fn deinit(&mut self) {
         let mut txn = Transaction::new();

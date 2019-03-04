@@ -106,18 +106,14 @@ impl PersonElm {
         let alert_button = Arc::new(Mutex::new(Button::new(format!("Press here!\nand here!"))));
         let cancel_button = Arc::new(Mutex::new(Button::new(format!("انار دمحا حیصف"))));
         let h = Arc::new(Mutex::new(HBox::new()));
-        h.lock()
-            .unwrap()
-            .set(skryn::gui::properties::Property::Left(
-                skryn::gui::properties::Unit::Stretch(1.0),
-            ));
-        h.lock()
-            .unwrap()
-            .set(skryn::gui::properties::Property::Right(
-                skryn::gui::properties::Unit::Stretch(1.0),
-            ));
         match h.lock() {
             Ok(ref mut h) => {
+                h.set(skryn::gui::properties::Property::Left(
+                    skryn::gui::properties::Unit::Stretch(1.0),
+                ));
+                h.set(skryn::gui::properties::Property::Right(
+                    skryn::gui::properties::Unit::Stretch(1.0),
+                ));
                 h.append(alert_button.clone());
                 h.append(cancel_button.clone());
                 h.set(skryn::gui::properties::Property::Height(
