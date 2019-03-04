@@ -12,6 +12,12 @@ pub struct Point {
     pub y: f32,
 }
 
+impl Point {
+    pub fn new() -> Point {
+        Point{ x: 0.0, y: 0.0 }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct Extent {
     pub x: f32,
@@ -19,6 +25,18 @@ pub struct Extent {
     pub w: f32,
     pub h: f32,
     pub dpi: f32,
+}
+
+impl Extent {
+    pub fn new() -> Extent {
+        Extent{
+            x: 0.0,
+            y: 0.0,
+            w: 0.0,
+            h: 0.0,
+            dpi: 0.0
+        }
+    }
 }
 
 #[derive(Clone, Debug)]

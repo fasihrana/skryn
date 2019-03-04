@@ -218,7 +218,7 @@ impl Element for Button {
         }
 
         let mut paras = font::Paragraphs::from_chars(&self.value);
-        let tbounds = paras.shape(calc_x,
+        paras.shape(calc_x,
                                   calc_y,
                                   calc_w,
                                   calc_h,
@@ -226,6 +226,8 @@ impl Element for Button {
                                   &family,
                                   &text_align);
         paras.position(calc_x, calc_y, calc_w, calc_h, size, &text_align);
+
+        let tbounds = &paras.extent;
 
         let mut calc_w = tbounds.w;
         let mut calc_h = tbounds.h;
