@@ -12,6 +12,7 @@ pub struct Button {
     value: Vec<char>,
     props: properties::Properties,
     bounds: properties::Extent,
+    text_bounds: properties::Extent,
     event_handlers: EventHandlers,
     drawn: u8,
     hovering: bool,
@@ -34,13 +35,8 @@ impl Button {
             ext_id: 0,
             value: s.chars().collect(),
             props,
-            bounds: properties::Extent {
-                x: 0.0,
-                y: 0.0,
-                w: 0.0,
-                h: 0.0,
-                dpi: 0.0,
-            },
+            bounds: properties::Extent::new(),
+            text_bounds: properties::Extent::new(),
             event_handlers: EventHandlers::new(),
             drawn: 0,
             hovering: false,
@@ -217,20 +213,33 @@ impl Element for Button {
             _ => (),
         }
 
+
+        let text_y = calc_y + (calc_h - self.text_bounds.h)/2.0;
+        //println!("{} {} {} {} {} {}", calc_x, calc_y, calc_w, calc_h, self.text_bounds.h, text_y);
+        let metrics = font_store.get_font_metrics(&family);
+        let baseline = match metrics {
+            Some(metrics) => {
+                let tmp = metrics.ascent-metrics.descent;
+                let tmp = size / tmp;
+                tmp * (metrics.ascent)
+            },
+            None => size,
+        };
+
         let mut paras = font::Paragraphs::from_chars(&self.value);
         paras.shape(calc_x,
-                                  calc_y,
+                                  text_y,
                                   calc_w,
                                   calc_h,
                                   size,
+                                  baseline,
                                   &family,
                                   &text_align);
-        paras.position(calc_x, calc_y, calc_w, calc_h, size, &text_align);
 
-        let tbounds = &paras.extent;
+        self.text_bounds = paras.extent.clone();
 
-        let mut calc_w = tbounds.w;
-        let mut calc_h = tbounds.h;
+        let mut calc_w = self.text_bounds.w;
+        let mut calc_h = self.text_bounds.h;
 
         calc_w = match width {
             properties::Unit::Extent => extent.w,
@@ -263,8 +272,8 @@ impl Element for Button {
         builder.push_rect(&info, bgcolor);
 
         let info = LayoutPrimitiveInfo::new(LayoutRect::new(
-            LayoutPoint::new(tbounds.x, extent.y),
-            LayoutSize::new(tbounds.w, self.bounds.h),
+            LayoutPoint::new(self.text_bounds.x, extent.y),
+            LayoutSize::new(self.text_bounds.w, self.bounds.h),
             //LayoutPoint::new(tbounds.x, tbounds.y),
             //LayoutSize::new(tbounds.w, tbounds.h),
         ));

@@ -103,7 +103,7 @@ impl PersonElm {
             _p.age.get_value()
         )))));
         //This is an alert button just to show how easy it is to spawn new windows.
-        let alert_button = Arc::new(Mutex::new(Button::new(format!("Press here!\nand here!"))));
+        let alert_button = Arc::new(Mutex::new(Button::new(format!("Press here!"))));
         let cancel_button = Arc::new(Mutex::new(Button::new(format!("انار دمحا حیصف"))));
         let h = Arc::new(Mutex::new(HBox::new()));
         match h.lock() {
@@ -114,10 +114,10 @@ impl PersonElm {
                 h.set(skryn::gui::properties::Property::Right(
                     skryn::gui::properties::Unit::Stretch(1.0),
                 ));
-                //h.append(alert_button.clone());
+                h.append(alert_button.clone());
                 h.append(cancel_button.clone());
                 h.set(skryn::gui::properties::Property::Height(
-                    skryn::gui::properties::Unit::Pixel(100.0),
+                    skryn::gui::properties::Unit::Pixel(25.0),
                 ));
                 h.set(skryn::gui::properties::Property::BgColor(ColorF::new(
                     0.2, 1.0, 0.2, 1.0,

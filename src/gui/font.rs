@@ -51,6 +51,8 @@ mod shaper{
         pub bearing: Point,
         pub width: f32,
         pub height: f32,
+        pub size: f32,
+        pub baseline: f32,
     }
 
     #[derive(Debug, Clone)]
@@ -66,7 +68,7 @@ mod shaper{
     );
 
 
-    pub fn shape_text(val: &str, size: u32, family: &str, rtl: bool) -> Vec<Glyph>{
+    pub fn shape_text(val: &str, size: u32, baseline: f32, family: &str, rtl: bool) -> Vec<Glyph>{
         unsafe {
 
             let hb_font = {
@@ -154,6 +156,8 @@ mod shaper{
                     bearing: Point{ x: extent.x_bearing as f32, y: extent.y_bearing as f32 },
                     width: extent.width as f32,
                     height: extent.height as f32,
+                    size: size as f32,
+                    baseline,
                 };
 
                 let glyphid = (*info).codepoint;
@@ -216,7 +220,9 @@ impl Char {
                 offset: shaper::Point { x: 0.0, y: 0.0 },
                 bearing: shaper::Point { x: 0.0, y: 0.0 },
                 width: 0.0,
-                height: 0.0
+                height: 0.0,
+                size: 0.0,
+                baseline: 0.0,
             },
             index,
             position: shaper::Point { x: 0.0, y: 0.0 },
@@ -263,6 +269,7 @@ impl Word {
     fn shape(
         &mut self,
         size: f32,
+        baseline: f32,
         family: &str,
     ) {
 
@@ -280,7 +287,7 @@ impl Word {
 
 
 
-        let glyphs = shaper::shape_text(value.as_str(), size as u32, family, self.rtl);
+        let glyphs = shaper::shape_text(value.as_str(), size as u32, baseline, family, self.rtl);
 
         self.glyphs.clear();
 
@@ -305,12 +312,16 @@ impl Word {
     fn position(&mut self, x: f32, y: f32) {
         self.glyphs.clear();
 
-        self.extent.x += x;
-        self.extent.y += y;
+        self.extent.x = x;
+        self.extent.y = y;
 
+        let mut _x = x;
         for ch in self.text.iter_mut() {
-            ch.position.x += x;
-            ch.position.y += y;
+            //println!("{} --- {:?}", ch.char, ch.metric);
+            ch.position.x = _x;
+            ch.position.y = y + ch.metric.baseline;
+
+            _x += ch.metric.advance.x;
 
             self.glyphs.push(GlyphInstance{ index: ch.glyph, point: LayoutPoint::new(ch.position.x, ch.position.y) });
         }
@@ -330,10 +341,11 @@ impl TextRun{
     fn shape(
         &mut self,
         size: f32,
+        baseline: f32,
         family: &str,
     ){
         for word in self.words.iter_mut() {
-            word.shape(size,family);
+            word.shape(size, baseline, family);
         }
     }
 
@@ -478,10 +490,11 @@ impl Paragraph {
     fn shape(
         &mut self,
         size: f32,
+        baseline: f32,
         family: &str,
     ){
         for run in self.runs.iter_mut() {
-            run.shape(size,family);
+            run.shape(size, baseline, family);
         }
     }
 
@@ -557,15 +570,17 @@ impl Paragraphs{
         w: f32,
         h: f32,
         size: f32,
+        baseline: f32,
         family: &str,
         text_align: &Align,
     ) {
         let mut _y = y;
         for para in self.list.iter_mut() {
-            para.shape(size,family);
+            para.shape(size,baseline,family);
 
             _y += para.extent.h;
         }
+        self.position(x,y,w,h,size,text_align);
     }
 
     pub fn position(
@@ -686,6 +701,15 @@ impl FontStore {
         self.store.insert(family.into(), keys);
 
         (fkey, ikey)
+    }
+
+    pub fn get_font_metrics(&self, family: &str) -> Option<font_kit::metrics::Metrics> {
+        let ikeys = self.store.get(family);
+        if let Some(keys) = ikeys {
+            Some(keys.font.metrics())
+        } else {
+            None
+        }
     }
 
     pub fn deinit(&mut self) {
