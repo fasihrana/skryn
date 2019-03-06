@@ -325,8 +325,6 @@ impl Word {
 
             self.glyphs.push(GlyphInstance{ index: ch.glyph, point: LayoutPoint::new(ch.position.x, ch.position.y) });
         }
-
-        println!("{:?}", self.glyphs);
     }
 }
 
@@ -348,37 +346,6 @@ impl TextRun{
             word.shape(size, baseline, family);
         }
     }
-
-    /*fn position (&mut self, line_x: f32, x:f32, y:f32, w:f32, h:f32, size: f32, text_align:&Align) {
-        let mut _x = x;
-        let mut _y = y;
-        let mut max_w = 0.;
-        let mut h = size;
-        for word in self.words.iter_mut() {
-
-            if _x+word.extent.w-line_x > w {
-                _x = line_x;
-                _y += size;
-                h+=size;
-            }
-
-            word.position(_x,_y);
-
-            _x += word.extent.w;
-            if max_w < _x {
-                max_w = _x;
-            }
-            _x +=size/4.;
-        }
-
-
-        self.extent.x = line_x;
-        self.extent.y = y;
-        self.extent.w = max_w;
-        self.extent.h = h;
-
-        //println!("run extent -> {:?}", self.extent);
-    }*/
 
     fn len(&self) -> usize {
         let mut len = 0;
@@ -491,11 +458,10 @@ impl TextLine{
             self.extent.w = word_ref.0.extent.w;
             self.line.push(word_ref);
         } else {
-            self.extent.h = word_ref.0.extent.h;
             if self.extent.w + self.space + word_ref.0.extent.w > w {
                 return Some(word_ref);
             } else {
-                self.extent.w = self.space + word_ref.0.extent.w;
+                self.extent.w += self.space + word_ref.0.extent.w;
                 self.line.push(word_ref);
             }
         }
@@ -525,14 +491,6 @@ pub struct Paragraph {
 }
 
 impl Paragraph{
-    fn len(&self) -> usize {
-        let mut len = 0;
-        for run in self.runs.iter() {
-            len += run.len() + 1;
-        }
-
-        len - 1
-    }
 
     fn shape(
         &mut self,
@@ -554,10 +512,6 @@ impl Paragraph{
         size: f32,
         text_align: &Align
     ){
-        //let line_x = x;
-        //let mut _y = y;
-        //let mut max_w = 0.;
-        //let mut _h = size;
 
         const space_div: f32 = 4.;
 
@@ -565,23 +519,6 @@ impl Paragraph{
         textline.space = size/space_div;
 
         for run in self.runs.iter_mut() {
-            //run.position(line_x,x,y,w,h,size,text_align);
-
-
-            /*for word in run.words.iter_mut() {
-                let tmp = WordRef(word);
-                let tmp = unsafe{std::mem::transmute::<WordRef<'a>, WordRef<'static>>(tmp)};
-                textline.line.push(tmp);
-            }*/
-
-            /*if run.extent.h > size {
-                _h+= run.extent.h - size;
-            }
-
-            if run.extent.w > max_w {
-                max_w = run.extent.w;
-            }*/
-            //_y += run.extent.y;
 
             for word in run.words.iter_mut() {
                 let tmp = WordRef(word);
@@ -597,37 +534,39 @@ impl Paragraph{
                 }
             }
         }
-
         self.lines.push(textline);
 
         let mut _y = y;
         let mut max_w = 0.;
+        let mut min_x = x+w;
         for line in self.lines.iter_mut() {
+            let mut tmp = 0.;
             match text_align {
-                Align::Left => {
-                    line.position(x,_y);
-                },
                 Align::Middle => {
-                    let tmp = (w - line.extent.w)/2.;
-                    line.position(x + tmp, _y);
+                    tmp = (w - line.extent.w)/2.;
                 },
                 Align::Right => {
-                    let tmp = w - line.extent.w;
-                    line.position(x + tmp, _y);
+                    tmp = w - line.extent.w;
                 },
+                _ => (),
             }
+
+            line.position(x + tmp, _y);
+
             if max_w < line.extent.w {
                 max_w = line.extent.w;
             }
+            if min_x > line.extent.x {
+                min_x = line.extent.x;
+            }
+
             _y += size;
         }
 
-        self.extent.x = x;
+        self.extent.x = min_x;
         self.extent.y = y;
         self.extent.w = max_w;
         self.extent.h = size * self.lines.len() as f32;
-
-        //println!("para extent -> {:?}", self.extent);
     }
 }
 
@@ -695,6 +634,8 @@ impl Paragraphs {
         text_align: &Align
     ){
         let mut _y = y;
+        let mut min_x = x + w;
+        let mut min_y = y + h;
 
         let mut max_w = 0.;
         for para in self.list.iter_mut() {
@@ -703,15 +644,19 @@ impl Paragraphs {
             if para.extent.w > max_w {
                 max_w = para.extent.w;
             }
-            _y+=size;
+            if min_x > para.extent.x {
+                min_x = para.extent.x;
+            }
+            if min_y > para.extent.y {
+                min_y = para.extent.y;
+            }
+            _y+=para.extent.h;
         }
 
-        self.extent.x = x;
-        self.extent.y = y;
+        self.extent.x = min_x;
+        self.extent.y = min_y;
         self.extent.w = max_w;
         self.extent.h = _y - y;
-
-        //println!("parasss extent -> {:?}", self.extent);
     }
 
     pub fn glyphs(&self) -> Vec<GlyphInstance> {

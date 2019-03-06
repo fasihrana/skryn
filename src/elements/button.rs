@@ -24,6 +24,7 @@ impl Button {
         let mut props = properties::Properties::new();
         props.default();
         props
+            .set(properties::Property::TextAlign(properties::Align::Middle))
             .set(properties::Property::BgColor(ColorF::new(
                 0.8, 0.9, 0.9, 1.0,
             )))
@@ -213,9 +214,7 @@ impl Element for Button {
             _ => (),
         }
 
-
         let text_y = calc_y + (calc_h - self.text_bounds.h)/2.0;
-        //println!("{} {} {} {} {} {}", calc_x, calc_y, calc_w, calc_h, self.text_bounds.h, text_y);
         let metrics = font_store.get_font_metrics(&family);
         let baseline = match metrics {
             Some(metrics) => {
@@ -272,10 +271,8 @@ impl Element for Button {
         builder.push_rect(&info, bgcolor);
 
         let info = LayoutPrimitiveInfo::new(LayoutRect::new(
-            LayoutPoint::new(self.text_bounds.x, extent.y),
-            LayoutSize::new(self.text_bounds.w, self.bounds.h),
-            //LayoutPoint::new(tbounds.x, tbounds.y),
-            //LayoutSize::new(tbounds.w, tbounds.h),
+            LayoutPoint::new(self.text_bounds.x, self.text_bounds.y),
+            LayoutSize::new(self.text_bounds.w, self.text_bounds.h),
         ));
 
         let glyphs = paras.glyphs();

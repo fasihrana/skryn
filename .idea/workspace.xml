@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="5c32dbd9-0b30-470b-ab9f-bc177063d9e8" name="Default" comment="calculating and using baseline for fonts in shape/position.">
+    <list default="true" id="5c32dbd9-0b30-470b-ab9f-bc177063d9e8" name="Default" comment="adding alignment. midpoint save.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/mainexample.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/mainexample.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/elements/button.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/elements/button.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/elements/textbox.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/elements/textbox.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/gui/font.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/gui/font.rs" afterDir="false" />
     </list>
     <ignored path="C:\Users\fasih\workspace\skryn\.idea\shelf/" />
@@ -17,28 +15,28 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/gui/font.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="308">
-              <caret line="608" column="47" selection-start-line="608" selection-start-column="47" selection-end-line="608" selection-end-column="47" />
+            <state relative-caret-position="243">
+              <caret line="650" column="21" selection-start-line="650" selection-start-column="21" selection-end-line="650" selection-end-column="21" />
               <folding>
                 <element signature="e#8288#8289#0" expanded="true" />
                 <element signature="e#8318#8319#0" expanded="true" />
                 <element signature="e#13827#13828#0" expanded="true" />
                 <element signature="e#13901#13902#0" expanded="true" />
-                <element signature="e#17718#17719#0" expanded="true" />
-                <element signature="e#17752#17753#0" expanded="true" />
+                <element signature="e#17340#17341#0" expanded="true" />
+                <element signature="e#17374#17375#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/elements/button.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="260">
-              <caret line="238" column="27" selection-start-line="238" selection-start-column="27" selection-end-line="238" selection-end-column="27" />
+            <state relative-caret-position="302">
+              <caret line="240" column="47" selection-start-line="240" selection-start-column="47" selection-end-line="240" selection-end-column="47" />
               <folding>
                 <element signature="e#10541#10542#0" expanded="true" />
                 <element signature="e#10577#10578#0" expanded="true" />
@@ -61,8 +59,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/gui/properties.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-2597">
-              <caret line="16" column="18" selection-start-line="16" selection-start-column="18" selection-end-line="16" selection-end-column="18" />
+            <state relative-caret-position="157">
+              <caret line="188" column="34" lean-forward="true" selection-start-line="188" selection-start-column="34" selection-end-line="188" selection-end-column="34" />
               <folding>
                 <element signature="e#296#297#0" expanded="true" />
                 <element signature="e#318#319#0" expanded="true" />
@@ -74,8 +72,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/examples/mainexample.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="183">
-              <caret line="105" column="105" selection-start-line="105" selection-start-column="105" selection-end-line="105" selection-end-column="105" />
+            <state relative-caret-position="132">
+              <caret line="105" column="24" selection-start-line="105" selection-start-column="12" selection-end-line="105" selection-end-column="24" />
               <folding>
                 <element signature="e#7834#7835#0" expanded="true" />
                 <element signature="e#7856#7857#0" expanded="true" />
@@ -167,7 +165,6 @@
       <find>lines()</find>
       <find>get_line_glyphs</find>
       <find>GlyphInstance</find>
-      <find>println</find>
       <find>unicode_compose</find>
       <find>ClipboardProvider</find>
       <find>cancel_button</find>
@@ -176,6 +173,7 @@
       <find>dbg</find>
       <find>shape_text</find>
       <find>Extent</find>
+      <find>println</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -208,11 +206,11 @@
         <option value="$PROJECT_DIR$/Cargo.toml" />
         <option value="$PROJECT_DIR$/Cargo.lock" />
         <option value="$PROJECT_DIR$/src/lib.rs" />
-        <option value="$PROJECT_DIR$/src/gui/properties.rs" />
         <option value="$PROJECT_DIR$/src/elements/textbox.rs" />
         <option value="$PROJECT_DIR$/examples/mainexample.rs" />
-        <option value="$PROJECT_DIR$/src/elements/button.rs" />
+        <option value="$PROJECT_DIR$/src/gui/properties.rs" />
         <option value="$PROJECT_DIR$/src/gui/font.rs" />
+        <option value="$PROJECT_DIR$/src/elements/button.rs" />
       </list>
     </option>
   </component>
@@ -621,7 +619,7 @@
       <window_info id="UI Designer" order="4" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.49831837" visible="true" weight="0.347876" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.49831837" visible="true" weight="0.5315729" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -640,7 +638,6 @@
     </layout>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="font-kit functions replaced by RenderApi function for glyph finding and getting dimensions" />
     <MESSAGE value="implemented left/right properties for hbox" />
     <MESSAGE value="implemented top/bottom properties for vbox" />
     <MESSAGE value="prepared button element for text alignment using trbl properties" />
@@ -665,7 +662,8 @@
     <MESSAGE value="corrected extents of words and text runs." />
     <MESSAGE value="corrected extents of para and paras objects." />
     <MESSAGE value="calculating and using baseline for fonts in shape/position." />
-    <option name="LAST_COMMIT_MESSAGE" value="calculating and using baseline for fonts in shape/position." />
+    <MESSAGE value="adding alignment. midpoint save." />
+    <option name="LAST_COMMIT_MESSAGE" value="adding alignment. midpoint save." />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/Skryn.iml">
@@ -898,8 +896,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/gui/properties.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-2597">
-          <caret line="16" column="18" selection-start-line="16" selection-start-column="18" selection-end-line="16" selection-end-column="18" />
+        <state relative-caret-position="157">
+          <caret line="188" column="34" lean-forward="true" selection-start-line="188" selection-start-column="34" selection-end-line="188" selection-end-column="34" />
           <folding>
             <element signature="e#296#297#0" expanded="true" />
             <element signature="e#318#319#0" expanded="true" />
@@ -909,8 +907,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/examples/mainexample.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="183">
-          <caret line="105" column="105" selection-start-line="105" selection-start-column="105" selection-end-line="105" selection-end-column="105" />
+        <state relative-caret-position="132">
+          <caret line="105" column="24" selection-start-line="105" selection-start-column="12" selection-end-line="105" selection-end-column="24" />
           <folding>
             <element signature="e#7834#7835#0" expanded="true" />
             <element signature="e#7856#7857#0" expanded="true" />
@@ -928,30 +926,30 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/elements/button.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="260">
-          <caret line="238" column="27" selection-start-line="238" selection-start-column="27" selection-end-line="238" selection-end-column="27" />
-          <folding>
-            <element signature="e#10541#10542#0" expanded="true" />
-            <element signature="e#10577#10578#0" expanded="true" />
-            <element signature="e#10614#10615#0" expanded="true" />
-            <element signature="e#10641#10642#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/gui/font.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="308">
-          <caret line="608" column="47" selection-start-line="608" selection-start-column="47" selection-end-line="608" selection-end-column="47" />
+        <state relative-caret-position="243">
+          <caret line="650" column="21" selection-start-line="650" selection-start-column="21" selection-end-line="650" selection-end-column="21" />
           <folding>
             <element signature="e#8288#8289#0" expanded="true" />
             <element signature="e#8318#8319#0" expanded="true" />
             <element signature="e#13827#13828#0" expanded="true" />
             <element signature="e#13901#13902#0" expanded="true" />
-            <element signature="e#17718#17719#0" expanded="true" />
-            <element signature="e#17752#17753#0" expanded="true" />
+            <element signature="e#17340#17341#0" expanded="true" />
+            <element signature="e#17374#17375#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/elements/button.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="302">
+          <caret line="240" column="47" selection-start-line="240" selection-start-column="47" selection-end-line="240" selection-end-column="47" />
+          <folding>
+            <element signature="e#10541#10542#0" expanded="true" />
+            <element signature="e#10577#10578#0" expanded="true" />
+            <element signature="e#10614#10615#0" expanded="true" />
+            <element signature="e#10641#10642#0" expanded="true" />
           </folding>
         </state>
       </provider>

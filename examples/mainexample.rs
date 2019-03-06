@@ -103,7 +103,7 @@ impl PersonElm {
             _p.age.get_value()
         )))));
         //This is an alert button just to show how easy it is to spawn new windows.
-        let alert_button = Arc::new(Mutex::new(Button::new(format!("Press here! and what am i doing here?"))));
+        let alert_button = Arc::new(Mutex::new(Button::new(format!("Press here!"))));
         let cancel_button = Arc::new(Mutex::new(Button::new(format!("انار دمحا حیصف"))));
         let h = Arc::new(Mutex::new(HBox::new()));
         match h.lock() {
