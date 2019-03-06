@@ -156,13 +156,8 @@ impl Element for TextBox {
         _props: Option<Arc<properties::Properties>>,
         gen: &mut properties::IdGenerator,
     ) {
-        /*let tmp_str_val = self.value.clone();//self.value.iter().collect();
-        //let tmp_str_val = unicode_compose(&tmp_str_val).chars().collect();
-
         let _id = gen.get();
         self.ext_id = _id;
-
-        let (mut cursor_x, mut cursor_y, cursor_i) = (0.0, 0.0, self.cursor);
 
         let size = self.props.get_size() as f32;
         let family = self.props.get_family();
@@ -192,22 +187,27 @@ impl Element for TextBox {
         let val_str = "●".repeat(self.value.len()).chars().collect();
 
         let value = if !self.is_password {
-            &tmp_str_val
+            &self.value
         } else {
             &val_str
         };
 
-        let (mut glyphs, _bounds, cache) = font::FontRaster::place_lines(
-            value,
-            extent.x,
-            extent.y,
-            extent.w,
-            extent.h,
-            size,
-            &family,
-            &text_align,
-            font_store,
-        );
+        let metrics = font_store.get_font_metrics(&family);
+        let baseline = match metrics {
+            Some(metrics) => {
+                let tmp = metrics.ascent-metrics.descent;
+                let tmp = size / tmp;
+                tmp * (metrics.ascent)
+            },
+            None => size,
+        };
+
+        let mut paras = font::Paragraphs::from_chars(value);
+        paras.shape(extent.x,extent.y,extent.w,extent.h,size,baseline,&family,&text_align);
+        let _bounds = paras.get_extent();
+
+        /*let (mut cursor_x, mut cursor_y, cursor_i) = (0.0, 0.0, self.cursor);
+
 
         self.cache = cache;
 
@@ -220,9 +220,9 @@ impl Element for TextBox {
         } else if !self.cache.is_empty() {
             cursor_x = (self.cache[cursor_i - 1].1).0;
             cursor_y = (self.cache[cursor_i - 1].1).1;
-        }
+        }*/
 
-        glyphs.retain(|x| x.index != 0);
+        /*glyphs.retain(|x| x.index != 0);
 
         if self.value.is_empty() && !self.placeholder.is_empty() && !self.focus {
             let placeholder = font::FontRaster::place_lines(
@@ -253,7 +253,7 @@ impl Element for TextBox {
                 color,
                 Some(GlyphOptions::default()),
             );
-        }
+        }*/
 
         let mut calc_w = _bounds.w;
         let mut calc_h = _bounds.h;
@@ -275,8 +275,11 @@ impl Element for TextBox {
         self.bounds = properties::Extent {
             x: extent.x,
             y: extent.y,
+            //TODO fix this
             w: calc_w,
             h: calc_h,
+            //w:extent.w,
+            //h:extent.h,
             dpi: extent.dpi,
         };
 
@@ -287,13 +290,16 @@ impl Element for TextBox {
         info.tag = Some((_id, 0));
         builder.push_rect(&info, bgcolor);
 
+
+        let glyphs = paras.glyphs();
+
         let info = LayoutPrimitiveInfo::new(LayoutRect::new(
             LayoutPoint::new(extent.x, extent.y),
             LayoutSize::new(self.bounds.w, self.bounds.h),
         ));
         builder.push_text(&info, &glyphs, fi_key, color, Some(GlyphOptions::default()));
 
-        //add the cursor
+        /*/add the cursor
         if self.focus && self.enabled && self.editable {
             let info = LayoutPrimitiveInfo::new(LayoutRect::new(
                 LayoutPoint::new(cursor_x, cursor_y - size),
