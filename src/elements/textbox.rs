@@ -15,11 +15,11 @@ use gui::properties;
 pub struct TextBox {
     ext_id: u64,
     value: Vec<char>,
-    normalized_value: Vec<char>,
+    //normalized_value: Vec<char>,
     placeholder: Vec<char>,
     props: properties::Properties,
     bounds: properties::Extent,
-    cache: Vec<((f32, f32), (f32, f32))>,
+    //cache: Vec<((f32, f32), (f32, f32))>,
     focus: bool,
     event_handlers: EventHandlers,
     drawn: u8,
@@ -39,7 +39,7 @@ impl TextBox {
         TextBox {
             ext_id: 0,
             value: s.chars().collect(),
-            normalized_value: vec![],
+            //normalized_value: vec![],
             placeholder: "".chars().collect(),
             props,
             bounds: properties::Extent {
@@ -49,7 +49,7 @@ impl TextBox {
                 h: 0.0,
                 dpi: 0.0,
             },
-            cache: vec![],
+            //cache: vec![],
             //char_ext: vec![],
             focus: false,
             event_handlers: EventHandlers::new(),

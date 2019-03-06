@@ -35,7 +35,7 @@ mod shaper{
     use harfbuzz_sys::{HB_MEMORY_MODE_READONLY, HB_DIRECTION_RTL, HB_SCRIPT_ARABIC, HB_DIRECTION_LTR};
     use harfbuzz_sys::hb_font_extents_t;
 
-    pub type Dimensions = ((f32, f32), (f32, f32));
+    //pub type Dimensions = ((f32, f32), (f32, f32));
     pub type Glyph = (GlyphIndex, GlyphMetric);
 
     #[derive(Debug, Clone)]
@@ -56,7 +56,7 @@ mod shaper{
     }
 
     #[derive(Debug, Clone)]
-    struct HB_Font{
+    struct HBFont {
         blob: usize,
         face: usize,
         font: usize,
@@ -64,7 +64,7 @@ mod shaper{
     }
 
     lazy_static!(
-            static ref FONT : Arc<Mutex<HashMap<String, HB_Font>>> = Arc::new(Mutex::new(HashMap::new()));
+            static ref FONT : Arc<Mutex<HashMap<String, HBFont>>> = Arc::new(Mutex::new(HashMap::new()));
     );
 
 
@@ -90,7 +90,7 @@ mod shaper{
 
                     let font = hb_font_create(face);
 
-                    let hb_font = HB_Font{
+                    let hb_font = HBFont {
                         blob: blob as *const hb_blob_t as usize,
                         face: face as *const hb_face_t as usize,
                         font: font as *const hb_font_t as usize,
@@ -257,6 +257,7 @@ impl Word {
             } else {
                 word.text.push(Char::new(c.clone(), i, rtl));
             }
+            i+=1;
         }
 
         word
@@ -317,7 +318,6 @@ impl Word {
 
         let mut _x = x;
         for ch in self.text.iter_mut() {
-            //println!("{} --- {:?}", ch.char, ch.metric);
             ch.position.x = _x;
             ch.position.y = y + ch.metric.baseline;
 
@@ -326,14 +326,14 @@ impl Word {
             self.glyphs.push(GlyphInstance{ index: ch.glyph, point: LayoutPoint::new(ch.position.x, ch.position.y) });
         }
 
-        //println!("word extent --> {:?}", self.extent);
+        println!("{:?}", self.glyphs);
     }
 }
 
 #[derive(Debug, Clone)]
 pub struct TextRun{
     words: Vec<Word>,
-    extent: Extent,
+    //extent: Extent,
     rtl: bool
 }
 
@@ -349,7 +349,7 @@ impl TextRun{
         }
     }
 
-    fn position (&mut self, line_x: f32, x:f32, y:f32, w:f32, h:f32, size: f32, text_align:&Align) {
+    /*fn position (&mut self, line_x: f32, x:f32, y:f32, w:f32, h:f32, size: f32, text_align:&Align) {
         let mut _x = x;
         let mut _y = y;
         let mut max_w = 0.;
@@ -378,7 +378,7 @@ impl TextRun{
         self.extent.h = h;
 
         //println!("run extent -> {:?}", self.extent);
-    }
+    }*/
 
     fn len(&self) -> usize {
         let mut len = 0;
@@ -392,7 +392,7 @@ impl TextRun{
     fn append(arr: &mut Vec<TextRun>, word: Word){
         if arr.len() == 0 {
             let rtl = word.rtl;
-            arr.push(TextRun{ words: vec![word], extent: Extent::new(), rtl });
+            arr.push(TextRun{ words: vec![word], /*extent: Extent::new(),*/ rtl });
             return;
         }
 
@@ -402,7 +402,7 @@ impl TextRun{
             arr[indx].words.push(word);
         } else {
             let rtl = word.rtl;
-            arr.push(TextRun{ words: vec![word], extent: Extent::new(), rtl });
+            arr.push(TextRun{ words: vec![word], /*extent: Extent::new(),*/ rtl });
         }
     }
 
@@ -471,13 +471,60 @@ impl TextRun{
 }
 
 #[derive(Debug, Clone)]
+struct WordRef<'a>(&'a Word);
+
+#[derive(Debug, Clone)]
+pub struct TextLine {
+    line: Vec<WordRef<'static>>,
+    extent: Extent,
+    space: f32,
+}
+
+impl TextLine{
+    fn new() -> TextLine{
+        TextLine{ line: vec![], extent: Extent::new(), space: 0.0 }
+    }
+
+    fn add(&mut self, word_ref : WordRef<'static>, w: f32) -> Option<WordRef<'static>>{
+        if self.line.len() == 0 {
+            self.extent.h = word_ref.0.extent.h;
+            self.extent.w = word_ref.0.extent.w;
+            self.line.push(word_ref);
+        } else {
+            self.extent.h = word_ref.0.extent.h;
+            if self.extent.w + self.space + word_ref.0.extent.w > w {
+                return Some(word_ref);
+            } else {
+                self.extent.w = self.space + word_ref.0.extent.w;
+                self.line.push(word_ref);
+            }
+        }
+
+        None
+    }
+
+    #[allow(mutable_transmutes)]
+    fn position(&mut self, x:f32, y:f32){
+        self.extent.x = x;
+        self.extent.y = y;
+        let mut _x = x;
+        for word in self.line.iter_mut(){
+            let tmp = unsafe{std::mem::transmute::<&'static Word, &'static mut Word>(word.0)};
+            tmp.position(_x,y);
+            _x += tmp.extent.w + self.space;
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct Paragraph {
     runs: Vec<TextRun>,
+    lines: Vec<TextLine>,
     rtl: bool,
     extent: Extent,
 }
 
-impl Paragraph {
+impl Paragraph{
     fn len(&self) -> usize {
         let mut len = 0;
         for run in self.runs.iter() {
@@ -498,8 +545,8 @@ impl Paragraph {
         }
     }
 
-    fn positon(
-        &mut self,
+    fn position<'a>(
+        &'a mut self,
         x: f32,
         y: f32,
         w: f32,
@@ -507,27 +554,78 @@ impl Paragraph {
         size: f32,
         text_align: &Align
     ){
-        let line_x = x;
-        let mut _y = y;
-        let mut max_w = 0.;
-        let mut h = size;
+        //let line_x = x;
+        //let mut _y = y;
+        //let mut max_w = 0.;
+        //let mut _h = size;
+
+        const space_div: f32 = 4.;
+
+        let mut textline = TextLine::new();
+        textline.space = size/space_div;
 
         for run in self.runs.iter_mut() {
-            run.position(line_x,x,y,w,h,size,text_align);
+            //run.position(line_x,x,y,w,h,size,text_align);
 
-            if run.extent.h > size {
-                h+= run.extent.h - size;
+
+            /*for word in run.words.iter_mut() {
+                let tmp = WordRef(word);
+                let tmp = unsafe{std::mem::transmute::<WordRef<'a>, WordRef<'static>>(tmp)};
+                textline.line.push(tmp);
+            }*/
+
+            /*if run.extent.h > size {
+                _h+= run.extent.h - size;
             }
 
             if run.extent.w > max_w {
                 max_w = run.extent.w;
+            }*/
+            //_y += run.extent.y;
+
+            for word in run.words.iter_mut() {
+                let tmp = WordRef(word);
+                let tmp = unsafe{std::mem::transmute::<WordRef<'a>, WordRef<'static>>(tmp)};
+
+                let res = textline.add(tmp, w);
+                if res.is_some() {
+                    self.lines.push(textline);
+                    let tmp = res.unwrap();
+                    textline = TextLine::new();
+                    textline.space = size/space_div;
+                    textline.add(tmp, w);
+                }
             }
-            _y += run.extent.y;
         }
+
+        self.lines.push(textline);
+
+        let mut _y = y;
+        let mut max_w = 0.;
+        for line in self.lines.iter_mut() {
+            match text_align {
+                Align::Left => {
+                    line.position(x,_y);
+                },
+                Align::Middle => {
+                    let tmp = (w - line.extent.w)/2.;
+                    line.position(x + tmp, _y);
+                },
+                Align::Right => {
+                    let tmp = w - line.extent.w;
+                    line.position(x + tmp, _y);
+                },
+            }
+            if max_w < line.extent.w {
+                max_w = line.extent.w;
+            }
+            _y += size;
+        }
+
         self.extent.x = x;
         self.extent.y = y;
         self.extent.w = max_w;
-        self.extent.h = h;
+        self.extent.h = size * self.lines.len() as f32;
 
         //println!("para extent -> {:?}", self.extent);
     }
@@ -536,10 +634,14 @@ impl Paragraph {
 #[derive(Debug, Clone)]
 pub struct Paragraphs{
     list: Vec<Paragraph>,
-    pub extent: Extent,
+    extent: Extent,
 }
 
-impl Paragraphs{
+impl Paragraphs {
+    pub fn get_extent(&mut self) -> Extent {
+        self.extent.clone()
+    }
+
     pub fn from_chars(text: &Vec<char>) -> Paragraphs {
         let mut arr = vec![];
 
@@ -547,18 +649,18 @@ impl Paragraphs{
 
         let mut curr = 0;
 
-        let mut positions = text.iter().positions(|&c|{c == '\n'});
+        let positions = text.iter().positions(|&c|{c == '\n'});
 
         for pos in positions {
             let runs = TextRun::from_chars(text,curr,pos);
-            let rtl = if runs.len() < 0 {runs[0].rtl} else {false};
-            arr.push(Paragraph{runs,rtl, extent: Extent::new() });
+            let rtl = if runs.len() > 0 {runs[0].rtl} else {false};
+            arr.push(Paragraph{runs, lines: vec![], rtl, extent: Extent::new() });
             curr = pos+1;
         }
         let runs = TextRun::from_chars(text,curr,len);
-        let rtl = if runs.len() < 0 {runs[0].rtl} else {false};
+        let rtl = if runs.len() > 0 {runs[0].rtl} else {false};
 
-        arr.push(Paragraph{runs,rtl, extent: Extent::new()});
+        arr.push(Paragraph{runs, lines: vec![], rtl, extent: Extent::new()});
 
         Paragraphs{list:arr, extent: Extent::new() }
     }
@@ -596,7 +698,7 @@ impl Paragraphs{
 
         let mut max_w = 0.;
         for para in self.list.iter_mut() {
-            para.positon(x,_y,w,h,size,text_align);
+            para.position(x,_y,w,h,size,text_align);
 
             if para.extent.w > max_w {
                 max_w = para.extent.w;
@@ -615,9 +717,9 @@ impl Paragraphs{
     pub fn glyphs(&self) -> Vec<GlyphInstance> {
         let mut arr = vec![];
         for para in self.list.iter() {
-            for line in para.runs.iter() {
-                for word in line.words.iter() {
-                    arr.append(&mut word.glyphs.clone());
+            for line in para.lines.iter() {
+                for word in line.line.iter() {
+                    arr.append(&mut word.0.glyphs.clone());
                 }
             }
         }

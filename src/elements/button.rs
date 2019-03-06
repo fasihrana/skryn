@@ -236,7 +236,7 @@ impl Element for Button {
                                   &family,
                                   &text_align);
 
-        self.text_bounds = paras.extent.clone();
+        self.text_bounds = paras.get_extent();
 
         let mut calc_w = self.text_bounds.w;
         let mut calc_h = self.text_bounds.h;

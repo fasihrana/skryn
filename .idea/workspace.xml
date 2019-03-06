@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="5c32dbd9-0b30-470b-ab9f-bc177063d9e8" name="Default" comment="corrected extents of para and paras objects.">
+    <list default="true" id="5c32dbd9-0b30-470b-ab9f-bc177063d9e8" name="Default" comment="calculating and using baseline for fonts in shape/position.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/examples/mainexample.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/mainexample.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/elements/button.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/elements/button.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/elements/textbox.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/elements/textbox.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/gui/font.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/gui/font.rs" afterDir="false" />
     </list>
     <ignored path="C:\Users\fasih\workspace\skryn\.idea\shelf/" />
@@ -16,29 +17,33 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/gui/font.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="424">
-              <caret line="289" column="77" selection-start-line="289" selection-start-column="77" selection-end-line="289" selection-end-column="77" />
+            <state relative-caret-position="308">
+              <caret line="608" column="47" selection-start-line="608" selection-start-column="47" selection-end-line="608" selection-end-column="47" />
               <folding>
                 <element signature="e#8288#8289#0" expanded="true" />
                 <element signature="e#8318#8319#0" expanded="true" />
+                <element signature="e#13827#13828#0" expanded="true" />
+                <element signature="e#13901#13902#0" expanded="true" />
+                <element signature="e#17718#17719#0" expanded="true" />
+                <element signature="e#17752#17753#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/elements/button.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="219">
-              <caret line="226" column="10" selection-start-line="226" selection-start-column="10" selection-end-line="226" selection-end-column="10" />
+            <state relative-caret-position="260">
+              <caret line="238" column="27" selection-start-line="238" selection-start-column="27" selection-end-line="238" selection-end-column="27" />
               <folding>
-                <element signature="e#10420#10421#0" expanded="true" />
-                <element signature="e#10456#10457#0" expanded="true" />
-                <element signature="e#10493#10494#0" expanded="true" />
-                <element signature="e#10520#10521#0" expanded="true" />
+                <element signature="e#10541#10542#0" expanded="true" />
+                <element signature="e#10577#10578#0" expanded="true" />
+                <element signature="e#10614#10615#0" expanded="true" />
+                <element signature="e#10641#10642#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -69,8 +74,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/examples/mainexample.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="149">
-              <caret line="106" column="78" selection-start-line="106" selection-start-column="78" selection-end-line="106" selection-end-column="78" />
+            <state relative-caret-position="183">
+              <caret line="105" column="105" selection-start-line="105" selection-start-column="105" selection-end-line="105" selection-end-column="105" />
               <folding>
                 <element signature="e#7834#7835#0" expanded="true" />
                 <element signature="e#7856#7857#0" expanded="true" />
@@ -92,8 +97,40 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/elements/textbox.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="140">
-              <caret line="394" column="35" selection-start-line="394" selection-start-column="35" selection-end-line="394" selection-end-column="35" />
+            <state relative-caret-position="127">
+              <caret line="41" column="14" selection-start-line="41" selection-start-column="14" selection-end-line="41" selection-end-column="14" />
+              <folding>
+                <element signature="e#1952#1953#0" expanded="true" />
+                <element signature="e#2002#2003#0" expanded="true" />
+                <element signature="e#2227#2228#0" expanded="true" />
+                <element signature="e#2255#2256#0" expanded="true" />
+                <element signature="e#2307#2308#0" expanded="true" />
+                <element signature="e#2345#2346#0" expanded="true" />
+                <element signature="e#2403#2404#0" expanded="true" />
+                <element signature="e#2447#2448#0" expanded="true" />
+                <element signature="e#3250#3251#0" expanded="true" />
+                <element signature="e#3304#3305#0" expanded="true" />
+                <element signature="e#3351#3352#0" expanded="true" />
+                <element signature="e#3407#3408#0" expanded="true" />
+                <element signature="e#3471#3472#0" expanded="true" />
+                <element signature="e#3497#3498#0" expanded="true" />
+                <element signature="e#3550#3551#0" expanded="true" />
+                <element signature="e#3586#3587#0" expanded="true" />
+                <element signature="e#3767#3768#0" expanded="true" />
+                <element signature="e#3800#3801#0" expanded="true" />
+                <element signature="e#8826#8827#0" expanded="true" />
+                <element signature="e#8860#8861#0" expanded="true" />
+                <element signature="e#13856#13857#0" expanded="true" />
+                <element signature="e#13904#13905#0" expanded="true" />
+                <element signature="e#14174#14175#0" expanded="true" />
+                <element signature="e#14193#14194#0" expanded="true" />
+                <element signature="e#14236#14237#0" expanded="true" />
+                <element signature="e#14255#14256#0" expanded="true" />
+                <element signature="e#14333#14334#0" expanded="true" />
+                <element signature="e#14369#14370#0" expanded="true" />
+                <element signature="e#14406#14407#0" expanded="true" />
+                <element signature="e#14433#14434#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -166,16 +203,16 @@
         <option value="$PROJECT_DIR$/src/gui/font/harfbuzz/mod.rs" />
         <option value="$PROJECT_DIR$/src/gui/font/harfbuzz/face.rs" />
         <option value="$PROJECT_DIR$/src/util.rs" />
-        <option value="$PROJECT_DIR$/src/elements/textbox.rs" />
         <option value="$PROJECT_DIR$/src/gui/font/mod.rs" />
         <option value="$PROJECT_DIR$/src/gui/font/font.rs" />
         <option value="$PROJECT_DIR$/Cargo.toml" />
         <option value="$PROJECT_DIR$/Cargo.lock" />
         <option value="$PROJECT_DIR$/src/lib.rs" />
         <option value="$PROJECT_DIR$/src/gui/properties.rs" />
+        <option value="$PROJECT_DIR$/src/elements/textbox.rs" />
         <option value="$PROJECT_DIR$/examples/mainexample.rs" />
-        <option value="$PROJECT_DIR$/src/gui/font.rs" />
         <option value="$PROJECT_DIR$/src/elements/button.rs" />
+        <option value="$PROJECT_DIR$/src/gui/font.rs" />
       </list>
     </option>
   </component>
@@ -584,7 +621,7 @@
       <window_info id="UI Designer" order="4" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.49831837" visible="true" weight="0.36280137" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.49831837" visible="true" weight="0.347876" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -603,7 +640,6 @@
     </layout>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="font can be loaded by fmaily name now." />
     <MESSAGE value="font-kit functions replaced by RenderApi function for glyph finding and getting dimensions" />
     <MESSAGE value="implemented left/right properties for hbox" />
     <MESSAGE value="implemented top/bottom properties for vbox" />
@@ -628,7 +664,8 @@
     <MESSAGE value="corrected RTL addition of words" />
     <MESSAGE value="corrected extents of words and text runs." />
     <MESSAGE value="corrected extents of para and paras objects." />
-    <option name="LAST_COMMIT_MESSAGE" value="corrected extents of para and paras objects." />
+    <MESSAGE value="calculating and using baseline for fonts in shape/position." />
+    <option name="LAST_COMMIT_MESSAGE" value="calculating and using baseline for fonts in shape/position." />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/Skryn.iml">
@@ -822,8 +859,40 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/elements/textbox.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="140">
-          <caret line="394" column="35" selection-start-line="394" selection-start-column="35" selection-end-line="394" selection-end-column="35" />
+        <state relative-caret-position="127">
+          <caret line="41" column="14" selection-start-line="41" selection-start-column="14" selection-end-line="41" selection-end-column="14" />
+          <folding>
+            <element signature="e#1952#1953#0" expanded="true" />
+            <element signature="e#2002#2003#0" expanded="true" />
+            <element signature="e#2227#2228#0" expanded="true" />
+            <element signature="e#2255#2256#0" expanded="true" />
+            <element signature="e#2307#2308#0" expanded="true" />
+            <element signature="e#2345#2346#0" expanded="true" />
+            <element signature="e#2403#2404#0" expanded="true" />
+            <element signature="e#2447#2448#0" expanded="true" />
+            <element signature="e#3250#3251#0" expanded="true" />
+            <element signature="e#3304#3305#0" expanded="true" />
+            <element signature="e#3351#3352#0" expanded="true" />
+            <element signature="e#3407#3408#0" expanded="true" />
+            <element signature="e#3471#3472#0" expanded="true" />
+            <element signature="e#3497#3498#0" expanded="true" />
+            <element signature="e#3550#3551#0" expanded="true" />
+            <element signature="e#3586#3587#0" expanded="true" />
+            <element signature="e#3767#3768#0" expanded="true" />
+            <element signature="e#3800#3801#0" expanded="true" />
+            <element signature="e#8826#8827#0" expanded="true" />
+            <element signature="e#8860#8861#0" expanded="true" />
+            <element signature="e#13856#13857#0" expanded="true" />
+            <element signature="e#13904#13905#0" expanded="true" />
+            <element signature="e#14174#14175#0" expanded="true" />
+            <element signature="e#14193#14194#0" expanded="true" />
+            <element signature="e#14236#14237#0" expanded="true" />
+            <element signature="e#14255#14256#0" expanded="true" />
+            <element signature="e#14333#14334#0" expanded="true" />
+            <element signature="e#14369#14370#0" expanded="true" />
+            <element signature="e#14406#14407#0" expanded="true" />
+            <element signature="e#14433#14434#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -840,8 +909,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/examples/mainexample.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="149">
-          <caret line="106" column="78" selection-start-line="106" selection-start-column="78" selection-end-line="106" selection-end-column="78" />
+        <state relative-caret-position="183">
+          <caret line="105" column="105" selection-start-line="105" selection-start-column="105" selection-end-line="105" selection-end-column="105" />
           <folding>
             <element signature="e#7834#7835#0" expanded="true" />
             <element signature="e#7856#7857#0" expanded="true" />
@@ -859,26 +928,30 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/gui/font.rs">
+    <entry file="file://$PROJECT_DIR$/src/elements/button.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="424">
-          <caret line="289" column="77" selection-start-line="289" selection-start-column="77" selection-end-line="289" selection-end-column="77" />
+        <state relative-caret-position="260">
+          <caret line="238" column="27" selection-start-line="238" selection-start-column="27" selection-end-line="238" selection-end-column="27" />
           <folding>
-            <element signature="e#8288#8289#0" expanded="true" />
-            <element signature="e#8318#8319#0" expanded="true" />
+            <element signature="e#10541#10542#0" expanded="true" />
+            <element signature="e#10577#10578#0" expanded="true" />
+            <element signature="e#10614#10615#0" expanded="true" />
+            <element signature="e#10641#10642#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/elements/button.rs">
+    <entry file="file://$PROJECT_DIR$/src/gui/font.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="219">
-          <caret line="226" column="10" selection-start-line="226" selection-start-column="10" selection-end-line="226" selection-end-column="10" />
+        <state relative-caret-position="308">
+          <caret line="608" column="47" selection-start-line="608" selection-start-column="47" selection-end-line="608" selection-end-column="47" />
           <folding>
-            <element signature="e#10420#10421#0" expanded="true" />
-            <element signature="e#10456#10457#0" expanded="true" />
-            <element signature="e#10493#10494#0" expanded="true" />
-            <element signature="e#10520#10521#0" expanded="true" />
+            <element signature="e#8288#8289#0" expanded="true" />
+            <element signature="e#8318#8319#0" expanded="true" />
+            <element signature="e#13827#13828#0" expanded="true" />
+            <element signature="e#13901#13902#0" expanded="true" />
+            <element signature="e#17718#17719#0" expanded="true" />
+            <element signature="e#17752#17753#0" expanded="true" />
           </folding>
         </state>
       </provider>
