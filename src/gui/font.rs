@@ -676,7 +676,7 @@ impl Paragraphs {
                     let tmp = &tmp.line[tmp.line.len()-1].0.text;
                     //cursor = tmp[tmp.len()-1].index;
                     //pos = tmp[tmp.len()-1].position.clone();
-                    ret = Some(tmp[tmp.len()-1].clone());
+                    //ret = Some(tmp[tmp.len()-1].clone());
                 }
                 else {
                     for line in para.lines.iter() {
