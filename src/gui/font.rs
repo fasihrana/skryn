@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use webrender::api::*;
 
 use util::unicode_compose;
-use super::properties::Align;
+use super::properties::{Align, Position};
 use gui::font::shaper::GlyphMetric;
 use itertools::*;
 
@@ -35,20 +35,22 @@ mod shaper{
     use harfbuzz_sys::{HB_MEMORY_MODE_READONLY, HB_DIRECTION_RTL, HB_SCRIPT_ARABIC, HB_DIRECTION_LTR};
     use harfbuzz_sys::hb_font_extents_t;
 
+    use super::super::properties::Position;
+
     //pub type Dimensions = ((f32, f32), (f32, f32));
     pub type Glyph = (GlyphIndex, GlyphMetric);
 
-    #[derive(Debug, Clone)]
+    /*#[derive(Debug, Clone)]
     pub struct Point{
         pub x: f32,
         pub y: f32,
-    }
+    }*/
 
     #[derive(Debug, Clone)]
     pub struct GlyphMetric{
-        pub advance: Point,
-        pub offset: Point,
-        pub bearing: Point,
+        pub advance: Position,
+        pub offset: Position,
+        pub bearing: Position,
         pub width: f32,
         pub height: f32,
         pub size: f32,
@@ -151,9 +153,9 @@ mod shaper{
                 hb_font_get_glyph_extents(hb_font,(*info).codepoint,&mut extent as *mut hb_glyph_extents_t);
 
                 let metric = GlyphMetric{
-                    advance: Point{ x: (*pos).x_advance as f32, y: (*pos).y_advance as f32},
-                    offset: Point{ x: (*pos).x_offset as f32, y: (*pos).y_offset as f32 },
-                    bearing: Point{ x: extent.x_bearing as f32, y: extent.y_bearing as f32 },
+                    advance: Position{ x: (*pos).x_advance as f32, y: (*pos).y_advance as f32},
+                    offset: Position{ x: (*pos).x_offset as f32, y: (*pos).y_offset as f32 },
+                    bearing: Position{ x: extent.x_bearing as f32, y: extent.y_bearing as f32 },
                     width: extent.width as f32,
                     height: extent.height as f32,
                     size: size as f32,
@@ -206,7 +208,7 @@ pub struct Char{
     char: char,
     metric: GlyphMetric,
     index: usize,
-    position: shaper::Point,
+    position: Position,
     rtl: bool,
     glyph: GlyphIndex,
 }
@@ -216,20 +218,27 @@ impl Char {
         Char{
             char,
             metric: GlyphMetric {
-                advance: shaper::Point { x: 0.0, y: 0.0 },
-                offset: shaper::Point { x: 0.0, y: 0.0 },
-                bearing: shaper::Point { x: 0.0, y: 0.0 },
+                advance: Position { x: 0.0, y: 0.0 },
+                offset: Position { x: 0.0, y: 0.0 },
+                bearing: Position { x: 0.0, y: 0.0 },
                 width: 0.0,
                 height: 0.0,
                 size: 0.0,
                 baseline: 0.0,
             },
             index,
-            position: shaper::Point { x: 0.0, y: 0.0 },
+            position: Position { x: 0.0, y: 0.0 },
             rtl,
             glyph: 0
         }
     }
+
+    pub fn get_char(&self) -> char {self.char}
+    pub fn get_metric(&self) -> GlyphMetric {self.metric.clone()}
+    pub fn get_index(&self) -> usize {self.index}
+    pub fn get_position(&self) -> Position {self.position.clone()}
+    pub fn get_rtl(&self) -> bool {self.rtl}
+    pub fn get_glyph(&self) -> GlyphIndex {self.glyph}
 }
 
 #[derive(Debug, Clone)]
@@ -274,17 +283,7 @@ impl Word {
         family: &str,
     ) {
 
-        let value : String = /*if self.rtl {
-            let tmp = self.text.iter().rev();
-            let mut val = String::new();
-            for x in tmp {
-                val.push(x.char.clone());
-            }
-            val
-        } else {*/
-            self.text.iter().map(|c|{c.char}).collect()
-        //}
-        ;
+        let value : String = self.text.iter().map(|c|{c.char}).collect();
 
 
 
@@ -488,6 +487,7 @@ pub struct Paragraph {
     lines: Vec<TextLine>,
     rtl: bool,
     extent: Extent,
+    space: f32,
 }
 
 impl Paragraph{
@@ -513,10 +513,8 @@ impl Paragraph{
         text_align: &Align
     ){
 
-        const space_div: f32 = 4.;
-
         let mut textline = TextLine::new();
-        textline.space = size/space_div;
+        textline.space = self.space;
 
         for run in self.runs.iter_mut() {
 
@@ -529,7 +527,7 @@ impl Paragraph{
                     self.lines.push(textline);
                     let tmp = res.unwrap();
                     textline = TextLine::new();
-                    textline.space = size/space_div;
+                    textline.space = self.space;
                     textline.add(tmp, w);
                 }
             }
@@ -574,9 +572,14 @@ impl Paragraph{
 pub struct Paragraphs{
     list: Vec<Paragraph>,
     extent: Extent,
+    space: f32,
 }
 
 impl Paragraphs {
+    pub fn new()-> Paragraphs{
+        Paragraphs{ list: Vec::new(), extent: Extent::new(), space: 0.0 }
+    }
+
     pub fn get_extent(&mut self) -> Extent {
         self.extent.clone()
     }
@@ -593,15 +596,15 @@ impl Paragraphs {
         for pos in positions {
             let runs = TextRun::from_chars(text,curr,pos);
             let rtl = if runs.len() > 0 {runs[0].rtl} else {false};
-            arr.push(Paragraph{runs, lines: vec![], rtl, extent: Extent::new() });
+            arr.push(Paragraph{runs, lines: vec![], rtl, extent: Extent::new(), space: 0.0 });
             curr = pos+1;
         }
         let runs = TextRun::from_chars(text,curr,len);
         let rtl = if runs.len() > 0 {runs[0].rtl} else {false};
 
-        arr.push(Paragraph{runs, lines: vec![], rtl, extent: Extent::new()});
+        arr.push(Paragraph{runs, lines: vec![], rtl, extent: Extent::new(), space: 0.0 });
 
-        Paragraphs{list:arr, extent: Extent::new() }
+        Paragraphs{list:arr, extent: Extent::new(), space: 0.0 }
     }
 
     pub fn shape(
@@ -637,8 +640,11 @@ impl Paragraphs {
         let mut min_x = x + w;
         let mut min_y = y + h;
 
+        self.space = size/4.;
+
         let mut max_w = 0.;
         for para in self.list.iter_mut() {
+            para.space = self.space;
             para.position(x,_y,w,h,size,text_align);
 
             if para.extent.w > max_w {
@@ -657,6 +663,29 @@ impl Paragraphs {
         self.extent.y = min_y;
         self.extent.w = max_w;
         self.extent.h = _y - y;
+    }
+
+    pub fn get_char_at_pos(&self,p: &super::properties::Position, val: &Vec<char>) -> Option<Char>{
+        //let mut cursor = 0;
+        //let mut pos = super::properties::Position{ x: 0.0, y: 0.0 };
+        let mut ret = None;
+        if !self.list.is_empty() {
+            for para in self.list.iter() {
+                if para.extent.y + para.extent.h < p.y {
+                    let tmp = &para.lines[para.lines.len()-1];
+                    let tmp = &tmp.line[tmp.line.len()-1].0.text;
+                    //cursor = tmp[tmp.len()-1].index;
+                    //pos = tmp[tmp.len()-1].position.clone();
+                    ret = Some(tmp[tmp.len()-1].clone());
+                }
+                else {
+                    for line in para.lines.iter() {
+
+                    }
+                }
+            }
+        }
+        ret
     }
 
     pub fn glyphs(&self) -> Vec<GlyphInstance> {

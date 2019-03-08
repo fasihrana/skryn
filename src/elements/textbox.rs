@@ -1,25 +1,20 @@
 use std::any::Any;
 use std::sync::Arc;
-//use itertools::Itertools;
 
 use clipboard::{ClipboardContext, ClipboardProvider};
 use glutin::VirtualKeyCode;
 use webrender::api::*;
-//use str::strbuf::StrBuf;
 
 use elements::element::*;
 use gui::font;
 use gui::properties;
-//use util::unicode_compose;
 
 pub struct TextBox {
     ext_id: u64,
     value: Vec<char>,
-    //normalized_value: Vec<char>,
     placeholder: Vec<char>,
     props: properties::Properties,
     bounds: properties::Extent,
-    //cache: Vec<((f32, f32), (f32, f32))>,
     focus: bool,
     event_handlers: EventHandlers,
     drawn: u8,
@@ -29,6 +24,7 @@ pub struct TextBox {
     cursor: usize,
     hovering: bool,
     is_password: bool,
+    cache: font::Paragraphs,
 }
 
 impl TextBox {
@@ -39,7 +35,6 @@ impl TextBox {
         TextBox {
             ext_id: 0,
             value: s.chars().collect(),
-            //normalized_value: vec![],
             placeholder: "".chars().collect(),
             props,
             bounds: properties::Extent {
@@ -49,8 +44,6 @@ impl TextBox {
                 h: 0.0,
                 dpi: 0.0,
             },
-            //cache: vec![],
-            //char_ext: vec![],
             focus: false,
             event_handlers: EventHandlers::new(),
             drawn: 0,
@@ -60,6 +53,7 @@ impl TextBox {
             cursor: 0,
             hovering: false,
             is_password: false,
+            cache: font::Paragraphs::new(),
         }
     }
 
@@ -98,10 +92,17 @@ impl TextBox {
         self.singleline = singleline;
     }
 
-    /*pub fn get_index_at(&self, p: &properties::Position) -> usize {
-        let size = self.props.get_size() as f32;
+    pub fn get_index_at(&self, p: &properties::Position) -> usize {
+        let x = self.cache.get_char_at_pos(p, &self.value);
+
+        if x.is_some() {
+            x.unwrap().get_index()
+        } else {
+            0
+        }
+        /*let size = self.props.get_size() as f32;
         let mut i = 0;
-        let mut cursor = 0;
+
         while i < self.cache.len() {
             let pmin = self.cache[i as usize].0;
             let pmax = self.cache[i as usize].1;
@@ -116,10 +117,8 @@ impl TextBox {
                 }
             }
             i += 1;
-        }
-
-        cursor
-    }*/
+        }*/
+    }
 
     pub fn set_placeholder(&mut self, p: String) {
         self.placeholder = p.chars().collect();
@@ -182,6 +181,10 @@ impl Element for TextBox {
             bgcolor = self.props.get_disabled_bg_color();
         }
 
+        if self.value.is_empty() && !self.placeholder.is_empty() && !self.focus && !self.hovering {
+            color = self.props.get_disabled_color();
+        }
+
         let (_f_key, fi_key) = font_store.get_font_instance(&family, size as i32);
 
         let val_str = "●".repeat(self.value.len()).chars().collect();
@@ -190,6 +193,12 @@ impl Element for TextBox {
             &self.value
         } else {
             &val_str
+        };
+
+        let value = if value.is_empty() {
+            &self.placeholder
+        }else {
+            &value
         };
 
         let metrics = font_store.get_font_metrics(&family);
@@ -205,11 +214,13 @@ impl Element for TextBox {
         let mut paras = font::Paragraphs::from_chars(value);
         paras.shape(extent.x,extent.y,extent.w,extent.h,size,baseline,&family,&text_align);
         let _bounds = paras.get_extent();
+        let glyphs = paras.glyphs();
+
+        if !self.value.is_empty() {
+            self.cache = paras;
+        }
 
         /*let (mut cursor_x, mut cursor_y, cursor_i) = (0.0, 0.0, self.cursor);
-
-
-        self.cache = cache;
 
         if cursor_i == 0 && self.cache.is_empty() {
             cursor_x = _bounds.x;
@@ -222,38 +233,8 @@ impl Element for TextBox {
             cursor_y = (self.cache[cursor_i - 1].1).1;
         }*/
 
-        /*glyphs.retain(|x| x.index != 0);
 
-        if self.value.is_empty() && !self.placeholder.is_empty() && !self.focus {
-            let placeholder = font::FontRaster::place_lines(
-                &self.placeholder,
-                extent.x,
-                extent.y,
-                extent.w,
-                extent.h,
-                size,
-                &family,
-                &text_align,
-                font_store,
-            );
 
-            let info = LayoutPrimitiveInfo::new(LayoutRect::new(
-                LayoutPoint::new(placeholder.1.x, placeholder.1.y),
-                LayoutSize::new(placeholder.1.w, placeholder.1.h),
-            ));
-
-            if !self.hovering {
-                color = self.props.get_disabled_color();
-            }
-
-            builder.push_text(
-                &info,
-                &placeholder.0,
-                fi_key,
-                color,
-                Some(GlyphOptions::default()),
-            );
-        }*/
 
         let mut calc_w = _bounds.w;
         let mut calc_h = _bounds.h;
@@ -275,11 +256,8 @@ impl Element for TextBox {
         self.bounds = properties::Extent {
             x: extent.x,
             y: extent.y,
-            //TODO fix this
             w: calc_w,
             h: calc_h,
-            //w:extent.w,
-            //h:extent.h,
             dpi: extent.dpi,
         };
 
@@ -289,9 +267,6 @@ impl Element for TextBox {
         ));
         info.tag = Some((_id, 0));
         builder.push_rect(&info, bgcolor);
-
-
-        let glyphs = paras.glyphs();
 
         let info = LayoutPrimitiveInfo::new(LayoutRect::new(
             LayoutPoint::new(extent.x, extent.y),
@@ -392,6 +367,24 @@ impl Element for TextBox {
                 }
                 _ => (),
             },*/
+            PrimitiveEvent::Char(mut c) => {
+
+                if self.focus && self.enabled && self.editable {
+                    if c == '\x08' {
+
+                    } else if c == '\u{3}' {
+
+                    } else if c == '\u{16}' {
+
+                    } else {
+                        if c == '\r' {
+                            c = '\n';
+                        }
+                        self.value.push(c);
+                    }
+                    handled = true;
+                }
+            },
             PrimitiveEvent::SetFocus(f) => {
                 if self.enabled && self.focus != f {
                     self.focus = f;
@@ -405,7 +398,8 @@ impl Element for TextBox {
                     && s == properties::ButtonState::Released
                     {
                         //TODO: uncomment the following
-                        //self.cursor = self.get_index_at(&p);
+                        self.cursor = self.get_index_at(&p);
+                        println!("pressed index at {}", self.cursor);
                         handled = self.exec_handler(ElementEvent::Clicked, &m);
                     }
             },
