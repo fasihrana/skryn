@@ -244,333 +244,6 @@ impl Char {
 }
 
 #[derive(Debug, Clone)]
-pub struct Word{
-    text: Vec<Char>,
-    glyphs: Vec<GlyphInstance>,
-    rtl: bool,
-    extent: Extent,
-}
-
-impl Word {
-    fn from_chars(value: &Vec<char>, begin:usize, end:usize, rtl:bool) -> Word
-    {
-        let mut word = Word{
-            text: vec![],
-            glyphs: vec![],
-            rtl,
-            extent: Extent::new()
-        };
-
-        let mut i = begin;
-        for c in &value[begin..end] {
-            if rtl {
-                word.text.insert(0,Char::new(c.clone(), i, rtl));
-            } else {
-                word.text.push(Char::new(c.clone(), i, rtl));
-            }
-            i+=1;
-        }
-
-        word
-    }
-
-    fn len(&self) -> usize {
-        self.text.len()
-    }
-
-    fn shape(
-        &mut self,
-        size: f32,
-        baseline: f32,
-        family: &str,
-    ) {
-
-        let value : String = self.text.iter().map(|c|{c.char}).collect();
-
-
-
-        let glyphs = shaper::shape_text(value.as_str(), size as u32, baseline, family, self.rtl);
-
-        self.glyphs.clear();
-
-        let mut _x = 0.;
-
-        let mut i = 0;
-        while i < self.text.len() {
-            let (glyph, ref metric) = glyphs[i];
-
-            self.text[i].glyph = glyph;
-            self.text[i].metric = metric.clone();
-            self.text[i].position.x = _x;
-            self.text[i].position.y = size;
-
-            i+=1;
-            _x += metric.advance.x;
-        }
-        self.extent.h = size;
-        self.extent.w = _x;
-    }
-
-    fn position(&mut self, x: f32, y: f32) {
-        self.glyphs.clear();
-
-        self.extent.x = x;
-        self.extent.y = y;
-
-        let mut _x = x;
-        for ch in self.text.iter_mut() {
-            ch.position.x = _x;
-            ch.position.y = y + ch.metric.baseline;
-
-            _x += ch.metric.advance.x;
-
-            self.glyphs.push(GlyphInstance{ index: ch.glyph, point: LayoutPoint::new(ch.position.x, ch.position.y) });
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct TextRun{
-    words: Vec<Word>,
-    //extent: Extent,
-    rtl: bool
-}
-
-impl TextRun{
-    fn shape(
-        &mut self,
-        size: f32,
-        baseline: f32,
-        family: &str,
-    ){
-        for word in self.words.iter_mut() {
-            word.shape(size, baseline, family);
-        }
-    }
-
-    fn len(&self) -> usize {
-        let mut len = 0;
-        for word in self.words.iter() {
-            len += word.len() + 1; //Add 1 for a space character
-        }
-
-        len - 1 //TextRun character length is (Sum of word(1..n).len) + n - 1
-    }
-
-    fn append(arr: &mut Vec<TextRun>, word: Word){
-        if arr.len() == 0 {
-            let rtl = word.rtl;
-            arr.push(TextRun{ words: vec![word], /*extent: Extent::new(),*/ rtl });
-            return;
-        }
-
-        let indx = arr.len() - 1;
-
-        if arr[indx].rtl == word.rtl {
-            arr[indx].words.push(word);
-        } else {
-            let rtl = word.rtl;
-            arr.push(TextRun{ words: vec![word], /*extent: Extent::new(),*/ rtl });
-        }
-    }
-
-    pub fn index_chars(arr: &mut Vec<TextRun>, begin: usize){
-
-        let mut curr = begin;
-        for item in arr.iter_mut() {
-            if item.rtl {
-                let len = item.len();
-                let mut ind = begin + len - 1;
-                for word in item.words.iter_mut(){
-                    for ch in word.text.iter_mut() {
-                        ch.index = ind;
-                        if ind > curr {
-                            ind -= 1;
-                        }
-                    }
-                    if ind > curr {
-                        ind -= 1;
-                    }
-                }
-                curr += len;
-            } else {
-                for word in item.words.iter_mut() {
-                    for ch in word.text.iter_mut(){
-                        ch.index = curr;
-                        curr+=1;
-                    }
-                    curr+=1;
-                }
-            }
-        }
-    }
-
-    pub fn from_chars(value: &Vec<char>, begin:usize, end:usize) -> Vec<TextRun> {
-        let mut arr = vec![];
-
-        let positions = value[begin..end].iter().positions(|&c|{ c == ' '});
-
-        let mut curr = begin;
-
-        for pos in positions {
-            let tmp : String = value[curr..pos+begin].iter().collect();
-            let (_, bidi) = unicode_compose(&tmp);
-
-            let word = Word::from_chars(value, curr, pos+begin, bidi.paragraphs[0].level.is_rtl());
-            Self::append(&mut arr,word);
-
-            curr = pos+begin+1;
-        }
-        let tmp : String = value[curr..end].iter().collect();
-        let (_, bidi) = unicode_compose(&tmp);
-        let mut rtl = false;
-        if bidi.paragraphs.len() > 0 {
-            rtl = bidi.paragraphs[0].level.is_rtl();
-        }
-        let word = Word::from_chars(value, curr, end, rtl);
-        Self::append(&mut arr,word);
-
-        Self::index_chars(&mut arr, begin);
-
-        arr
-    }
-
-
-}
-
-#[derive(Debug, Clone)]
-struct WordRef<'a>(&'a Word);
-
-#[derive(Debug, Clone)]
-pub struct TextLine {
-    line: Vec<WordRef<'static>>,
-    extent: Extent,
-    space: f32,
-}
-
-impl TextLine{
-    fn new() -> TextLine{
-        TextLine{ line: vec![], extent: Extent::new(), space: 0.0 }
-    }
-
-    fn add(&mut self, word_ref : WordRef<'static>, w: f32) -> Option<WordRef<'static>>{
-        if self.line.len() == 0 {
-            self.extent.h = word_ref.0.extent.h;
-            self.extent.w = word_ref.0.extent.w;
-            self.line.push(word_ref);
-        } else {
-            if self.extent.w + self.space + word_ref.0.extent.w > w {
-                return Some(word_ref);
-            } else {
-                self.extent.w += self.space + word_ref.0.extent.w;
-                self.line.push(word_ref);
-            }
-        }
-
-        None
-    }
-
-    #[allow(mutable_transmutes)]
-    fn position(&mut self, x:f32, y:f32){
-        self.extent.x = x;
-        self.extent.y = y;
-        let mut _x = x;
-        for word in self.line.iter_mut(){
-            let tmp = unsafe{std::mem::transmute::<&'static Word, &'static mut Word>(word.0)};
-            tmp.position(_x,y);
-            _x += tmp.extent.w + self.space;
-        }
-    }
-}
-
-/*#[derive(Debug, Clone)]
-pub struct Paragraph {
-    runs: Vec<TextRun>,
-    lines: Vec<TextLine>,
-    rtl: bool,
-    extent: Extent,
-    space: f32,
-}
-
-impl Paragraph{
-
-    fn shape(
-        &mut self,
-        size: f32,
-        baseline: f32,
-        family: &str,
-    ){
-        for run in self.runs.iter_mut() {
-            run.shape(size, baseline, family);
-        }
-    }
-
-    fn position<'a>(
-        &'a mut self,
-        x: f32,
-        y: f32,
-        w: f32,
-        h: f32,
-        size: f32,
-        text_align: &Align
-    ){
-
-        let mut textline = TextLine::new();
-        textline.space = self.space;
-
-        for run in self.runs.iter_mut() {
-
-            for word in run.words.iter_mut() {
-                let tmp = WordRef(word);
-                let tmp = unsafe{std::mem::transmute::<WordRef<'a>, WordRef<'static>>(tmp)};
-
-                let res = textline.add(tmp, w);
-                if res.is_some() {
-                    self.lines.push(textline);
-                    let tmp = res.unwrap();
-                    textline = TextLine::new();
-                    textline.space = self.space;
-                    textline.add(tmp, w);
-                }
-            }
-        }
-        self.lines.push(textline);
-
-        let mut _y = y;
-        let mut max_w = 0.;
-        let mut min_x = x+w;
-        for line in self.lines.iter_mut() {
-            let mut tmp = 0.;
-            match text_align {
-                Align::Middle => {
-                    tmp = (w - line.extent.w)/2.;
-                },
-                Align::Right => {
-                    tmp = w - line.extent.w;
-                },
-                _ => (),
-            }
-
-            line.position(x + tmp, _y);
-
-            if max_w < line.extent.w {
-                max_w = line.extent.w;
-            }
-            if min_x > line.extent.x {
-                min_x = line.extent.x;
-            }
-
-            _y += size;
-        }
-
-        self.extent.x = min_x;
-        self.extent.y = y;
-        self.extent.w = max_w;
-        self.extent.h = size * self.lines.len() as f32;
-    }
-}*/
-
-#[derive(Debug, Clone)]
 pub struct Segment{
     rtl: bool,
     extent: Extent,
@@ -809,8 +482,8 @@ impl Paragraphs {
             let tmp = unsafe{std::mem::transmute::<&'a Segment,&'static Segment>(segment)};
             let tmp = SegmentRef{ _ref: tmp };
             if direction != segment.rtl {
-                if i>0 {
-                    para_direction.push((i-1,direction));
+                if line.segments.len()>0 {
+                    para_direction.push((i,direction));
                 }
                 direction = segment.rtl;
             }
@@ -827,8 +500,8 @@ impl Paragraphs {
 
             i+=1;
         }
-        if i>0 {
-            para_direction.push((i-1,direction));
+        if line.segments.len()>0 {
+            para_direction.push((i,direction));
         }
         ret_direction.push(para_direction);
         para.lines.push(line);
@@ -865,11 +538,14 @@ impl Paragraphs {
             let mut i = 0;
             for dir in line_directions.iter(){
                 let tmp = dir.1;
+                let mut prev_breaking_class = false;
                 for j in i..dir.0 {
-                    let k = if tmp {dir.0 - j} else { j };
-                    if !tmp_line.segments.is_empty()
-                        && line.segments[k]._ref.extent.w+tmp_line.extent.w > w
-                        && line.segments[k]._ref.breaking_class()
+
+                    let k = if tmp {i + dir.0 - j - 1} else { j };
+
+                    if
+                        line.segments[k]._ref.extent.w+tmp_line.extent.w > w
+                        && prev_breaking_class
                     {
                         if para.extent.w < tmp_line.extent.w {
                             para.extent.w = tmp_line.extent.w;
@@ -879,8 +555,10 @@ impl Paragraphs {
                             segments: Vec::new(),
                             extent: Extent::new(),
                         };
+                        prev_breaking_class = false;
                     }
 
+                    prev_breaking_class = line.segments[k]._ref.breaking_class();
                     tmp_line.extent.w += line.segments[k]._ref.extent.w;
                     tmp_line.segments.push(line.segments[k].clone());
                 }
@@ -965,188 +643,6 @@ impl Paragraphs {
         arr
     }
 }
-
-
-/*#[derive(Debug, Clone)]
-pub struct Paragraphs{
-    list: Vec<Paragraph>,
-    extent: Extent,
-    space: f32,
-}
-
-impl Paragraphs {
-    pub fn new()-> Paragraphs{
-        Paragraphs{ list: Vec::new(), extent: Extent::new(), space: 0.0 }
-    }
-
-    pub fn get_extent(&mut self) -> Extent {
-        self.extent.clone()
-    }
-
-    pub fn from_chars(text: &Vec<char>) -> Paragraphs {
-        let mut arr = vec![];
-
-        let c_tmp = text.iter().next();
-        if c_tmp.is_some() {
-            let value: String = text.iter().collect();
-            let (uc_value, info) = unicode_compose(&value);
-
-
-            let mut class = Segment::resolve_class(&info.levels[0], info.original_classes[0]);
-            let mut segments = vec![];
-            let mut segment = Segment {
-                chars: vec![],
-                rtl: info.levels[0].is_rtl(),
-                extent: Extent::new(),
-                class,
-            };
-            let mut i = 0;
-            let mut j = 0;
-
-            for c in text.iter()  {
-                class = Segment::resolve_class(&info.levels[i], info.original_classes[i]);
-                if class == segment.class {
-                    segment.chars.push(Char::new(c.clone(), j, info.levels[i].is_rtl()));
-                } else {
-                    segments.push(segment);
-                    segment = Segment {
-                        chars: vec![Char::new(c.clone(), j, info.levels[i].is_rtl())],
-                        rtl: info.levels[i].is_rtl(),
-                        extent: Extent::new(),
-                        class,
-                    };
-                }
-
-                let c_len = c.len_utf8();
-                i += c_len;
-                j += 1;
-            }
-
-            segments.push(segment);
-
-            println!("{:?}", segments.len());
-        }
-
-        /*for p in info.paragraphs.iter() {
-            let (_ , visual_runs) = info.visual_runs(p,p.range.clone());
-            for visual_run in visual_runs.iter() {
-
-            }
-        }*/
-
-        /*let len = text.len();
-
-        let mut curr = 0;
-
-        let positions = text.iter().positions(|&c|{c == '\n'});
-
-        for pos in positions {
-            let runs = TextRun::from_chars(text,curr,pos);
-            let rtl = if runs.len() > 0 {runs[0].rtl} else {false};
-            arr.push(Paragraph{runs, lines: vec![], rtl, extent: Extent::new(), space: 0.0 });
-            curr = pos+1;
-        }
-        let runs = TextRun::from_chars(text,curr,len);
-        let rtl = if runs.len() > 0 {runs[0].rtl} else {false};
-
-        arr.push(Paragraph{runs, lines: vec![], rtl, extent: Extent::new(), space: 0.0 });*/
-
-        Paragraphs{list:arr, extent: Extent::new(), space: 0.0 }
-    }
-
-    pub fn shape(
-        &mut self,
-        x: f32,
-        y: f32,
-        w: f32,
-        h: f32,
-        size: f32,
-        baseline: f32,
-        family: &str,
-        text_align: &Align,
-    ) {
-        let mut _y = y;
-        for para in self.list.iter_mut() {
-            para.shape(size,baseline,family);
-
-            _y += para.extent.h;
-        }
-        self.position(x,y,w,h,size,text_align);
-    }
-
-    pub fn position(
-        &mut self,
-        x: f32,
-        y: f32,
-        w: f32,
-        h: f32,
-        size: f32,
-        text_align: &Align
-    ){
-        let mut _y = y;
-        let mut min_x = x + w;
-        let mut min_y = y + h;
-
-        self.space = size/4.;
-
-        let mut max_w = 0.;
-        for para in self.list.iter_mut() {
-            para.space = self.space;
-            para.position(x,_y,w,h,size,text_align);
-
-            if para.extent.w > max_w {
-                max_w = para.extent.w;
-            }
-            if min_x > para.extent.x {
-                min_x = para.extent.x;
-            }
-            if min_y > para.extent.y {
-                min_y = para.extent.y;
-            }
-            _y+=para.extent.h;
-        }
-
-        self.extent.x = min_x;
-        self.extent.y = min_y;
-        self.extent.w = max_w;
-        self.extent.h = _y - y;
-    }
-
-    pub fn get_char_at_pos(&self,p: &super::properties::Position, val: &Vec<char>) -> Option<Char>{
-        //let mut cursor = 0;
-        //let mut pos = super::properties::Position{ x: 0.0, y: 0.0 };
-        let mut ret = None;
-        if !self.list.is_empty() {
-            for para in self.list.iter() {
-                if para.extent.y + para.extent.h < p.y {
-                    let tmp = &para.lines[para.lines.len()-1];
-                    let tmp = &tmp.line[tmp.line.len()-1].0.text;
-                    //cursor = tmp[tmp.len()-1].index;
-                    //pos = tmp[tmp.len()-1].position.clone();
-                    //ret = Some(tmp[tmp.len()-1].clone());
-                }
-                else {
-                    for line in para.lines.iter() {
-
-                    }
-                }
-            }
-        }
-        ret
-    }
-
-    pub fn glyphs(&self) -> Vec<GlyphInstance> {
-        let mut arr = vec![];
-        for para in self.list.iter() {
-            for line in para.lines.iter() {
-                for word in line.line.iter() {
-                    arr.append(&mut word.0.glyphs.clone());
-                }
-            }
-        }
-        arr
-    }
-}*/
 
 struct InstanceKeys {
     key: FontKey,
