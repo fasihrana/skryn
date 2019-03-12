@@ -658,10 +658,72 @@ pub struct ParaLine{
     segments: Vec<SegmentRef<'static>>,
 }
 
+impl ParaLine {
+    #[allow(mutable_transmutes)]
+    fn position(
+        &mut self,
+        x: f32,
+        y: f32
+    ){
+        self.extent.x = x;
+        self.extent.y = y;
+        let mut _x = x;
+        for segment in self.segments.iter_mut(){
+            let tmp = unsafe{std::mem::transmute::<&'static Segment, &'static mut Segment>(segment._ref)};
+            tmp.position(_x,y);
+            _x += tmp.extent.w;
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct ParaText{
     extent: Extent,
     lines: Vec<ParaLine>,
+}
+
+impl ParaText {
+    fn position(
+        &mut self,
+        x: f32,
+        y: f32,
+        w: f32,
+        h: f32,
+        size: f32,
+        text_align: &Align
+    ){
+        let mut _y = y;
+        let mut max_w = 0.;
+        let mut min_x = x+w;
+        for line in self.lines.iter_mut() {
+            let mut tmp = 0.;
+            match text_align {
+                Align::Middle => {
+                    tmp = (w - line.extent.w)/2.;
+                },
+                Align::Right => {
+                    tmp = w - line.extent.w;
+                },
+                _ => (),
+            }
+
+            line.position(x + tmp, _y);
+
+            if max_w < line.extent.w {
+                max_w = line.extent.w;
+            }
+            if min_x > line.extent.x {
+                min_x = line.extent.x;
+            }
+
+            _y += size;
+        }
+
+        self.extent.x = min_x;
+        self.extent.y = y;
+        self.extent.w = max_w;
+        self.extent.h = size * self.lines.len() as f32;
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -830,18 +892,10 @@ impl Paragraphs {
             para.lines.push(tmp_line);
         }
 
-
-
-        /*let mut _y = y;
-        for para in self.list.iter_mut() {
-            para.shape(size,baseline,family);
-
-            _y += para.extent.h;
-        }
-        self.position(x,y,w,h,size,text_align);*/
+        self.position(x,y,w,h,size,text_align);
     }
 
-    pub fn position(
+    fn position(
         &mut self,
         x: f32,
         y: f32,
@@ -850,15 +904,12 @@ impl Paragraphs {
         size: f32,
         text_align: &Align
     ){
-        /*let mut _y = y;
+        let mut _y = y;
         let mut min_x = x + w;
         let mut min_y = y + h;
 
-        self.space = size/4.;
-
         let mut max_w = 0.;
-        for para in self.list.iter_mut() {
-            //para.space = self.space;
+        for para in self.paras.iter_mut() {
             para.position(x,_y,w,h,size,text_align);
 
             if para.extent.w > max_w {
@@ -876,7 +927,7 @@ impl Paragraphs {
         self.extent.x = min_x;
         self.extent.y = min_y;
         self.extent.w = max_w;
-        self.extent.h = _y - y;*/
+        self.extent.h = _y - y;
     }
 
     pub fn get_char_at_pos(&self,p: &super::properties::Position, val: &Vec<char>) -> Option<Char>{
@@ -904,13 +955,13 @@ impl Paragraphs {
 
     pub fn glyphs(&self) -> Vec<GlyphInstance> {
         let mut arr = vec![];
-        /*for para in self.list.iter() {
+        for para in self.paras.iter() {
             for line in para.lines.iter() {
-                for word in line.line.iter() {
-                    arr.append(&mut word.0.glyphs.clone());
+                for segment in line.segments.iter() {
+                    arr.append(&mut segment._ref.glyphs.clone());
                 }
             }
-        }*/
+        }
         arr
     }
 }
