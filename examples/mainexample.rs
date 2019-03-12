@@ -95,7 +95,7 @@ impl PersonElm {
     fn new(p: Arc<Mutex<Person>>) -> PersonElm {
         //Create two TextBoxes and display their initial value
         let mut _p = p.lock().unwrap();
-        let mut _tbox = TextBox::new("".to_owned());
+        let mut _tbox = TextBox::new("سِتار-و-Guitar".to_owned());
         _tbox.set_placeholder("<enter name here>".to_owned());
         let name = Arc::new(Mutex::new( _tbox ));
         let age = Arc::new(Mutex::new(TextBox::new(String::from(format!(
@@ -103,8 +103,8 @@ impl PersonElm {
             _p.age.get_value()
         )))));
         //This is an alert button just to show how easy it is to spawn new windows.
-        let alert_button = Arc::new(Mutex::new(Button::new(format!("Press here-یہاں"))));
-        let cancel_button = Arc::new(Mutex::new(Button::new(format!("انار دمحا حیصف"))));
+        let alert_button = Arc::new(Mutex::new(Button::new(format!("Press here-یہاں-وہاں"))));
+        let cancel_button = Arc::new(Mutex::new(Button::new(format!("Fasih فصیح احمد رانا phir kiya kerogay?"))));
         let h = Arc::new(Mutex::new(HBox::new()));
         match h.lock() {
             Ok(ref mut h) => {

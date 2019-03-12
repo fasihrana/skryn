@@ -483,7 +483,7 @@ impl TextLine{
     }
 }
 
-#[derive(Debug, Clone)]
+/*#[derive(Debug, Clone)]
 pub struct Paragraph {
     runs: Vec<TextRun>,
     lines: Vec<TextLine>,
@@ -568,39 +568,355 @@ impl Paragraph{
         self.extent.w = max_w;
         self.extent.h = size * self.lines.len() as f32;
     }
-}
+}*/
 
 #[derive(Debug, Clone)]
 pub struct Segment{
-    chars: Vec<Char>,
     rtl: bool,
     extent: Extent,
     class: BidiClass,
+    chars: Vec<Char>,
+    glyphs: Vec<GlyphInstance>,
 }
 
 impl Segment{
     pub fn resolve_class(level: &super::super::unicode_bidi::Level, class: BidiClass) -> BidiClass{
-        if class != BidiClass::B && class != BidiClass::WS {
-            return level.bidi_class();
+        match class {
+            BidiClass::B => {BidiClass::B},
+            BidiClass::WS => {BidiClass::WS},
+            BidiClass::S => {BidiClass::S},
+            _ =>  level.bidi_class(),
         }
+    }
 
-        class
+    pub fn breaking_class(&self) -> bool {
+        match self.class {
+            BidiClass::B => {true},
+            BidiClass::WS => {true},
+            BidiClass::S => {true},
+            _ =>  false,
+        }
+    }
+
+    fn shape(
+        &mut self,
+        size: f32,
+        baseline: f32,
+        family: &str,
+    ) {
+
+        let value : String = self.chars.iter().map(|c|{c.char}).collect();
+
+        let glyphs = shaper::shape_text(value.as_str(), size as u32, baseline, family, self.rtl);
+
+        self.glyphs.clear();
+
+        let mut _x = 0.;
+
+        let mut i = 0;
+        while i < self.chars.len() {
+            let (glyph, ref metric) = glyphs[i];
+
+            self.chars[i].glyph = glyph;
+            self.chars[i].metric = metric.clone();
+            self.chars[i].position.x = _x;
+            self.chars[i].position.y = size;
+
+            i+=1;
+            _x += metric.advance.x;
+        }
+        self.extent.h = size;
+        self.extent.w = _x;
+    }
+
+    fn position(&mut self, x: f32, y: f32) {
+        self.glyphs.clear();
+
+        self.extent.x = x;
+        self.extent.y = y;
+
+        let mut _x = x;
+        for ch in self.chars.iter_mut() {
+            ch.position.x = _x;
+            ch.position.y = y + ch.metric.baseline;
+
+            _x += ch.metric.advance.x;
+
+            self.glyphs.push(GlyphInstance{ index: ch.glyph, point: LayoutPoint::new(ch.position.x, ch.position.y) });
+        }
     }
 }
 
 #[derive(Debug, Clone)]
+pub struct SegmentRef<'a>{
+    _ref:&'a Segment
+}
+
+#[derive(Debug, Clone)]
 pub struct ParaLine{
-    line: Vec<&'static Segment>,
     extent: Extent,
+    segments: Vec<SegmentRef<'static>>,
 }
 
 #[derive(Debug, Clone)]
 pub struct ParaText{
-    line: Vec<ParaLine>,
     extent: Extent,
+    lines: Vec<ParaLine>,
 }
 
 #[derive(Debug, Clone)]
+pub struct Paragraphs{
+    extent: Extent,
+    segments: Vec<Segment>,
+    paras: Vec<ParaText>,
+}
+
+impl Paragraphs {
+    pub fn new()-> Paragraphs{
+        Paragraphs{ segments: Vec::new(), paras: Vec::new(), extent: Extent::new() }
+    }
+
+    pub fn get_extent(&mut self) -> Extent {
+        self.extent.clone()
+    }
+
+    pub fn from_chars(text: &Vec<char>) -> Paragraphs {
+        let mut segments = vec![];
+
+        let c_tmp = text.iter().next();
+        if c_tmp.is_some() {
+            let value: String = text.iter().collect();
+            let (uc_value, info) = unicode_compose(&value);
+
+
+            let mut class = Segment::resolve_class(&info.levels[0], info.original_classes[0]);
+            let mut segment = Segment {
+                chars: vec![],
+                rtl: info.levels[0].is_rtl(),
+                extent: Extent::new(),
+                class,
+                glyphs: vec![],
+            };
+            let mut i = 0;
+            let mut j = 0;
+
+            for c in text.iter()  {
+                class = Segment::resolve_class(&info.levels[i], info.original_classes[i]);
+                if class == segment.class {
+                    segment.chars.push(Char::new(c.clone(), j, info.levels[i].is_rtl()));
+                } else {
+                    segments.push(segment);
+                    segment = Segment {
+                        chars: vec![Char::new(c.clone(), j, info.levels[i].is_rtl())],
+                        rtl: info.levels[i].is_rtl(),
+                        extent: Extent::new(),
+                        class,
+                        glyphs: vec![],
+                    };
+                }
+
+                let c_len = c.len_utf8();
+                i += c_len;
+                j += 1;
+            }
+
+            segments.push(segment);
+        }
+
+        Paragraphs{segments, paras: vec![], extent: Extent::new()}
+    }
+
+    fn init_paras<'a>(
+        &'a mut self,
+        size: f32,
+        baseline: f32,
+        family: &str
+    ) -> Vec<Vec<(usize, bool)>>{
+        self.paras.clear();
+
+        let mut ret_direction = vec![];
+
+        let mut para = ParaText{ lines: Vec::new(), extent: Extent::new()};
+        let mut line = ParaLine{ segments: Vec::new(), extent: Extent::new() };
+        let mut i = 0;
+        let mut direction = false;
+        let mut para_direction = vec![];
+        for segment in self.segments.iter_mut(){
+            segment.shape(size,baseline,family);
+
+            let tmp = unsafe{std::mem::transmute::<&'a Segment,&'static Segment>(segment)};
+            let tmp = SegmentRef{ _ref: tmp };
+            if direction != segment.rtl {
+                if i>0 {
+                    para_direction.push((i-1,direction));
+                }
+                direction = segment.rtl;
+            }
+            line.segments.push(tmp);
+            if segment.class == BidiClass::B {
+
+                para.lines.push(line);
+                self.paras.push(para);
+                ret_direction.push(para_direction);
+                para = ParaText{ lines: Vec::new(), extent: Extent::new()};
+                line = ParaLine{ segments: Vec::new(), extent: Extent::new() };
+                para_direction = vec![];
+            }
+
+            i+=1;
+        }
+        if i>0 {
+            para_direction.push((i-1,direction));
+        }
+        ret_direction.push(para_direction);
+        para.lines.push(line);
+        self.paras.push(para);
+
+        ret_direction
+    }
+
+    pub fn shape<'a>(
+        &'a mut self,
+        x: f32,
+        y: f32,
+        w: f32,
+        h: f32,
+        size: f32,
+        baseline: f32,
+        family: &str,
+        text_align: &Align,
+    ) {
+        let mut para_directions = self.init_paras(size, baseline, family);
+
+        for para in self.paras.iter_mut(){
+            let mut line_directions = para_directions.remove(0);
+            if para.lines.len() == 0 || para.lines[0].segments.len() == 0 {
+                continue;
+            }
+
+            let mut line = para.lines.pop().unwrap();
+            let mut tmp_line = ParaLine{
+                segments: Vec::new(),
+                extent: Extent::new(),
+            };
+
+            let mut i = 0;
+            for dir in line_directions.iter(){
+                let tmp = dir.1;
+                for j in i..dir.0 {
+                    let k = if tmp {dir.0 - j} else { j };
+                    if !tmp_line.segments.is_empty()
+                        && line.segments[k]._ref.extent.w+tmp_line.extent.w > w
+                        && line.segments[k]._ref.breaking_class()
+                    {
+                        if para.extent.w < tmp_line.extent.w {
+                            para.extent.w = tmp_line.extent.w;
+                        }
+                        para.lines.push(tmp_line);
+                        tmp_line = ParaLine{
+                            segments: Vec::new(),
+                            extent: Extent::new(),
+                        };
+                    }
+
+                    tmp_line.extent.w += line.segments[k]._ref.extent.w;
+                    tmp_line.segments.push(line.segments[k].clone());
+                }
+                i= dir.0;
+            }
+            if para.extent.w < tmp_line.extent.w {
+                para.extent.w = tmp_line.extent.w;
+            }
+            para.lines.push(tmp_line);
+        }
+
+
+
+        /*let mut _y = y;
+        for para in self.list.iter_mut() {
+            para.shape(size,baseline,family);
+
+            _y += para.extent.h;
+        }
+        self.position(x,y,w,h,size,text_align);*/
+    }
+
+    pub fn position(
+        &mut self,
+        x: f32,
+        y: f32,
+        w: f32,
+        h: f32,
+        size: f32,
+        text_align: &Align
+    ){
+        /*let mut _y = y;
+        let mut min_x = x + w;
+        let mut min_y = y + h;
+
+        self.space = size/4.;
+
+        let mut max_w = 0.;
+        for para in self.list.iter_mut() {
+            //para.space = self.space;
+            para.position(x,_y,w,h,size,text_align);
+
+            if para.extent.w > max_w {
+                max_w = para.extent.w;
+            }
+            if min_x > para.extent.x {
+                min_x = para.extent.x;
+            }
+            if min_y > para.extent.y {
+                min_y = para.extent.y;
+            }
+            _y+=para.extent.h;
+        }
+
+        self.extent.x = min_x;
+        self.extent.y = min_y;
+        self.extent.w = max_w;
+        self.extent.h = _y - y;*/
+    }
+
+    pub fn get_char_at_pos(&self,p: &super::properties::Position, val: &Vec<char>) -> Option<Char>{
+        //let mut cursor = 0;
+        //let mut pos = super::properties::Position{ x: 0.0, y: 0.0 };
+        let mut ret = None;
+        /*if !self.list.is_empty() {
+            for para in self.list.iter() {
+                if para.extent.y + para.extent.h < p.y {
+                    let tmp = &para.lines[para.lines.len()-1];
+                    let tmp = &tmp.line[tmp.line.len()-1].0.text;
+                    //cursor = tmp[tmp.len()-1].index;
+                    //pos = tmp[tmp.len()-1].position.clone();
+                    //ret = Some(tmp[tmp.len()-1].clone());
+                }
+                    else {
+                        for line in para.lines.iter() {
+
+                        }
+                    }
+            }
+        }*/
+        ret
+    }
+
+    pub fn glyphs(&self) -> Vec<GlyphInstance> {
+        let mut arr = vec![];
+        /*for para in self.list.iter() {
+            for line in para.lines.iter() {
+                for word in line.line.iter() {
+                    arr.append(&mut word.0.glyphs.clone());
+                }
+            }
+        }*/
+        arr
+    }
+}
+
+
+/*#[derive(Debug, Clone)]
 pub struct Paragraphs{
     list: Vec<Paragraph>,
     extent: Extent,
@@ -779,7 +1095,7 @@ impl Paragraphs {
         }
         arr
     }
-}
+}*/
 
 struct InstanceKeys {
     key: FontKey,
