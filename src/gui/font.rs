@@ -9,6 +9,8 @@ use util::unicode_compose;
 use super::properties::{Align, Position};
 use gui::font::shaper::GlyphMetric;
 use itertools::*;
+use unicode_bidi::BidiClass;
+use unicode_bidi::LevelRun;
 
 mod shaper{
     use std::collections::HashMap;
@@ -569,6 +571,36 @@ impl Paragraph{
 }
 
 #[derive(Debug, Clone)]
+pub struct Segment{
+    chars: Vec<Char>,
+    rtl: bool,
+    extent: Extent,
+    class: BidiClass,
+}
+
+impl Segment{
+    pub fn resolve_class(level: &super::super::unicode_bidi::Level, class: BidiClass) -> BidiClass{
+        if class != BidiClass::B && class != BidiClass::WS {
+            return level.bidi_class();
+        }
+
+        class
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct ParaLine{
+    line: Vec<&'static Segment>,
+    extent: Extent,
+}
+
+#[derive(Debug, Clone)]
+pub struct ParaText{
+    line: Vec<ParaLine>,
+    extent: Extent,
+}
+
+#[derive(Debug, Clone)]
 pub struct Paragraphs{
     list: Vec<Paragraph>,
     extent: Extent,
@@ -587,7 +619,55 @@ impl Paragraphs {
     pub fn from_chars(text: &Vec<char>) -> Paragraphs {
         let mut arr = vec![];
 
-        let len = text.len();
+        let c_tmp = text.iter().next();
+        if c_tmp.is_some() {
+            let value: String = text.iter().collect();
+            let (uc_value, info) = unicode_compose(&value);
+
+
+            let mut class = Segment::resolve_class(&info.levels[0], info.original_classes[0]);
+            let mut segments = vec![];
+            let mut segment = Segment {
+                chars: vec![],
+                rtl: info.levels[0].is_rtl(),
+                extent: Extent::new(),
+                class,
+            };
+            let mut i = 0;
+            let mut j = 0;
+
+            for c in text.iter()  {
+                class = Segment::resolve_class(&info.levels[i], info.original_classes[i]);
+                if class == segment.class {
+                    segment.chars.push(Char::new(c.clone(), j, info.levels[i].is_rtl()));
+                } else {
+                    segments.push(segment);
+                    segment = Segment {
+                        chars: vec![Char::new(c.clone(), j, info.levels[i].is_rtl())],
+                        rtl: info.levels[i].is_rtl(),
+                        extent: Extent::new(),
+                        class,
+                    };
+                }
+
+                let c_len = c.len_utf8();
+                i += c_len;
+                j += 1;
+            }
+
+            segments.push(segment);
+
+            println!("{:?}", segments.len());
+        }
+
+        /*for p in info.paragraphs.iter() {
+            let (_ , visual_runs) = info.visual_runs(p,p.range.clone());
+            for visual_run in visual_runs.iter() {
+
+            }
+        }*/
+
+        /*let len = text.len();
 
         let mut curr = 0;
 
@@ -602,7 +682,7 @@ impl Paragraphs {
         let runs = TextRun::from_chars(text,curr,len);
         let rtl = if runs.len() > 0 {runs[0].rtl} else {false};
 
-        arr.push(Paragraph{runs, lines: vec![], rtl, extent: Extent::new(), space: 0.0 });
+        arr.push(Paragraph{runs, lines: vec![], rtl, extent: Extent::new(), space: 0.0 });*/
 
         Paragraphs{list:arr, extent: Extent::new(), space: 0.0 }
     }
