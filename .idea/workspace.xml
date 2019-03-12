@@ -3,8 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="5c32dbd9-0b30-470b-ab9f-bc177063d9e8" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/mainexample.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/mainexample.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gui/font.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/gui/font.rs" afterDir="false" />
     </list>
     <ignored path="C:\Users\fasih\workspace\skryn\.idea\shelf/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -19,8 +17,8 @@
       <file leaf-file-name="font.rs" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/gui/font.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="185">
-              <caret line="545" column="4" selection-start-line="545" selection-start-column="4" selection-end-line="545" selection-end-column="4" />
+            <state relative-caret-position="2656">
+              <caret line="542" column="52" lean-forward="true" selection-start-line="542" selection-start-column="52" selection-end-line="542" selection-end-column="52" />
               <folding>
                 <element signature="e#19343#19344#0" expanded="true" />
                 <element signature="e#19377#19378#0" expanded="true" />
@@ -33,7 +31,7 @@
       <file leaf-file-name="textbox.rs" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/elements/textbox.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="78">
+            <state relative-caret-position="846">
               <caret line="97" column="24" lean-forward="true" selection-start-line="97" selection-start-column="24" selection-end-line="97" selection-end-column="24" />
             </state>
           </provider>
@@ -69,8 +67,8 @@
       <file leaf-file-name="mainexample.rs" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/examples/mainexample.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-1047">
-              <caret line="110" column="21" lean-forward="true" selection-start-line="110" selection-start-column="21" selection-end-line="110" selection-end-column="21" />
+            <state relative-caret-position="217">
+              <caret line="105" column="73" lean-forward="true" selection-start-line="105" selection-start-column="73" selection-end-line="105" selection-end-column="73" />
               <folding>
                 <element signature="e#7779#7780#0" expanded="true" />
                 <element signature="e#7801#7802#0" expanded="true" />
@@ -603,7 +601,6 @@
     </layout>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="prepared button element for text alignment using trbl properties" />
     <MESSAGE value="text aligned center by default in button" />
     <MESSAGE value="laid out the foundation for hover begin and end." />
     <MESSAGE value="EbentHandlers now take closures instead of function pointers." />
@@ -628,7 +625,8 @@
     <MESSAGE value="adding alignment. midpoint save." />
     <MESSAGE value="Button now fully functional." />
     <MESSAGE value="New architechture in place, but not fully working." />
-    <option name="LAST_COMMIT_MESSAGE" value="New architechture in place, but not fully working." />
+    <MESSAGE value="New architechture in place, but not fully working.&#10;&#10;Corrected display of rtl in an ltr sentence.&#10;ltr in rtl remains." />
+    <option name="LAST_COMMIT_MESSAGE" value="New architechture in place, but not fully working.&#10;&#10;Corrected display of rtl in an ltr sentence.&#10;ltr in rtl remains." />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/.idea/modules.xml">
@@ -851,15 +849,15 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/elements/textbox.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="78">
+        <state relative-caret-position="846">
           <caret line="97" column="24" lean-forward="true" selection-start-line="97" selection-start-column="24" selection-end-line="97" selection-end-column="24" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/examples/mainexample.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1047">
-          <caret line="110" column="21" lean-forward="true" selection-start-line="110" selection-start-column="21" selection-end-line="110" selection-end-column="21" />
+        <state relative-caret-position="217">
+          <caret line="105" column="73" lean-forward="true" selection-start-line="105" selection-start-column="73" selection-end-line="105" selection-end-column="73" />
           <folding>
             <element signature="e#7779#7780#0" expanded="true" />
             <element signature="e#7801#7802#0" expanded="true" />
@@ -879,8 +877,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/gui/font.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="185">
-          <caret line="545" column="4" selection-start-line="545" selection-start-column="4" selection-end-line="545" selection-end-column="4" />
+        <state relative-caret-position="2656">
+          <caret line="542" column="52" lean-forward="true" selection-start-line="542" selection-start-column="52" selection-end-line="542" selection-end-column="52" />
           <folding>
             <element signature="e#19343#19344#0" expanded="true" />
             <element signature="e#19377#19378#0" expanded="true" />

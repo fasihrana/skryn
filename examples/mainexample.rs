@@ -95,7 +95,7 @@ impl PersonElm {
     fn new(p: Arc<Mutex<Person>>) -> PersonElm {
         //Create two TextBoxes and display their initial value
         let mut _p = p.lock().unwrap();
-        let mut _tbox = TextBox::new("ستار-و-Guitar".to_owned());
+        let mut _tbox = TextBox::new("Fasih's full name is فصیح احمد رانا, and his first name means eloquent.".to_owned());
         _tbox.set_placeholder("<enter name here>".to_owned());
         let name = Arc::new(Mutex::new( _tbox ));
         let age = Arc::new(Mutex::new(TextBox::new(String::from(format!(
@@ -106,10 +106,7 @@ impl PersonElm {
         let alert_button = Arc::new(Mutex::new(Button::new(format!("Press here"))));
 
         //the text in the following button should be showing up in three lines based on the width
-        // "Fasih فصیح احمد"
-        // "رانا phir kiya"
-        // "kerogay?"
-        let cancel_button = Arc::new(Mutex::new(Button::new(format!("Fasih فصیح احمد رانا phir kiya kerogay?"))));
+        let cancel_button = Arc::new(Mutex::new(Button::new(format!("فصیح احمد رانا"))));
 
         let h = Arc::new(Mutex::new(HBox::new()));
         match h.lock() {
