@@ -104,7 +104,13 @@ impl PersonElm {
         )))));
         //This is an alert button just to show how easy it is to spawn new windows.
         let alert_button = Arc::new(Mutex::new(Button::new(format!("Press here"))));
+
+        //the text in the following button should be showing up in three lines based on the width
+        // "Fasih فصیح احمد"
+        // "رانا phir kiya"
+        // "kerogay?"
         let cancel_button = Arc::new(Mutex::new(Button::new(format!("Fasih فصیح احمد رانا phir kiya kerogay?"))));
+
         let h = Arc::new(Mutex::new(HBox::new()));
         match h.lock() {
             Ok(ref mut h) => {

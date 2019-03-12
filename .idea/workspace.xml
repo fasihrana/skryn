@@ -3,6 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="5c32dbd9-0b30-470b-ab9f-bc177063d9e8" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/mainexample.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/mainexample.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/gui/font.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/gui/font.rs" afterDir="false" />
     </list>
     <ignored path="C:\Users\fasih\workspace\skryn\.idea\shelf/" />
@@ -18,17 +19,12 @@
       <file leaf-file-name="font.rs" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/gui/font.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="527">
-              <caret line="673" column="30" lean-forward="true" selection-start-line="673" selection-start-column="30" selection-end-line="673" selection-end-column="30" />
+            <state relative-caret-position="185">
+              <caret line="545" column="4" selection-start-line="545" selection-start-column="4" selection-end-line="545" selection-end-column="4" />
               <folding>
-                <element signature="e#8815#8816#0" expanded="true" />
-                <element signature="e#8845#8846#0" expanded="true" />
-                <element signature="e#13265#13266#0" expanded="true" />
-                <element signature="e#13339#13340#0" expanded="true" />
                 <element signature="e#19343#19344#0" expanded="true" />
                 <element signature="e#19377#19378#0" expanded="true" />
                 <element signature="e#20194#20962#0" />
-                <element signature="e#21301#26491#0" />
               </folding>
             </state>
           </provider>
@@ -73,8 +69,8 @@
       <file leaf-file-name="mainexample.rs" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/examples/mainexample.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="479">
-              <caret line="122" column="39" lean-forward="true" selection-start-line="122" selection-start-column="39" selection-end-line="122" selection-end-column="39" />
+            <state relative-caret-position="-1047">
+              <caret line="110" column="21" lean-forward="true" selection-start-line="110" selection-start-column="21" selection-end-line="110" selection-end-column="21" />
               <folding>
                 <element signature="e#7779#7780#0" expanded="true" />
                 <element signature="e#7801#7802#0" expanded="true" />
@@ -256,7 +252,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Cargo Command.Mainexample">
+  <component name="RunManager" selected="Cargo Command.Mainexample release">
     <configuration default="true" type="Application" factoryName="Application">
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <method>
@@ -573,7 +569,7 @@
       <window_info anchor="bottom" id="Event Log" order="10" sideWeight="0.5016816" side_tool="true" weight="0.5671642" />
       <window_info anchor="right" id="Maven Projects" order="6" />
       <window_info anchor="bottom" id="Version Control" order="9" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.49831837" visible="true" weight="0.19317073" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.49831837" visible="true" weight="0.3990244" />
       <window_info anchor="bottom" id="Terminal" order="7" />
       <window_info id="Designer" order="2" />
       <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.15280464" />
@@ -607,7 +603,6 @@
     </layout>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="implemented top/bottom properties for vbox" />
     <MESSAGE value="prepared button element for text alignment using trbl properties" />
     <MESSAGE value="text aligned center by default in button" />
     <MESSAGE value="laid out the foundation for hover begin and end." />
@@ -632,7 +627,8 @@
     <MESSAGE value="calculating and using baseline for fonts in shape/position." />
     <MESSAGE value="adding alignment. midpoint save." />
     <MESSAGE value="Button now fully functional." />
-    <option name="LAST_COMMIT_MESSAGE" value="Button now fully functional." />
+    <MESSAGE value="New architechture in place, but not fully working." />
+    <option name="LAST_COMMIT_MESSAGE" value="New architechture in place, but not fully working." />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/.idea/modules.xml">
@@ -862,8 +858,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/examples/mainexample.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="479">
-          <caret line="122" column="39" lean-forward="true" selection-start-line="122" selection-start-column="39" selection-end-line="122" selection-end-column="39" />
+        <state relative-caret-position="-1047">
+          <caret line="110" column="21" lean-forward="true" selection-start-line="110" selection-start-column="21" selection-end-line="110" selection-end-column="21" />
           <folding>
             <element signature="e#7779#7780#0" expanded="true" />
             <element signature="e#7801#7802#0" expanded="true" />
@@ -883,17 +879,12 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/gui/font.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="527">
-          <caret line="673" column="30" lean-forward="true" selection-start-line="673" selection-start-column="30" selection-end-line="673" selection-end-column="30" />
+        <state relative-caret-position="185">
+          <caret line="545" column="4" selection-start-line="545" selection-start-column="4" selection-end-line="545" selection-end-column="4" />
           <folding>
-            <element signature="e#8815#8816#0" expanded="true" />
-            <element signature="e#8845#8846#0" expanded="true" />
-            <element signature="e#13265#13266#0" expanded="true" />
-            <element signature="e#13339#13340#0" expanded="true" />
             <element signature="e#19343#19344#0" expanded="true" />
             <element signature="e#19377#19378#0" expanded="true" />
             <element signature="e#20194#20962#0" />
-            <element signature="e#21301#26491#0" />
           </folding>
         </state>
       </provider>
