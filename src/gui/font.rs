@@ -353,6 +353,7 @@ impl ParaLine {
 pub struct ParaText{
     extent: Extent,
     lines: Vec<ParaLine>,
+    rtl: bool,
 }
 
 impl ParaText {
@@ -396,6 +397,122 @@ impl ParaText {
         self.extent.y = y;
         self.extent.w = max_w;
         self.extent.h = size * self.lines.len() as f32;
+    }
+
+    fn shape_LTR(&mut self, line_directions: Vec<(usize, bool)>, w : f32){
+        let mut para = self;
+        let mut line = para.lines.pop().unwrap();
+        let mut tmp_line = ParaLine{
+            segments: Vec::new(),
+            extent: Extent::new(),
+        };
+
+        let mut prev_rtl = false;
+        let mut prev_rtl_pos = 0;
+        let mut i = 0;
+        for dir in line_directions.iter(){
+            let tmp = dir.1;
+            let mut prev_breaking_class = false;
+            for j in i..dir.0 {
+                if
+                line.segments[j]._ref.extent.w+tmp_line.extent.w > w
+                    && prev_breaking_class
+                {
+                    if para.extent.w < tmp_line.extent.w {
+                        para.extent.w = tmp_line.extent.w;
+                    }
+                    para.lines.push(tmp_line);
+                    tmp_line = ParaLine{
+                        segments: Vec::new(),
+                        extent: Extent::new(),
+                    };
+                    prev_breaking_class = false;
+                    prev_rtl = false;
+                    prev_rtl_pos = 0;
+                }
+
+                prev_breaking_class = line.segments[j]._ref.breaking_class();
+                tmp_line.extent.w += line.segments[j]._ref.extent.w;
+
+                //where to insert the word?
+                if prev_rtl != line.segments[j]._ref.rtl {
+                    prev_rtl = line.segments[j]._ref.rtl;
+                    if prev_rtl {
+                        prev_rtl_pos = tmp_line.segments.len();
+                    }
+                }
+
+                if prev_rtl {
+                    tmp_line.segments.insert(prev_rtl_pos, line.segments[j].clone());
+                } else {
+                    tmp_line.segments.push(line.segments[j].clone());
+                }
+
+            }
+            i= dir.0;
+        }
+        if para.extent.w < tmp_line.extent.w {
+            para.extent.w = tmp_line.extent.w;
+        }
+        para.lines.push(tmp_line);
+    }
+
+    fn shape_RTL(&mut self, line_directions: Vec<(usize, bool)>, w : f32){
+        let mut para = self;
+        let mut line = para.lines.pop().unwrap();
+        let mut tmp_line = ParaLine{
+            segments: Vec::new(),
+            extent: Extent::new(),
+        };
+
+        let mut prev_ltr = false;
+        let mut prev_ltr_pos = 0;
+        let mut i = 0;
+        for dir in line_directions.iter(){
+            /*let tmp = dir.1;
+            let mut prev_breaking_class = false;
+            for j in i..dir.0 {
+                if
+                line.segments[j]._ref.extent.w+tmp_line.extent.w > w
+                    && prev_breaking_class
+                {
+                    if para.extent.w < tmp_line.extent.w {
+                        para.extent.w = tmp_line.extent.w;
+                    }
+                    para.lines.push(tmp_line);
+                    tmp_line = ParaLine{
+                        segments: Vec::new(),
+                        extent: Extent::new(),
+                    };
+                    prev_breaking_class = false;
+                    prev_rtl = false;
+                    prev_rtl_pos = 0;
+                }
+
+                prev_breaking_class = line.segments[j]._ref.breaking_class();
+                tmp_line.extent.w += line.segments[j]._ref.extent.w;
+
+                //where to insert the word?
+                if prev_rtl != line.segments[j]._ref.rtl {
+                    prev_rtl = line.segments[j]._ref.rtl;
+                    if prev_rtl {
+                        prev_rtl_pos = tmp_line.segments.len();
+                    }
+                }
+
+                if prev_rtl {
+                    tmp_line.segments.insert(prev_rtl_pos, line.segments[j].clone());
+                } else {
+                    tmp_line.segments.push(line.segments[j].clone());
+                }
+
+            }*/
+            i= dir.0;
+        }
+        if para.extent.w < tmp_line.extent.w {
+            para.extent.w = tmp_line.extent.w;
+        }
+        para.lines.push(tmp_line);
     }
 }
 
@@ -471,12 +588,17 @@ impl Paragraphs {
 
         let mut ret_direction = vec![];
 
-        let mut para = ParaText{ lines: Vec::new(), extent: Extent::new()};
+        let mut para = ParaText{ lines: Vec::new(), extent: Extent::new(), rtl: false };
         let mut line = ParaLine{ segments: Vec::new(), extent: Extent::new() };
         let mut i = 0;
         let mut direction = false;
         let mut para_direction = vec![];
+        let mut rtl:Option<bool> = None;
         for segment in self.segments.iter_mut(){
+            if rtl.is_none() {
+                rtl = Some(true);
+                para.rtl = segment.rtl;
+            }
             segment.shape(size,baseline,family);
 
             let tmp = unsafe{std::mem::transmute::<&'a Segment,&'static Segment>(segment)};
@@ -493,9 +615,10 @@ impl Paragraphs {
                 para.lines.push(line);
                 self.paras.push(para);
                 ret_direction.push(para_direction);
-                para = ParaText{ lines: Vec::new(), extent: Extent::new()};
+                para = ParaText{ lines: Vec::new(), extent: Extent::new(), rtl: false};
                 line = ParaLine{ segments: Vec::new(), extent: Extent::new() };
                 para_direction = vec![];
+                rtl = None;
             }
 
             i+=1;
@@ -529,60 +652,7 @@ impl Paragraphs {
                 continue;
             }
 
-            let mut line = para.lines.pop().unwrap();
-            let mut tmp_line = ParaLine{
-                segments: Vec::new(),
-                extent: Extent::new(),
-            };
-
-            let mut prev_rtl = false;
-            let mut prev_rtl_pos = 0;
-            let mut i = 0;
-            for dir in line_directions.iter(){
-                let tmp = dir.1;
-                let mut prev_breaking_class = false;
-                for j in i..dir.0 {
-                    if
-                        line.segments[j]._ref.extent.w+tmp_line.extent.w > w
-                        && prev_breaking_class
-                    {
-                        if para.extent.w < tmp_line.extent.w {
-                            para.extent.w = tmp_line.extent.w;
-                        }
-                        para.lines.push(tmp_line);
-                        tmp_line = ParaLine{
-                            segments: Vec::new(),
-                            extent: Extent::new(),
-                        };
-                        prev_breaking_class = false;
-                        prev_rtl = false;
-                        prev_rtl_pos = 0;
-                    }
-
-                    prev_breaking_class = line.segments[j]._ref.breaking_class();
-                    tmp_line.extent.w += line.segments[j]._ref.extent.w;
-
-                    //where to insert the word?
-                    if prev_rtl != line.segments[j]._ref.rtl {
-                        prev_rtl = line.segments[j]._ref.rtl;
-                        if prev_rtl {
-                            prev_rtl_pos = tmp_line.segments.len();
-                        }
-                    }
-
-                    if prev_rtl {
-                        tmp_line.segments.insert(prev_rtl_pos, line.segments[j].clone());
-                    } else {
-                        tmp_line.segments.push(line.segments[j].clone());
-                    }
-
-                }
-                i= dir.0;
-            }
-            if para.extent.w < tmp_line.extent.w {
-                para.extent.w = tmp_line.extent.w;
-            }
-            para.lines.push(tmp_line);
+            para.shape_LTR(line_directions, w);
         }
 
         self.position(x,y,w,h,size,text_align);

@@ -95,7 +95,8 @@ impl PersonElm {
     fn new(p: Arc<Mutex<Person>>) -> PersonElm {
         //Create two TextBoxes and display their initial value
         let mut _p = p.lock().unwrap();
-        let mut _tbox = TextBox::new("Fasih's full name is فصیح احمد رانا, and his first name means eloquent.".to_owned());
+        //let mut _tbox = TextBox::new("Fasih's full name is فصیح احمد رانا, and his first name means eloquent.".to_owned());
+        let mut _tbox = TextBox::new("فصیح کا پورا نام Fasih Ahmed Rana ہے، اور اس کے نام  کا مطلب eloquent ہے.".to_owned());
         _tbox.set_placeholder("<enter name here>".to_owned());
         let name = Arc::new(Mutex::new( _tbox ));
         let age = Arc::new(Mutex::new(TextBox::new(String::from(format!(
