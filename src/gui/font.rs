@@ -11,6 +11,7 @@ use gui::font::shaper::GlyphMetric;
 use itertools::*;
 use unicode_bidi::BidiClass;
 use unicode_bidi::LevelRun;
+use harfbuzz_sys::{hb_script_t};
 
 mod shaper{
     use std::collections::HashMap;
@@ -30,11 +31,12 @@ mod shaper{
                         hb_buffer_get_glyph_infos,
                         hb_buffer_get_glyph_positions,
                         hb_buffer_set_direction,
-                        hb_buffer_set_script};
+                        hb_buffer_set_script,
+                        hb_unicode_script};
     //harfbuzz structs
-    use harfbuzz_sys::{ hb_blob_t, hb_face_t,hb_font_t, hb_glyph_extents_t, hb_tag_t };
+    use harfbuzz_sys::{ hb_blob_t, hb_face_t,hb_font_t, hb_glyph_extents_t, hb_tag_t, hb_script_t };
     //harfbuzz consts
-    use harfbuzz_sys::{HB_MEMORY_MODE_READONLY, HB_DIRECTION_RTL, HB_SCRIPT_ARABIC, HB_DIRECTION_LTR};
+    use harfbuzz_sys::{HB_MEMORY_MODE_READONLY, HB_DIRECTION_RTL, HB_SCRIPT_UNKNOWN, HB_DIRECTION_LTR};
     use harfbuzz_sys::hb_font_extents_t;
 
     use super::super::properties::Position;
@@ -72,7 +74,10 @@ mod shaper{
     );
 
 
-    pub fn shape_text(val: &str, size: u32, baseline: f32, family: &str, rtl: bool) -> Vec<Glyph>{
+    pub fn shape_text(val: &str, size: u32, baseline: f32, family: &str, rtl: bool, script: super::super::script::Script) -> Vec<Glyph>{
+
+        println!("\"{}\"script is {:?}", val, script);
+        let script = script.to_hb_script();
         unsafe {
 
             let hb_font = {
@@ -120,7 +125,7 @@ mod shaper{
                                val.len() as c_int);
             if rtl {
                 hb_buffer_set_direction(buf, HB_DIRECTION_RTL);
-                hb_buffer_set_script(buf, HB_SCRIPT_ARABIC);
+                hb_buffer_set_script(buf, script);
                 //let lang = hb_language_from_string("URD".as_ptr() as *const c_char, 3);
                 //hb_buffer_set_language(buf,lang);
             } else {
@@ -248,6 +253,7 @@ pub struct Segment{
     rtl: bool,
     extent: Extent,
     class: BidiClass,
+    script: super::script::Script,
     chars: Vec<Char>,
     glyphs: Vec<GlyphInstance>,
 }
@@ -280,7 +286,7 @@ impl Segment{
 
         let value : String = self.chars.iter().map(|c|{c.char}).collect();
 
-        let glyphs = shaper::shape_text(value.as_str(), size as u32, baseline, family, self.rtl);
+        let glyphs = shaper::shape_text(value.as_str(), size as u32, baseline, family, self.rtl, self.script);
 
         self.glyphs.clear();
 
@@ -539,19 +545,22 @@ impl Paragraphs {
 
 
             let mut class = Segment::resolve_class(&info.levels[0], info.original_classes[0]);
+            let mut script = super::script::get_script(text[0].clone());
             let mut segment = Segment {
                 chars: vec![],
                 rtl: info.levels[0].is_rtl(),
                 extent: Extent::new(),
                 class,
+                script,
                 glyphs: vec![],
             };
             let mut i = 0;
             let mut j = 0;
 
             for c in text.iter()  {
+                script = super::script::get_script(c.clone());
                 class = Segment::resolve_class(&info.levels[i], info.original_classes[i]);
-                if class == segment.class {
+                if class == segment.class && script == segment.script {
                     segment.chars.push(Char::new(c.clone(), j, info.levels[i].is_rtl()));
                 } else {
                     segments.push(segment);
@@ -560,6 +569,7 @@ impl Paragraphs {
                         rtl: info.levels[i].is_rtl(),
                         extent: Extent::new(),
                         class,
+                        script,
                         glyphs: vec![],
                     };
                 }
@@ -721,14 +731,17 @@ impl Paragraphs {
         let mut arr = vec![];
         for para in self.paras.iter() {
             for line in para.lines.iter() {
-                let lim =  line.segments.len() - 1;
+                for segment in line.segments.iter() {
+                    arr.append(&mut segment._ref.glyphs.clone());
+                }
+                /*let lim =  line.segments.len() - 1;
                 for i in 0..lim+1{
                     if i == lim && line.segments[i]._ref.breaking_class() {
                         continue;
                     }
                     let mut tmp = line.segments[i]._ref.glyphs.clone();
                     arr.append(&mut tmp);
-                }
+                }*/
             }
         }
         arr
