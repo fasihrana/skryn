@@ -76,7 +76,7 @@ mod shaper{
 
     pub fn shape_text(val: &str, size: u32, baseline: f32, family: &str, rtl: bool, script: super::super::script::Script) -> Vec<Glyph>{
 
-        println!("\"{}\"script is {:?}", val, script);
+        //println!("\"{}\"script is {:?}", val, script);
         let script = script.to_hb_script();
         unsafe {
 
@@ -420,8 +420,7 @@ impl ParaText {
             let tmp = dir.1;
             let mut prev_breaking_class = false;
             for j in i..dir.0 {
-                if
-                line.segments[j]._ref.extent.w+tmp_line.extent.w > w
+                if line.segments[j]._ref.extent.w+tmp_line.extent.w > w
                     && prev_breaking_class
                 {
                     if para.extent.w < tmp_line.extent.w {
