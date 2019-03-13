@@ -408,6 +408,7 @@ impl ParaText {
     fn shape_ltr(&mut self, line_directions: Vec<(usize, bool)>, w : f32){
         let mut para = self;
         let mut line = para.lines.pop().unwrap();
+
         let mut tmp_line = ParaLine{
             segments: Vec::new(),
             extent: Extent::new(),
@@ -465,6 +466,7 @@ impl ParaText {
     fn shape_rtl(&mut self, line_directions: Vec<(usize, bool)>, w : f32){
         let mut para = self;
         let mut line = para.lines.pop().unwrap();
+
         let mut tmp_line = ParaLine{
             segments: Vec::new(),
             extent: Extent::new(),
@@ -559,7 +561,7 @@ impl Paragraphs {
             for c in text.iter()  {
                 script = super::script::get_script(c.clone());
                 class = Segment::resolve_class(&info.levels[i], info.original_classes[i]);
-                if class == segment.class && script == segment.script {
+                if class != BidiClass::B && class == segment.class && script == segment.script {
                     segment.chars.push(Char::new(c.clone(), j, info.levels[i].is_rtl()));
                 } else {
                     segments.push(segment);
@@ -601,6 +603,8 @@ impl Paragraphs {
         let mut para_direction = vec![];
         let mut rtl:Option<bool> = None;
         for segment in self.segments.iter_mut(){
+//print!("{:?}", segment.class);
+
             if rtl.is_none() {
                 rtl = Some(true);
                 para.rtl = segment.rtl;
@@ -615,9 +619,11 @@ impl Paragraphs {
                 }
                 direction = segment.rtl;
             }
-            line.segments.push(tmp);
-            if segment.class == BidiClass::B {
 
+            line.segments.push(tmp);
+
+            if segment.class == BidiClass::B {
+                para_direction.push((i,direction));
                 para.lines.push(line);
                 self.paras.push(para);
                 ret_direction.push(para_direction);
@@ -625,9 +631,13 @@ impl Paragraphs {
                 line = ParaLine{ segments: Vec::new(), extent: Extent::new() };
                 para_direction = vec![];
                 rtl = None;
+                i=0;
+                direction = false;
+            } else {
+                i+=1;
             }
 
-            i+=1;
+
         }
         if line.segments.len()>0 {
             para_direction.push((i,direction));
