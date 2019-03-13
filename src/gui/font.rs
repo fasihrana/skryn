@@ -11,6 +11,7 @@ use gui::font::shaper::GlyphMetric;
 use itertools::*;
 use unicode_bidi::BidiClass;
 use unicode_bidi::LevelRun;
+use either;
 
 mod shaper{
     use std::collections::HashMap;
@@ -399,7 +400,7 @@ impl ParaText {
         self.extent.h = size * self.lines.len() as f32;
     }
 
-    fn shape_LTR(&mut self, line_directions: Vec<(usize, bool)>, w : f32){
+    fn shape_ltr(&mut self, line_directions: Vec<(usize, bool)>, w : f32){
         let mut para = self;
         let mut line = para.lines.pop().unwrap();
         let mut tmp_line = ParaLine{
@@ -457,7 +458,7 @@ impl ParaText {
         para.lines.push(tmp_line);
     }
 
-    fn shape_RTL(&mut self, line_directions: Vec<(usize, bool)>, w : f32){
+    fn shape_rtl(&mut self, line_directions: Vec<(usize, bool)>, w : f32){
         let mut para = self;
         let mut line = para.lines.pop().unwrap();
         let mut tmp_line = ParaLine{
@@ -465,17 +466,13 @@ impl ParaText {
             extent: Extent::new(),
         };
 
-        let mut prev_ltr = false;
-        let mut prev_ltr_pos = 0;
         let mut i = 0;
+        let mut ltr_pos: Option<usize> = None;
         for dir in line_directions.iter(){
-            /*let tmp = dir.1;
             let mut prev_breaking_class = false;
+
             for j in i..dir.0 {
-                if
-                line.segments[j]._ref.extent.w+tmp_line.extent.w > w
-                    && prev_breaking_class
-                {
+                if line.segments[j]._ref.extent.w+tmp_line.extent.w > w && prev_breaking_class {
                     if para.extent.w < tmp_line.extent.w {
                         para.extent.w = tmp_line.extent.w;
                     }
@@ -485,28 +482,29 @@ impl ParaText {
                         extent: Extent::new(),
                     };
                     prev_breaking_class = false;
-                    prev_rtl = false;
-                    prev_rtl_pos = 0;
+                    ltr_pos = None;
                 }
+
+                let tmp_pos =
+                if line.segments[j]._ref.rtl {
+                    0
+                } else {
+                    if ltr_pos.is_none() {
+                        ltr_pos = Some(0);
+                        0
+                    } else {
+                        match ltr_pos {
+                            Some(ref mut x) => { (*x)+=1; (*x).clone()}
+                            _ => 0
+                        }
+                    }
+                };
 
                 prev_breaking_class = line.segments[j]._ref.breaking_class();
                 tmp_line.extent.w += line.segments[j]._ref.extent.w;
 
-                //where to insert the word?
-                if prev_rtl != line.segments[j]._ref.rtl {
-                    prev_rtl = line.segments[j]._ref.rtl;
-                    if prev_rtl {
-                        prev_rtl_pos = tmp_line.segments.len();
-                    }
-                }
-
-                if prev_rtl {
-                    tmp_line.segments.insert(prev_rtl_pos, line.segments[j].clone());
-                } else {
-                    tmp_line.segments.push(line.segments[j].clone());
-                }
-
-            }*/
+                tmp_line.segments.insert(tmp_pos,line.segments[j].clone());
+            }
             i= dir.0;
         }
         if para.extent.w < tmp_line.extent.w {
@@ -652,7 +650,11 @@ impl Paragraphs {
                 continue;
             }
 
-            para.shape_LTR(line_directions, w);
+            if para.rtl {
+                para.shape_rtl(line_directions, w);
+            } else {
+                para.shape_ltr(line_directions, w);
+            }
         }
 
         self.position(x,y,w,h,size,text_align);

@@ -20,6 +20,7 @@ extern crate unicode_bidi;
 extern crate harfbuzz_sys;
 extern crate itertools;
 //extern crate term;
+extern crate either;
 
 mod util;
 pub mod data;
