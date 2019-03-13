@@ -11,7 +11,6 @@ use gui::font::shaper::GlyphMetric;
 use itertools::*;
 use unicode_bidi::BidiClass;
 use unicode_bidi::LevelRun;
-use either;
 
 mod shaper{
     use std::collections::HashMap;

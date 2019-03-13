@@ -20,9 +20,5 @@ lazy_static = "*"
 clipboard = "*"
 itertools = "*"
 harfbuzz-sys = "*"
-
 unicode-bidi = "*"
-either = "*"
-#unicode-normalization = "*"
-#unicode-segmentation = "*"
 
