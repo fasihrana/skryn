@@ -160,7 +160,8 @@ impl Internals {
 
         let framebuffer_size = {
             let size = window.get_inner_size().unwrap().to_physical(dpi);
-            DeviceUintSize::new(size.width as u32, size.height as u32)
+            DeviceIntSize::new(size.width as i32, size.height as i32)
+            //DeviceUintSize::new(size.width as u32, size.height as u32)
         };
 
         let notifier = Box::new(WindowNotifier::new(events_loop.create_proxy()));
@@ -555,7 +556,8 @@ impl Window {
             dpi = i.gl_window.get_hidpi_factor();
             let framebuffer_size = {
                 let size = i.gl_window.get_inner_size().unwrap().to_physical(dpi);
-                DeviceUintSize::new(size.width as u32, size.height as u32)
+                DeviceIntSize::new(size.width as i32, size.height as i32)
+                //DeviceUintSize::new(size.width as u32, size.height as u32)
             };
             let layout_size = framebuffer_size.to_f32() / euclid::TypedScale::new(dpi as f32);
 
@@ -580,7 +582,8 @@ impl Window {
         if let Some(ref mut i) = self.internals {
             txn.set_window_parameters(
                 framebuffer_size,
-                DeviceUintRect::new(DeviceUintPoint::zero(), framebuffer_size),
+                DeviceIntRect::new(DeviceIntPoint::zero(), framebuffer_size),
+                //DeviceUintRect::new(DeviceUintPoint::zero(), framebuffer_size),
                 dpi as f32,
             );
 

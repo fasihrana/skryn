@@ -4,11 +4,18 @@ use std::mem;
 use std::sync::{Arc, Mutex};
 
 use webrender::api::ColorF;
+//use webrender::api::DeviceSize
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Point {
     pub x: f32,
     pub y: f32,
+}
+
+impl Point {
+    pub fn new() -> Point {
+        Point{ x: 0.0, y: 0.0 }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -18,6 +25,18 @@ pub struct Extent {
     pub w: f32,
     pub h: f32,
     pub dpi: f32,
+}
+
+impl Extent {
+    pub fn new() -> Extent {
+        Extent{
+            x: 0.0,
+            y: 0.0,
+            w: 0.0,
+            h: 0.0,
+            dpi: 0.0
+        }
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -167,7 +186,7 @@ impl Properties {
     }
 
     pub fn default(&mut self) -> &mut Properties {
-        self.set(Property::Size(12))
+        self.set(Property::Size(16))
             .set(Property::Family(String::from("Arial")))
             .set(Property::Left(Unit::Stretch(0.0)))
             .set(Property::Width(Unit::Stretch(1.0)))

@@ -3,7 +3,10 @@
   <component name="ChangeListManager">
     <list default="true" id="5c32dbd9-0b30-470b-ab9f-bc177063d9e8" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/elements/button.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/elements/button.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/mainexample.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/mainexample.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/elements/textbox.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/elements/textbox.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/gui/font.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/gui/font.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/util.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/util.rs" afterDir="false" />
     </list>
     <ignored path="C:\Users\fasih\workspace\skryn\.idea\shelf/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -15,52 +18,43 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="window.rs" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/gui/window.rs">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="9520">
-              <caret line="564" column="33" selection-start-line="564" selection-start-column="33" selection-end-line="564" selection-end-column="33" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Cargo.lock" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Cargo.lock">
-          <provider selected="true" editor-type-id="text-editor" />
-        </entry>
-      </file>
-      <file leaf-file-name="calculator.rs" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/examples/calculator.rs">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="348">
-              <caret line="30" column="17" selection-start-line="30" selection-start-column="17" selection-end-line="30" selection-end-column="17" />
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file leaf-file-name="font.rs" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/gui/font.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="323">
-              <caret line="19" column="33" lean-forward="true" selection-start-line="19" selection-start-column="33" selection-end-line="19" selection-end-column="33" />
+            <state relative-caret-position="232">
+              <caret line="546" column="43" selection-start-line="546" selection-start-column="43" selection-end-line="546" selection-end-column="43" />
+              <folding>
+                <element signature="e#16272#16273#0" expanded="true" />
+                <element signature="e#16306#16307#0" expanded="true" />
+                <element signature="e#20194#20962#0" />
+              </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="mainexample.rs" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/examples/mainexample.rs">
+      <file leaf-file-name="mod.rs" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/gui/script/mod.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1615">
-              <caret line="99" column="15" selection-start-line="99" selection-start-column="12" selection-end-line="99" selection-end-column="15" />
+            <state relative-caret-position="2">
+              <caret line="284" column="186" selection-start-line="284" selection-start-column="186" selection-end-line="284" selection-end-column="186" />
+              <folding>
+                <element signature="e#2596#2597#0" expanded="true" />
+                <element signature="e#2645#2646#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="element.rs" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/elements/element.rs">
+      <file leaf-file-name="mod.rs" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/gui/mod.rs">
+          <provider selected="true" editor-type-id="text-editor" />
+        </entry>
+      </file>
+      <file leaf-file-name="Cargo.toml" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Cargo.toml">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="391">
-              <caret line="23" column="90" selection-start-line="23" selection-start-column="13" selection-end-line="23" selection-end-column="90" />
+            <state relative-caret-position="368">
+              <caret line="23" selection-start-line="23" selection-end-line="23" />
             </state>
           </provider>
         </entry>
@@ -68,8 +62,20 @@
       <file leaf-file-name="textbox.rs" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/elements/textbox.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="289">
-              <caret line="17" column="31" selection-start-line="17" selection-start-column="31" selection-end-line="17" selection-end-column="31" />
+            <state relative-caret-position="362">
+              <caret line="378" column="45" selection-start-line="378" selection-start-column="45" selection-end-line="378" selection-end-column="45" />
+              <folding>
+                <element signature="e#13975#13976#0" expanded="true" />
+                <element signature="e#14023#14024#0" expanded="true" />
+                <element signature="e#14293#14294#0" expanded="true" />
+                <element signature="e#14312#14313#0" expanded="true" />
+                <element signature="e#14355#14356#0" expanded="true" />
+                <element signature="e#14374#14375#0" expanded="true" />
+                <element signature="e#14452#14453#0" expanded="true" />
+                <element signature="e#14488#14489#0" expanded="true" />
+                <element signature="e#14525#14526#0" expanded="true" />
+                <element signature="e#14552#14553#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -77,26 +83,58 @@
       <file leaf-file-name="button.rs" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/elements/button.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2125">
-              <caret line="131" column="18" selection-start-line="131" selection-start-column="18" selection-end-line="131" selection-end-column="18" />
+            <state relative-caret-position="955">
+              <caret line="233" column="10" selection-start-line="233" selection-start-column="10" selection-end-line="233" selection-end-column="10" />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="hbox.rs" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/elements/hbox.rs">
+      <file leaf-file-name="lib.rs" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/lib.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="5049">
-              <caret line="303" selection-start-line="303" selection-end-line="303" />
+            <state relative-caret-position="96">
+              <caret line="6" selection-start-line="6" selection-end-line="6" />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="scrollbox.rs" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/elements/scrollbox.rs">
+      <file leaf-file-name="properties.rs" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/gui/properties.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1360">
-              <caret line="80" column="18" selection-start-line="80" selection-start-column="18" selection-end-line="80" selection-end-column="18" />
+            <state relative-caret-position="3104">
+              <caret line="206" column="34" selection-start-line="206" selection-start-column="34" selection-end-line="206" selection-end-column="34" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="mainexample.rs" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/examples/mainexample.rs">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="279">
+              <caret line="97" column="50" selection-start-line="97" selection-start-column="50" selection-end-line="97" selection-end-column="50" />
+              <folding>
+                <element signature="e#7981#7982#0" expanded="true" />
+                <element signature="e#8003#8004#0" expanded="true" />
+                <element signature="e#8045#8046#0" expanded="true" />
+                <element signature="e#8097#8098#0" expanded="true" />
+                <element signature="e#8799#8800#0" expanded="true" />
+                <element signature="e#8833#8834#0" expanded="true" />
+                <element signature="e#9722#9723#0" expanded="true" />
+                <element signature="e#9742#9743#0" expanded="true" />
+                <element signature="e#9774#9775#0" expanded="true" />
+                <element signature="e#9793#9794#0" expanded="true" />
+                <element signature="e#9837#9838#0" expanded="true" />
+                <element signature="e#9856#9857#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="util.rs" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/util.rs">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="96">
+              <caret line="6" selection-start-line="6" selection-end-line="6" selection-end-column="27" />
             </state>
           </provider>
         </entry>
@@ -112,27 +150,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>Layout</find>
-      <find>dpi</find>
-      <find>device_</find>
-      <find>Send</find>
-      <find>root</find>
-      <find>sync</find>
-      <find>send</find>
-      <find>enabled</find>
-      <find>with_vsync</find>
-      <find>multisampling</find>
-      <find>multisamples</find>
-      <find>glyphin</find>
-      <find>glyph</find>
-      <find>clear</find>
-      <find>glyphdimen</find>
-      <find>get_index_at</find>
-      <find>swap</find>
-      <find>cursor</find>
-      <find>add_ra</find>
-      <find>println</find>
-      <find>DisplayListBuilder</find>
       <find>Arial</find>
       <find>cache</find>
       <find>ignore_ws</find>
@@ -142,40 +159,73 @@
       <find>Hover</find>
       <find>get_tags</find>
       <find>set_value</find>
+      <find>font</find>
+      <find>Glyph</find>
+      <find>load_font_by_name</find>
+      <find>add_font</find>
+      <find>self.value</find>
+      <find>lines()</find>
+      <find>get_line_glyphs</find>
+      <find>GlyphInstance</find>
+      <find>unicode_compose</find>
+      <find>ClipboardProvider</find>
+      <find>cancel_button</find>
+      <find>usize</find>
+      <find>itertool</find>
+      <find>dbg</find>
+      <find>shape_text</find>
+      <find>Extent</find>
+      <find>println</find>
+      <find>get_index_at</find>
+      <find>space</find>
+      <find>BidiClass</find>
+      <find>BidiInfo</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
     <option name="UPDATE_CHANGES_POLICY" value="SHELVE" />
     <option name="UPDATE_TYPE" value="REBASE" />
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="master" />
+      </map>
+    </option>
   </component>
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/src/elements/divbox.rs" />
         <option value="$PROJECT_DIR$/src/elements/mod.rs" />
+        <option value="$PROJECT_DIR$/examples/calculator.rs" />
+        <option value="$PROJECT_DIR$/src/elements/element.rs" />
+        <option value="$PROJECT_DIR$/src/elements/hbox.rs" />
+        <option value="$PROJECT_DIR$/src/elements/scrollbox.rs" />
+        <option value="$PROJECT_DIR$/src/elements/vbox.rs" />
+        <option value="$PROJECT_DIR$/src/gui/window.rs" />
+        <option value="$PROJECT_DIR$/src/gui/font/harfbuzz/blob.rs" />
+        <option value="$PROJECT_DIR$/src/gui/font/harfbuzz/mod.rs" />
+        <option value="$PROJECT_DIR$/src/gui/font/harfbuzz/face.rs" />
+        <option value="$PROJECT_DIR$/src/gui/font/mod.rs" />
+        <option value="$PROJECT_DIR$/src/gui/font/font.rs" />
+        <option value="$PROJECT_DIR$/Cargo.lock" />
+        <option value="$PROJECT_DIR$/src/gui/properties.rs" />
+        <option value="$PROJECT_DIR$/src/elements/button.rs" />
         <option value="$PROJECT_DIR$/Cargo.toml" />
         <option value="$PROJECT_DIR$/src/lib.rs" />
-        <option value="$PROJECT_DIR$/src/gui/properties.rs" />
-        <option value="$PROJECT_DIR$/src/elements/element.rs" />
-        <option value="$PROJECT_DIR$/src/elements/vbox.rs" />
-        <option value="$PROJECT_DIR$/src/elements/hbox.rs" />
-        <option value="$PROJECT_DIR$/examples/mainexample.rs" />
+        <option value="$PROJECT_DIR$/src/gui/mod.rs" />
+        <option value="$PROJECT_DIR$/src/gui/script/mod.rs" />
         <option value="$PROJECT_DIR$/src/elements/textbox.rs" />
-        <option value="$PROJECT_DIR$/src/elements/scrollbox.rs" />
-        <option value="$PROJECT_DIR$/src/elements/button.rs" />
-        <option value="$PROJECT_DIR$/src/gui/window.rs" />
-        <option value="$PROJECT_DIR$/Cargo.lock" />
-        <option value="$PROJECT_DIR$/examples/calculator.rs" />
+        <option value="$PROJECT_DIR$/examples/mainexample.rs" />
+        <option value="$PROJECT_DIR$/src/util.rs" />
         <option value="$PROJECT_DIR$/src/gui/font.rs" />
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds">
-    <option name="x" value="106" />
-    <option name="y" value="158" />
-    <option name="width" value="2980" />
-    <option name="height" value="1418" />
+  <component name="ProjectFrameBounds" extendedState="6">
+    <option name="x" value="3355" />
+    <option name="width" value="1559" />
+    <option name="height" value="1045" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
@@ -208,12 +258,6 @@
               <item name="skryn" type="b2602c69:ProjectViewProjectNode" />
               <item name="skryn" type="462c0819:PsiDirectoryNode" />
               <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="data" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="skryn" type="b2602c69:ProjectViewProjectNode" />
-              <item name="skryn" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
               <item name="elements" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
@@ -222,25 +266,36 @@
               <item name="src" type="462c0819:PsiDirectoryNode" />
               <item name="gui" type="462c0819:PsiDirectoryNode" />
             </path>
+            <path>
+              <item name="skryn" type="b2602c69:ProjectViewProjectNode" />
+              <item name="skryn" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="gui" type="462c0819:PsiDirectoryNode" />
+              <item name="script" type="462c0819:PsiDirectoryNode" />
+            </path>
           </expand>
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
       <pane id="PackagesPane" />
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
-    <property name="last_opened_file_path" value="$USER_HOME$/TFS/IT Core Development/BlueBay.CharlesRiver/Branches/FiX_Trading/BlueBay.Plugin/BlueBay.FMC.Plugin" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="org.rust.cargo.project.model.PROJECT_DISCOVERY" value="true" />
-    <property name="project.structure.last.edited" value="Modules" />
+    <property name="project.structure.last.edited" value="Project" />
     <property name="project.structure.proportion" value="0.0" />
-    <property name="project.structure.side.proportion" value="0.0" />
-    <property name="settings.editor.selected.configurable" value="configurable.group.editor" />
+    <property name="project.structure.side.proportion" value="0.2" />
+    <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\fasih\workspace\skryn\src\elements" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\fasih\workspace\skryn\src\gui" />
+      <recent name="C:\Code\RUSTSTUFF\skryn\src\gui\font" />
     </key>
   </component>
   <component name="RunDashboard">
@@ -255,9 +310,12 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Cargo Command.Calculator">
+  <component name="RunManager" selected="Cargo Command.Mainexample">
     <configuration default="true" type="Application" factoryName="Application">
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <method>
+        <option name="Make" enabled="true" />
+      </method>
     </configuration>
     <configuration name="Calculator" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
       <option name="channel" value="DEFAULT" />
@@ -559,56 +617,50 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="53" y="79" width="1490" height="709" extended-state="0" />
+    <frame x="276" y="11" width="1559" height="1127" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info anchor="right" id="Palette" order="3" />
+      <window_info anchor="right" id="PlantUML" order="0" />
       <window_info anchor="bottom" id="TODO" order="6" />
-      <window_info anchor="right" id="Cargo" order="6" />
-      <window_info anchor="right" id="Palette&#9;" order="4" />
-      <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.5005208" side_tool="true" weight="0.46014878" />
-      <window_info anchor="right" id="Maven Projects" order="5" />
-      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.49947917" weight="0.30791506" />
-      <window_info anchor="bottom" id="Version Control" order="8" />
+      <window_info anchor="right" id="Cargo" order="7" />
+      <window_info anchor="right" id="Palette&#9;" order="5" />
+      <window_info anchor="bottom" id="Event Log" order="10" sideWeight="0.5016816" side_tool="true" weight="0.5671642" />
+      <window_info anchor="right" id="Maven Projects" order="6" />
+      <window_info anchor="bottom" id="Version Control" order="9" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.49831837" visible="true" weight="0.5365854" />
       <window_info anchor="bottom" id="Terminal" order="7" />
       <window_info id="Designer" order="2" />
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.16598916" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.15280464" />
+      <window_info anchor="bottom" id="Find" order="1" weight="0.3297561" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
-      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
+      <window_info id="Favorites" order="3" side_tool="true" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
+      <window_info anchor="right" id="Palette" order="4" />
+      <window_info anchor="bottom" id="Version Control" order="9" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="3" weight="0.25" />
+      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info anchor="right" id="Cargo" order="7" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.09541578" />
+      <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
+      <window_info anchor="right" id="Commander" internal_type="SLIDING" order="1" type="SLIDING" weight="0.4" />
+      <window_info anchor="right" id="Ant Build" order="2" weight="0.25" />
+      <window_info anchor="bottom" id="TODO" order="6" />
+      <window_info anchor="right" id="PlantUML" order="0" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.49831837" visible="true" weight="0.4734561" />
+      <window_info anchor="bottom" id="Messages" order="8" weight="0.26673752" />
+      <window_info id="Designer" order="2" />
       <window_info id="UI Designer" order="4" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
-      <window_info id="Favorites" order="3" side_tool="true" />
-      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
-      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
-      <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
-      <window_info anchor="bottom" id="Messages" order="7" weight="0.26673752" />
+      <window_info anchor="right" id="Palette&#9;" order="5" />
       <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Event Log" order="10" sideWeight="0.5016816" side_tool="true" weight="0.5671642" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
-      <window_info anchor="bottom" id="Find" order="1" />
+      <window_info anchor="bottom" id="Terminal" order="7" />
+      <window_info anchor="right" id="Maven Projects" order="6" />
+      <window_info id="Favorites" order="3" side_tool="true" />
     </layout>
   </component>
-  <component name="VcsContentAnnotationSettings">
-    <option name="myLimit" value="2678400000" />
-  </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Button now has the same default properties as textbox." />
-    <MESSAGE value="window::Manager is now working." />
-    <MESSAGE value="Unit mixing for widths and height is now possible in VBox and HBox.&#10;&#10;Closes #8&#10;Closes #9" />
-    <MESSAGE value="Added minheight/minwidth property to properties enum.&#10;&#10;Closes #7" />
-    <MESSAGE value="Partial Cursor implementation in the textbox." />
-    <MESSAGE value="Partial Cursor implementation in the textbox.&#10;Can now click to focus on a particular index of text." />
-    <MESSAGE value="Cursor is now clickable anywhere in the text box and it will go to the nearest character.&#10;&#10;Closes #10" />
-    <MESSAGE value="Now supports copy paste support from clipboard.&#10;&#10;Selection copy/paste will be implement by #11.&#10;&#10;Closes #2" />
-    <MESSAGE value="trying to fix UNIX thread error and window at random index getting removed." />
-    <MESSAGE value="The correct window now closes on Ubuntu 18.4.1.&#10;&#10;Closes #16" />
-    <MESSAGE value="Button now works in the fontkitbranch." />
-    <MESSAGE value="font can be loaded by fmaily name now." />
-    <MESSAGE value="font-kit functions replaced by RenderApi function for glyph finding and getting dimensions" />
-    <MESSAGE value="implemented left/right properties for hbox" />
-    <MESSAGE value="implemented top/bottom properties for vbox" />
-    <MESSAGE value="prepared button element for text alignment using trbl properties" />
-    <MESSAGE value="text aligned center by default in button" />
-    <MESSAGE value="laid out the foundation for hover begin and end." />
     <MESSAGE value="EbentHandlers now take closures instead of function pointers." />
     <MESSAGE value="addition to calculator example" />
     <MESSAGE value="Some changes to calculator example" />
@@ -616,110 +668,28 @@
     <MESSAGE value="Testbox as Password field" />
     <MESSAGE value="vec replacement and vbox/hbox stretchy bits removed for now." />
     <MESSAGE value="place_line for button" />
-    <option name="LAST_COMMIT_MESSAGE" value="place_line for button" />
+    <MESSAGE value="Allow characters to be inserted at indices." />
+    <MESSAGE value="unicode handling branch checkin" />
+    <MESSAGE value="unicode handling branch midpoint" />
+    <MESSAGE value="unicode handling branch compiling but not complete" />
+    <MESSAGE value="checking in work for unicode handling.&#10;&#10;changed str to vec&lt;char&gt;" />
+    <MESSAGE value="reusing the blobs/face and font from harfbuzz.&#10;&#10;text rendering is still &quot;leaking&quot; memory somehow." />
+    <MESSAGE value="Introduced a new struct char that contains all glyph related values plus the real position of the char in the sting." />
+    <MESSAGE value="Introduced a new struct char that contains all glyph related values plus the real position of the char in the sting.&#10;&#10;Not sure if there is actually a memory leak as the memory stabilizes at some point." />
+    <MESSAGE value="corrected RTL addition of words" />
+    <MESSAGE value="corrected extents of words and text runs." />
+    <MESSAGE value="corrected extents of para and paras objects." />
+    <MESSAGE value="calculating and using baseline for fonts in shape/position." />
+    <MESSAGE value="adding alignment. midpoint save." />
+    <MESSAGE value="Button now fully functional." />
+    <MESSAGE value="New architechture in place, but not fully working." />
+    <MESSAGE value="New architechture in place, but not fully working.&#10;&#10;Corrected display of rtl in an ltr sentence.&#10;ltr in rtl remains." />
+    <MESSAGE value="Corrected display of rtl in an ltr and ltr in rtl remains sentence." />
+    <MESSAGE value="save for script finding per character" />
+    <option name="LAST_COMMIT_MESSAGE" value="save for script finding per character" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/elements/vbox.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1037">
-          <caret line="63" column="42" lean-forward="true" selection-start-line="63" selection-start-column="42" selection-end-line="63" selection-end-column="42" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/gui/window.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4318">
-          <caret line="254" column="43" selection-start-line="254" selection-start-column="43" selection-end-line="254" selection-end-column="43" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/examples/mainexample.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="85">
-          <caret line="5" column="70" lean-forward="true" selection-start-line="5" selection-start-column="70" selection-end-line="5" selection-end-column="70" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/elements/vbox.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="901">
-          <caret line="55" column="50" lean-forward="true" selection-start-line="55" selection-start-column="50" selection-end-line="55" selection-end-column="50" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/elements/divbox.rs" />
-    <entry file="file://$PROJECT_DIR$/src/elements/element.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="476">
-          <caret line="28" selection-start-line="28" selection-end-line="28" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/examples/mainexample.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="187">
-          <caret line="11" column="49" selection-start-line="11" selection-start-column="49" selection-end-line="11" selection-end-column="49" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/gui/window.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="5066">
-          <caret line="300" column="20" selection-start-line="300" selection-start-column="20" selection-end-line="300" selection-end-column="20" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/elements/divbox.rs" />
-    <entry file="file://$PROJECT_DIR$/src/elements/element.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="510">
-          <caret line="30" column="23" selection-start-line="30" selection-start-column="23" selection-end-line="30" selection-end-column="23" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/gui/window.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="5015">
-          <caret line="297" selection-start-line="297" selection-end-line="297" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/examples/mainexample.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="238">
-          <caret line="14" column="4" selection-start-line="14" selection-start-column="4" selection-end-line="14" selection-end-column="4" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/elements/textbox.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3060">
-          <caret line="185" column="25" lean-forward="true" selection-start-line="185" selection-start-column="25" selection-end-line="185" selection-end-column="25" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Skryn.iml">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/.idea/workspace.xml">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/.idea/vcs.xml">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/.idea/skryn.iml">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/.idea/modules.xml">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$USER_HOME$/.cargo/registry/src/github.com-1ecc6299db9ec823/euclid-0.18.2/src/size.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="188">
-          <caret line="47" column="11" selection-start-line="47" selection-start-column="11" selection-end-line="47" selection-end-column="11" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$USER_HOME$/.cargo/registry/src/github.com-1ecc6299db9ec823/euclid-0.18.2/src/size.rs" />
     <entry file="file://$USER_HOME$/.cargo/git/checkouts/webrender-c3596abe1cf4f320/b2c9201/webrender_api/src/units.rs" />
     <entry file="file://$USER_HOME$/.cargo/git/checkouts/webrender-c3596abe1cf4f320/b2c9201/webrender_api/src/api.rs" />
     <entry file="file://$USER_HOME$/.cargo/git/checkouts/webrender-c3596abe1cf4f320/b2c9201/webrender_api/src/display_item.rs" />
@@ -733,9 +703,6 @@
       </provider>
     </entry>
     <entry file="file://$USER_HOME$/.cargo/git/checkouts/webrender-c3596abe1cf4f320/b2c9201/webrender_api/src/display_list.rs" />
-    <entry file="file://$PROJECT_DIR$/src/util.rs">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
     <entry file="file://$USER_HOME$/.cargo/registry/src/github.com-1ecc6299db9ec823/winit-0.16.2/src/events.rs" />
     <entry file="file://$PROJECT_DIR$/src/data/mod.rs">
       <provider selected="true" editor-type-id="text-editor">
@@ -751,13 +718,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/.cargo/git/checkouts/webrender-c3596abe1cf4f320/d84c919/webrender_api/src/units.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1327">
-          <caret line="74" column="30" selection-start-line="74" selection-start-column="23" selection-end-line="74" selection-end-column="35" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$USER_HOME$/.cargo/git/checkouts/webrender-c3596abe1cf4f320/d84c919/webrender_api/src/units.rs" />
     <entry file="file://$USER_HOME$/.rustup/toolchains/stable-x86_64-pc-windows-msvc/lib/rustlib/src/rust/src/libcore/str/mod.rs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="230">
@@ -779,20 +740,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/.cargo/git/checkouts/webrender-c3596abe1cf4f320/d84c919/webrender_api/src/api.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="24">
-          <caret line="997" selection-start-line="997" selection-end-line="997" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Cargo.toml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="289">
-          <caret line="17" column="13" selection-start-line="17" selection-start-column="13" selection-end-line="17" selection-end-column="13" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$USER_HOME$/.cargo/git/checkouts/webrender-c3596abe1cf4f320/d84c919/webrender_api/src/api.rs" />
     <entry file="file://$USER_HOME$/.cargo/registry/src/github.com-1ecc6299db9ec823/font-kit-0.1.0/src/handle.rs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="511">
@@ -800,97 +748,222 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/lib.rs">
+    <entry file="file://$USER_HOME$/.cargo/git/checkouts/webrender-c3596abe1cf4f320/d84c919/webrender_api/src/font.rs" />
+    <entry file="file://$USER_HOME$/.cargo/git/checkouts/webrender-c3596abe1cf4f320/790b76f/webrender_api/src/api.rs" />
+    <entry file="file://$PROJECT_DIR$/.idea/misc.xml">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/.idea/vcs.xml">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/.idea/workspace.xml">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="68">
-          <caret line="4" column="23" selection-start-line="4" selection-start-column="23" selection-end-line="4" selection-end-column="23" />
-        </state>
+        <state relative-caret-position="-4215" />
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/.cargo/git/checkouts/webrender-c3596abe1cf4f320/d84c919/webrender_api/src/font.rs">
+    <entry file="file://$PROJECT_DIR$/examples/calculator.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="321">
-          <caret line="64" column="11" selection-start-line="64" selection-start-column="11" selection-end-line="64" selection-end-column="11" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/gui/properties.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="144">
-          <caret line="9" column="8" selection-start-line="9" selection-start-column="8" selection-end-line="9" selection-end-column="8" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/elements/vbox.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="5083">
-          <caret line="307" column="5" selection-start-line="307" selection-start-column="5" selection-end-line="307" selection-end-column="5" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/elements/hbox.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="5049">
-          <caret line="303" selection-start-line="303" selection-end-line="303" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/examples/mainexample.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1615">
-          <caret line="99" column="15" selection-start-line="99" selection-start-column="12" selection-end-line="99" selection-end-column="15" />
+        <state relative-caret-position="448">
+          <caret line="30" selection-start-line="30" selection-end-line="30" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/elements/element.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="391">
-          <caret line="23" column="90" selection-start-line="23" selection-start-column="13" selection-end-line="23" selection-end-column="90" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/elements/textbox.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="289">
-          <caret line="17" column="31" selection-start-line="17" selection-start-column="31" selection-end-line="17" selection-end-column="31" />
+        <state relative-caret-position="128">
+          <caret line="8" column="15" selection-start-line="8" selection-start-column="15" selection-end-line="8" selection-end-column="15" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/elements/scrollbox.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1360">
-          <caret line="80" column="18" selection-start-line="80" selection-start-column="18" selection-end-line="80" selection-end-column="18" />
+        <state relative-caret-position="64">
+          <caret line="4" column="15" selection-start-line="4" selection-start-column="15" selection-end-line="4" selection-end-column="15" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/elements/button.rs">
+    <entry file="file://$PROJECT_DIR$/src/elements/vbox.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2125">
-          <caret line="131" column="18" selection-start-line="131" selection-start-column="18" selection-end-line="131" selection-end-column="18" />
+        <state relative-caret-position="48">
+          <caret line="3" column="15" selection-start-line="3" selection-start-column="15" selection-end-line="3" selection-end-column="15" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/.cargo/registry/src/github.com-1ecc6299db9ec823/webrender_api-0.58.0/src/units.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="144">
+          <caret line="24" column="53" lean-forward="true" selection-start-line="24" selection-start-column="53" selection-end-line="24" selection-end-column="53" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/gui/window.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="9616">
+          <caret line="605" column="24" selection-start-line="605" selection-start-column="24" selection-end-line="605" selection-end-column="24" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/gui/font/harfbuzz/blob.rs" />
+    <entry file="file://$PROJECT_DIR$/src/elements/hbox.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2635">
+          <caret line="163" selection-start-line="163" selection-end-line="163" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/gui/font/harfbuzz/face.rs" />
+    <entry file="file://$PROJECT_DIR$/src/gui/font/harfbuzz/mod.rs" />
+    <entry file="file://$PROJECT_DIR$/src/gui/font/mod.rs" />
+    <entry file="file://$USER_HOME$/.cargo/registry/src/github.com-1ecc6299db9ec823/font-kit-0.1.0/src/font.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="238">
+          <caret line="14" column="28" selection-start-line="14" selection-start-column="28" selection-end-line="14" selection-end-column="28" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/.cargo/registry/src/github.com-1ecc6299db9ec823/itertools-0.7.11/src/lib.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1804">
+          <caret line="1152" column="7" selection-start-line="1152" selection-start-column="7" selection-end-line="1152" selection-end-column="7" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/Cargo.lock">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/gui/window.rs">
+    <entry file="file://$USER_HOME$/.cargo/registry/src/github.com-1ecc6299db9ec823/webrender_api-0.58.0/src/font.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="9520">
-          <caret line="564" column="33" selection-start-line="564" selection-start-column="33" selection-end-line="564" selection-end-column="33" />
+        <state relative-caret-position="517">
+          <caret line="369" column="9" selection-start-line="369" selection-start-column="9" selection-end-line="369" selection-end-column="9" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/examples/calculator.rs">
+    <entry file="file://$USER_HOME$/.cargo/registry/src/github.com-1ecc6299db9ec823/unicode-bidi-0.3.4/src/char_data/tables.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="348">
-          <caret line="30" column="17" selection-start-line="30" selection-start-column="17" selection-end-line="30" selection-end-column="17" />
+        <state relative-caret-position="-51">
+          <caret line="20" column="4" selection-start-line="20" selection-start-column="4" selection-end-line="20" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/.cargo/registry/src/github.com-1ecc6299db9ec823/unicode-bidi-0.3.4/src/level.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-65">
+          <caret line="31" column="11" selection-start-line="31" selection-start-column="11" selection-end-line="31" selection-end-column="11" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/.cargo/registry/src/github.com-1ecc6299db9ec823/unicode-bidi-0.3.4/src/lib.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="190">
+          <caret line="247" column="23" selection-start-line="247" selection-start-column="23" selection-end-line="247" selection-end-column="23" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Cargo.toml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="368">
+          <caret line="23" selection-start-line="23" selection-end-line="23" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/gui/mod.rs">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$USER_HOME$/.cargo/registry/src/github.com-1ecc6299db9ec823/harfbuzz-sys-0.3.0/src/lib.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="16">
+          <caret line="293" column="10" selection-start-line="293" selection-start-column="10" selection-end-line="293" selection-end-column="10" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/gui/script/mod.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2">
+          <caret line="284" column="186" selection-start-line="284" selection-start-column="186" selection-end-line="284" selection-end-column="186" />
+          <folding>
+            <element signature="e#2596#2597#0" expanded="true" />
+            <element signature="e#2645#2646#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/lib.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="96">
+          <caret line="6" selection-start-line="6" selection-end-line="6" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/gui/properties.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="3104">
+          <caret line="206" column="34" selection-start-line="206" selection-start-column="34" selection-end-line="206" selection-end-column="34" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/elements/button.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="955">
+          <caret line="233" column="10" selection-start-line="233" selection-start-column="10" selection-end-line="233" selection-end-column="10" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/elements/textbox.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="362">
+          <caret line="378" column="45" selection-start-line="378" selection-start-column="45" selection-end-line="378" selection-end-column="45" />
+          <folding>
+            <element signature="e#13975#13976#0" expanded="true" />
+            <element signature="e#14023#14024#0" expanded="true" />
+            <element signature="e#14293#14294#0" expanded="true" />
+            <element signature="e#14312#14313#0" expanded="true" />
+            <element signature="e#14355#14356#0" expanded="true" />
+            <element signature="e#14374#14375#0" expanded="true" />
+            <element signature="e#14452#14453#0" expanded="true" />
+            <element signature="e#14488#14489#0" expanded="true" />
+            <element signature="e#14525#14526#0" expanded="true" />
+            <element signature="e#14552#14553#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/examples/mainexample.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="279">
+          <caret line="97" column="50" selection-start-line="97" selection-start-column="50" selection-end-line="97" selection-end-column="50" />
+          <folding>
+            <element signature="e#7981#7982#0" expanded="true" />
+            <element signature="e#8003#8004#0" expanded="true" />
+            <element signature="e#8045#8046#0" expanded="true" />
+            <element signature="e#8097#8098#0" expanded="true" />
+            <element signature="e#8799#8800#0" expanded="true" />
+            <element signature="e#8833#8834#0" expanded="true" />
+            <element signature="e#9722#9723#0" expanded="true" />
+            <element signature="e#9742#9743#0" expanded="true" />
+            <element signature="e#9774#9775#0" expanded="true" />
+            <element signature="e#9793#9794#0" expanded="true" />
+            <element signature="e#9837#9838#0" expanded="true" />
+            <element signature="e#9856#9857#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/util.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="96">
+          <caret line="6" selection-start-line="6" selection-end-line="6" selection-end-column="27" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/gui/font.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="323">
-          <caret line="19" column="33" lean-forward="true" selection-start-line="19" selection-start-column="33" selection-end-line="19" selection-end-column="33" />
+        <state relative-caret-position="232">
+          <caret line="546" column="43" selection-start-line="546" selection-start-column="43" selection-end-line="546" selection-end-column="43" />
+          <folding>
+            <element signature="e#16272#16273#0" expanded="true" />
+            <element signature="e#16306#16307#0" expanded="true" />
+            <element signature="e#20194#20962#0" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -934,6 +1007,7 @@
       </state>
       <state key="JdkListConfigurable.UI">
         <settings>
+          <last-edited>1.7</last-edited>
           <splitter-proportions>
             <option name="proportions">
               <list>
@@ -950,6 +1024,7 @@
             <option name="proportions">
               <list>
                 <option value="0.2" />
+                <option value="0.6" />
               </list>
             </option>
           </splitter-proportions>

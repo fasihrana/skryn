@@ -9,9 +9,10 @@ use gui::properties;
 
 pub struct Button {
     ext_id: u64,
-    value: String,
+    value: Vec<char>,
     props: properties::Properties,
     bounds: properties::Extent,
+    text_bounds: properties::Extent,
     event_handlers: EventHandlers,
     drawn: u8,
     hovering: bool,
@@ -23,6 +24,7 @@ impl Button {
         let mut props = properties::Properties::new();
         props.default();
         props
+            .set(properties::Property::TextAlign(properties::Align::Middle))
             .set(properties::Property::BgColor(ColorF::new(
                 0.8, 0.9, 0.9, 1.0,
             )))
@@ -32,15 +34,10 @@ impl Button {
             )));
         Button {
             ext_id: 0,
-            value: s,
+            value: s.chars().collect(),
             props,
-            bounds: properties::Extent {
-                x: 0.0,
-                y: 0.0,
-                w: 0.0,
-                h: 0.0,
-                dpi: 0.0,
-            },
+            bounds: properties::Extent::new(),
+            text_bounds: properties::Extent::new(),
             event_handlers: EventHandlers::new(),
             drawn: 0,
             hovering: false,
@@ -49,13 +46,13 @@ impl Button {
     }
 
     pub fn set_value(&mut self, s: String) {
-        self.value = s;
+        self.value = s.chars().collect();
         //self.cache.clear();
         self.drawn = 0;
     }
 
     pub fn get_value(&self) -> String {
-        self.value.clone()
+        self.value.clone().iter().collect()
     }
 
     fn get_width_sums(&mut self) -> (f32, f32) {
@@ -92,7 +89,10 @@ impl Button {
         let bottom = self.props.get_bottom();
 
         let mut stretchy: f32 = 0.0;
-        let mut pixel: f32 = (self.props.get_size() * self.value.lines().count() as i32) as f32;
+        let num_lines = {
+            let tmp: String = self.value.iter().collect();
+            tmp.lines().count() as i32};
+        let mut pixel: f32 = (self.props.get_size() * num_lines) as f32;
 
         match top {
             properties::Unit::Stretch(_s) => stretchy += _s,
@@ -151,6 +151,11 @@ impl Element for Button {
         let bottom = self.props.get_bottom();
         let left = self.props.get_left();
 
+        if self.hovering && self.enabled {
+            color = self.props.get_hover_color();
+            bgcolor = self.props.get_hover_bg_color();
+        }
+
         let (wp_sum, ws_sum) = self.get_width_sums();
         let mut remaining_width = extent.w - wp_sum;
         if remaining_width < 0.0 {
@@ -171,13 +176,6 @@ impl Element for Button {
             h_stretchy_factor = 0.0;
         }
 
-        if self.hovering && self.enabled {
-            color = self.props.get_hover_color();
-            bgcolor = self.props.get_hover_bg_color();
-        }
-
-        let (_, fi_key) = font_store.get_font_instance(&family, size as i32);
-
         let mut calc_x = extent.x;
         let mut calc_y = extent.y;
         let mut calc_w = extent.w;
@@ -194,13 +192,11 @@ impl Element for Button {
             }
             _ => (),
         }
-
         match bottom {
             properties::Unit::Pixel(_p) => calc_h -= _p,
             properties::Unit::Stretch(_s) => calc_h -= _s * h_stretchy_factor,
             _ => (),
         }
-
         match left {
             properties::Unit::Pixel(_p) => {
                 calc_x += _p;
@@ -218,20 +214,31 @@ impl Element for Button {
             _ => (),
         }
 
-        let (glyphs, tbounds, _) = font::FontRaster::place_lines(
-            &self.value,
-            calc_x,
-            calc_y,
-            calc_w,
-            calc_h,
-            size,
-            &family,
-            &text_align,
-            font_store,
-        );
+        let text_y = calc_y + (calc_h - self.text_bounds.h)/2.0;
+        let metrics = font_store.get_font_metrics(&family);
+        let baseline = match metrics {
+            Some(metrics) => {
+                let tmp = metrics.ascent-metrics.descent;
+                let tmp = size / tmp;
+                tmp * (metrics.ascent)
+            },
+            None => size,
+        };
 
-        let mut calc_w = tbounds.w;
-        let mut calc_h = tbounds.h;
+        let mut paras = font::Paragraphs::from_chars(&self.value);
+        paras.shape(calc_x,
+                                  text_y,
+                                  calc_w,
+                                  calc_h,
+                                  size,
+                                  baseline,
+                                  &family,
+                                  &text_align);
+
+        self.text_bounds = paras.get_extent();
+
+        let mut calc_w = self.text_bounds.w;
+        let mut calc_h = self.text_bounds.h;
 
         calc_w = match width {
             properties::Unit::Extent => extent.w,
@@ -255,6 +262,7 @@ impl Element for Button {
             dpi: extent.dpi,
         };
 
+
         let mut info = LayoutPrimitiveInfo::new(LayoutRect::new(
             LayoutPoint::new(extent.x, extent.y),
             LayoutSize::new(self.bounds.w, self.bounds.h),
@@ -263,10 +271,13 @@ impl Element for Button {
         builder.push_rect(&info, bgcolor);
 
         let info = LayoutPrimitiveInfo::new(LayoutRect::new(
-            LayoutPoint::new(tbounds.x, tbounds.y),
-            LayoutSize::new(tbounds.w, tbounds.h),
+            LayoutPoint::new(self.text_bounds.x, self.text_bounds.y),
+            LayoutSize::new(self.text_bounds.w, self.text_bounds.h),
         ));
 
+        let glyphs = paras.glyphs();
+
+        let (_, fi_key) = font_store.get_font_instance(&family, size as i32);
         builder.push_text(&info, &glyphs, fi_key, color, Some(GlyphOptions::default()));
     }
 

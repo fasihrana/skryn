@@ -95,27 +95,31 @@ impl PersonElm {
     fn new(p: Arc<Mutex<Person>>) -> PersonElm {
         //Create two TextBoxes and display their initial value
         let mut _p = p.lock().unwrap();
-        let name = Arc::new(Mutex::new(TextBox::new(_p.name.get_value())));
+        let mut _tbox = TextBox::new(format!(""));
+        //let mut _tbox = TextBox::new(format!("{}\n\n{}",
+        //                                     "Fasih's full name is فصیح احمد رانا, and his first name means eloquent.",
+        //w                                    "فصیح کا پورا نام Fasih Ahmed Rana ہے، اور انگریزی میں اس کے نام کا مطلب eloquent ہے."));
+        _tbox.set_placeholder("<enter bio here>".to_owned());
+        let name = Arc::new(Mutex::new( _tbox ));
         let age = Arc::new(Mutex::new(TextBox::new(String::from(format!(
             "{}",
             _p.age.get_value()
         )))));
         //This is an alert button just to show how easy it is to spawn new windows.
-        let alert_button = Arc::new(Mutex::new(Button::new(format!("Press here!"))));
-        let cancel_button = Arc::new(Mutex::new(Button::new(format!("Cancel"))));
+        let alert_button = Arc::new(Mutex::new(Button::new(format!("Press here"))));
+
+        //the text in the following button should be showing up in three lines based on the width
+        let cancel_button = Arc::new(Mutex::new(Button::new(format!("فصیح احمد رانا"))));
+
         let h = Arc::new(Mutex::new(HBox::new()));
-        h.lock()
-            .unwrap()
-            .set(skryn::gui::properties::Property::Left(
-                skryn::gui::properties::Unit::Stretch(1.0),
-            ));
-        h.lock()
-            .unwrap()
-            .set(skryn::gui::properties::Property::Right(
-                skryn::gui::properties::Unit::Stretch(1.0),
-            ));
         match h.lock() {
             Ok(ref mut h) => {
+                h.set(skryn::gui::properties::Property::Left(
+                    skryn::gui::properties::Unit::Stretch(1.0),
+                ));
+                h.set(skryn::gui::properties::Property::Right(
+                    skryn::gui::properties::Unit::Stretch(1.0),
+                ));
                 h.append(alert_button.clone());
                 h.append(cancel_button.clone());
                 h.set(skryn::gui::properties::Property::Height(
@@ -149,13 +153,13 @@ impl PersonElm {
             .lock()
             .unwrap()
             .set(skryn::gui::properties::Property::Width(
-                skryn::gui::properties::Unit::Pixel(75.0),
+                skryn::gui::properties::Unit::Pixel(100.0),
             ));
         cancel_button
             .lock()
             .unwrap()
             .set(skryn::gui::properties::Property::Width(
-                skryn::gui::properties::Unit::Pixel(75.0),
+                skryn::gui::properties::Unit::Pixel(100.0),
             ));
         //Here we have used the Stretch unit for elements above to make sure our VBox below is utilized to the full.
         let v = Arc::new(Mutex::new(VBox::new()));
@@ -323,7 +327,7 @@ impl Alert {
 
 fn main() {
     //create the person.
-    let person = Person::new(String::from("<Insert name here>"), 0);
+    let person = Person::new(String::from(""), 0);
 
     let person = Arc::new(Mutex::new(person));
 
