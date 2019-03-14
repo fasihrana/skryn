@@ -367,11 +367,17 @@ impl Element for TextBox {
                 }
                 _ => (),
             },*/
+            PrimitiveEvent::KeyInput(vkc, _sc, s, _m) => match vkc {
+                _ => (),
+            },
             PrimitiveEvent::Char(mut c) => {
 
                 if self.focus && self.enabled && self.editable {
-                    if c == '\x08' {
-
+                    if c == '\x08' { //backspace
+                        let len = self.value.len();
+                        if len > 0 {
+                            self.value.pop();
+                        }
                     } else if c == '\u{3}' {
 
                     } else if c == '\u{16}' {
@@ -392,7 +398,7 @@ impl Element for TextBox {
                 }
             },
             PrimitiveEvent::Button(p, b, s, m) => {
-                if !ext_ids.is_empty()
+                /*if !ext_ids.is_empty()
                     && ext_ids[0].0 == self.ext_id
                     && b == properties::Button::Left
                     && s == properties::ButtonState::Released
@@ -401,7 +407,7 @@ impl Element for TextBox {
                         self.cursor = self.get_index_at(&p);
                         println!("pressed index at {}", self.cursor);
                         handled = self.exec_handler(ElementEvent::Clicked, &m);
-                    }
+                    }*/
             },
             PrimitiveEvent::HoverBegin(n_tags) => {
                 let matched = n_tags.iter().find(|x| x.0 == self.ext_id);

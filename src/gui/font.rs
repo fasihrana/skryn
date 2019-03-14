@@ -5,7 +5,7 @@ use gui::properties::*;
 use std::collections::HashMap;
 use webrender::api::*;
 
-use util::unicode_compose;
+use unicode_bidi::BidiInfo;
 use super::properties::{Align, Position};
 use gui::font::shaper::GlyphMetric;
 use itertools::*;
@@ -493,6 +493,7 @@ impl ParaText {
 
                 let tmp_pos =
                 if line.segments[j]._ref.rtl {
+                    ltr_pos = None;
                     0
                 } else {
                     if ltr_pos.is_none() {
@@ -542,7 +543,7 @@ impl Paragraphs {
         let c_tmp = text.iter().next();
         if c_tmp.is_some() {
             let value: String = text.iter().collect();
-            let (uc_value, info) = unicode_compose(&value);
+            let info = BidiInfo::new(&value, None);
 
 
             let mut class = Segment::resolve_class(&info.levels[0], info.original_classes[0]);
