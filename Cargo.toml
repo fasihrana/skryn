@@ -1,7 +1,11 @@
 [package]
-name = "skryn"
-version = "0.0.2"
-authors = ["Fasih Rana <fasih.rana@apparicion.com>"]
+name = "skryn"                                             
+version = "0.0.3"                                          
+authors = ["Fasih Rana <fasih.rana@obsidium.co>"]          
+edition = "2018"                                           
+description = "A servo/webrender based Desktop GUI library"
+license = "MIT"                                            
+
 exclude = [
 	".idea",
 	"Skryn.iml"
