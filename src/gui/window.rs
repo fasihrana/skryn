@@ -1,7 +1,7 @@
 use euclid;
 use gleam::gl;
 use glutin;
-use glutin::GlContext;
+use glutin::ContextTrait;
 use webrender;
 use webrender::api::*;
 
@@ -107,7 +107,7 @@ impl RenderNotifier for WindowNotifier {
 }
 
 struct Internals {
-    gl_window: glutin::GlWindow,
+    gl_window: glutin::WindowedContext,
     events_loop: glutin::EventsLoop,
     font_store: Arc<Mutex<font::FontStore>>,
     api: RenderApi,
@@ -123,16 +123,18 @@ struct Internals {
 impl Internals {
     fn new(name: &str, width: f64, height: f64) -> Internals {
         let events_loop = glutin::EventsLoop::new();
-        let context_builder =
-            glutin::ContextBuilder::new().with_gl(glutin::GlRequest::GlThenGles {
-                opengl_version: (3, 2),
-                opengles_version: (3, 0),
-            });
         let window_builder = glutin::WindowBuilder::new()
             .with_title(name)
             .with_multitouch()
             .with_dimensions(glutin::dpi::LogicalSize::new(width, height));
-        let window = glutin::GlWindow::new(window_builder, context_builder, &events_loop).unwrap();
+        let window =
+            glutin::ContextBuilder::new()
+                .with_gl(glutin::GlRequest::GlThenGles {
+                    opengl_version: (3, 2),
+                    opengles_version: (3, 0),
+                })
+                .build_windowed(window_builder, &events_loop)
+                .unwrap();
 
         unsafe {
             window.make_current().ok();

@@ -7,14 +7,10 @@ use webrender::api::*;
 
 use super::properties::{Align, Position};
 use self::shaper::GlyphMetric;
-use harfbuzz_sys::hb_script_t;
-use itertools::*;
 use unicode_bidi::BidiClass;
 use unicode_bidi::BidiInfo;
-use unicode_bidi::LevelRun;
 
 mod shaper {
-    use font_kit::font;
     use std::collections::HashMap;
     use std::os::raw::{c_char, c_int, c_uint, c_void};
     use std::ptr;
@@ -26,16 +22,14 @@ mod shaper {
         hb_buffer_get_glyph_infos, hb_buffer_get_glyph_positions, hb_buffer_set_direction,
         hb_buffer_set_script, hb_face_create, hb_face_destroy, hb_font_create, hb_font_destroy,
         hb_font_get_glyph_extents, hb_font_set_ppem, hb_font_set_scale, hb_shape,
-        hb_unicode_script,
     };
     //harfbuzz structs
     use harfbuzz_sys::{
-        hb_blob_t, hb_face_t, hb_font_t, hb_glyph_extents_t, hb_script_t, hb_tag_t,
+        hb_blob_t, hb_face_t, hb_font_t, hb_glyph_extents_t,
     };
     //harfbuzz consts
-    use harfbuzz_sys::hb_font_extents_t;
     use harfbuzz_sys::{
-        HB_DIRECTION_LTR, HB_DIRECTION_RTL, HB_MEMORY_MODE_READONLY, HB_SCRIPT_UNKNOWN,
+        HB_DIRECTION_LTR, HB_DIRECTION_RTL, HB_MEMORY_MODE_READONLY,
     };
 
     use super::super::properties::Position;
