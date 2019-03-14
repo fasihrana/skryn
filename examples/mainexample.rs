@@ -100,7 +100,7 @@ impl PersonElm {
         //                                     "Fasih's full name is فصیح احمد رانا, and his first name means eloquent.",
         //w                                    "فصیح کا پورا نام Fasih Ahmed Rana ہے، اور انگریزی میں اس کے نام کا مطلب eloquent ہے."));
         _tbox.set_placeholder("<enter bio here>".to_owned());
-        let name = Arc::new(Mutex::new( _tbox ));
+        let name = Arc::new(Mutex::new(_tbox));
         let age = Arc::new(Mutex::new(TextBox::new(String::from(format!(
             "{}",
             _p.age.get_value()
@@ -109,7 +109,9 @@ impl PersonElm {
         let alert_button = Arc::new(Mutex::new(Button::new(format!("Press here"))));
 
         //the text in the following button should be showing up in three lines based on the width
-        let cancel_button = Arc::new(Mutex::new(Button::new(format!("فصیح احمد رانا"))));
+        let cancel_button = Arc::new(Mutex::new(Button::new(format!(
+            "فصیح احمد رانا"
+        ))));
 
         let h = Arc::new(Mutex::new(HBox::new()));
         match h.lock() {

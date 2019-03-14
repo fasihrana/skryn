@@ -159,8 +159,8 @@ impl Element for ScrollBox {
                     }
                 }
                 (PrimitiveEvent::Char(_c), Ok(ref mut _child_elm)) => {
-                    handled = _child_elm.on_primitive_event(&[],e.clone());
-                },
+                    handled = _child_elm.on_primitive_event(&[], e.clone());
+                }
                 // XXX: These used to be unreachable; they trigger a panic in the WRRenderBackend thread
                 // (PrimitiveEvent::HoverBegin(_n_tags), Ok(ref mut _child_elm)) => {
                 //     _child_elm.on_primitive_event(&[],e.clone());
@@ -168,7 +168,7 @@ impl Element for ScrollBox {
                 // (PrimitiveEvent::HoverEnd(_o_tags), Ok(ref mut _child_elm)) => {
                 //     _child_elm.on_primitive_event(&[],e.clone());
                 // },
-                (_, Ok(ref mut _child_elm)) =>  {
+                (_, Ok(ref mut _child_elm)) => {
                     if !handled {
                         if ext_ids.len() == 1 {
                             handled = _child_elm.on_primitive_event(&[], e.clone());

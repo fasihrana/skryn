@@ -5,39 +5,38 @@ use gui::properties::*;
 use std::collections::HashMap;
 use webrender::api::*;
 
-use unicode_bidi::BidiInfo;
 use super::properties::{Align, Position};
 use gui::font::shaper::GlyphMetric;
+use harfbuzz_sys::hb_script_t;
 use itertools::*;
 use unicode_bidi::BidiClass;
+use unicode_bidi::BidiInfo;
 use unicode_bidi::LevelRun;
-use harfbuzz_sys::{hb_script_t};
 
-mod shaper{
-    use std::collections::HashMap;
-    use std::sync::{Mutex, Arc};
-    use std::os::raw::{c_char, c_uint, c_int, c_void};
-    use std::ptr;
-    use webrender::api::GlyphIndex;
+mod shaper {
     use font_kit::font;
+    use std::collections::HashMap;
+    use std::os::raw::{c_char, c_int, c_uint, c_void};
+    use std::ptr;
+    use std::sync::{Arc, Mutex};
+    use webrender::api::GlyphIndex;
     //harfbuzz functions
-    use harfbuzz_sys::{ hb_face_create, hb_font_create, hb_blob_create, hb_buffer_create,
-                        hb_face_destroy, hb_font_destroy, hb_blob_destroy, hb_buffer_destroy,
-                        hb_font_set_scale,
-                        hb_font_set_ppem,
-                        hb_font_get_glyph_extents,
-                        hb_buffer_add_utf8,
-                        hb_shape,
-                        hb_buffer_get_glyph_infos,
-                        hb_buffer_get_glyph_positions,
-                        hb_buffer_set_direction,
-                        hb_buffer_set_script,
-                        hb_unicode_script};
+    use harfbuzz_sys::{
+        hb_blob_create, hb_blob_destroy, hb_buffer_add_utf8, hb_buffer_create, hb_buffer_destroy,
+        hb_buffer_get_glyph_infos, hb_buffer_get_glyph_positions, hb_buffer_set_direction,
+        hb_buffer_set_script, hb_face_create, hb_face_destroy, hb_font_create, hb_font_destroy,
+        hb_font_get_glyph_extents, hb_font_set_ppem, hb_font_set_scale, hb_shape,
+        hb_unicode_script,
+    };
     //harfbuzz structs
-    use harfbuzz_sys::{ hb_blob_t, hb_face_t,hb_font_t, hb_glyph_extents_t, hb_tag_t, hb_script_t };
+    use harfbuzz_sys::{
+        hb_blob_t, hb_face_t, hb_font_t, hb_glyph_extents_t, hb_script_t, hb_tag_t,
+    };
     //harfbuzz consts
-    use harfbuzz_sys::{HB_MEMORY_MODE_READONLY, HB_DIRECTION_RTL, HB_SCRIPT_UNKNOWN, HB_DIRECTION_LTR};
     use harfbuzz_sys::hb_font_extents_t;
+    use harfbuzz_sys::{
+        HB_DIRECTION_LTR, HB_DIRECTION_RTL, HB_MEMORY_MODE_READONLY, HB_SCRIPT_UNKNOWN,
+    };
 
     use super::super::properties::Position;
 
@@ -51,7 +50,7 @@ mod shaper{
     }*/
 
     #[derive(Debug, Clone)]
-    pub struct GlyphMetric{
+    pub struct GlyphMetric {
         pub advance: Position,
         pub offset: Position,
         pub bearing: Position,
@@ -69,31 +68,37 @@ mod shaper{
         bytes: Vec<u8>,
     }
 
-    lazy_static!(
-            static ref FONT : Arc<Mutex<HashMap<String, HBFont>>> = Arc::new(Mutex::new(HashMap::new()));
-    );
+    lazy_static! {
+        static ref FONT: Arc<Mutex<HashMap<String, HBFont>>> = Arc::new(Mutex::new(HashMap::new()));
+    }
 
-
-    pub fn shape_text(val: &str, size: u32, baseline: f32, family: &str, rtl: bool, script: super::super::script::Script) -> Vec<Glyph>{
-
+    pub fn shape_text(
+        val: &str,
+        size: u32,
+        baseline: f32,
+        family: &str,
+        rtl: bool,
+        script: super::super::script::Script,
+    ) -> Vec<Glyph> {
         //println!("\"{}\"script is {:?}", val, script);
         let script = script.to_hb_script();
         unsafe {
-
             let hb_font = {
                 let mut font_map = FONT.lock().unwrap();
                 if !font_map.contains_key(family) {
                     let font = super::load_font_by_name(family);
-                    let font_vec : Vec<u8> = (*(font.copy_font_data().unwrap())).clone();
+                    let font_vec: Vec<u8> = (*(font.copy_font_data().unwrap())).clone();
                     let tmp_len = font_vec.len();
                     let tmp = (&font_vec).as_ptr();
 
                     //let tmp = (tmp).buffer();
-                    let blob = hb_blob_create(tmp as *const c_char,
-                                              tmp_len as c_uint,
-                                              HB_MEMORY_MODE_READONLY,
-                                              ptr::null_mut() as *mut c_void,
-                                              None);
+                    let blob = hb_blob_create(
+                        tmp as *const c_char,
+                        tmp_len as c_uint,
+                        HB_MEMORY_MODE_READONLY,
+                        ptr::null_mut() as *mut c_void,
+                        None,
+                    );
 
                     let face = hb_face_create(blob, 1 as c_uint);
 
@@ -112,29 +117,28 @@ mod shaper{
                 font_map.get(family).unwrap().clone().font as *const hb_font_t as *mut hb_font_t
             };
 
-
-
-            hb_font_set_ppem(hb_font,size,size);
+            hb_font_set_ppem(hb_font, size, size);
             hb_font_set_scale(hb_font, size as i32, size as i32);
 
             let buf = hb_buffer_create();
-            hb_buffer_add_utf8(buf,
-                               val.as_ptr() as *const c_char,
-                               val.len() as c_int,
-                               0,
-                               val.len() as c_int);
+            hb_buffer_add_utf8(
+                buf,
+                val.as_ptr() as *const c_char,
+                val.len() as c_int,
+                0,
+                val.len() as c_int,
+            );
             if rtl {
                 hb_buffer_set_direction(buf, HB_DIRECTION_RTL);
                 hb_buffer_set_script(buf, script);
-                //let lang = hb_language_from_string("URD".as_ptr() as *const c_char, 3);
-                //hb_buffer_set_language(buf,lang);
+            //let lang = hb_language_from_string("URD".as_ptr() as *const c_char, 3);
+            //hb_buffer_set_language(buf,lang);
             } else {
                 hb_buffer_set_direction(buf, HB_DIRECTION_LTR);
                 //hb_buffer_set_script(buf, HB_SCRIPT_LATIN);
                 //let lang = hb_language_from_string("ENG".as_ptr() as *const c_char, 3);
                 //hb_buffer_set_language(buf,lang);
             }
-
 
             hb_shape(hb_font, buf, ptr::null_mut(), 0);
 
@@ -143,7 +147,6 @@ mod shaper{
             let g_info = hb_buffer_get_glyph_infos(buf, &mut g_count);
             let g_pos = hb_buffer_get_glyph_positions(buf, &mut p_count);
 
-
             let mut g_vec = Vec::new();
 
             //let mut cursor_x = 0;
@@ -151,18 +154,31 @@ mod shaper{
                 let info = g_info.offset(i as isize);
                 let pos = g_pos.offset(i as isize);
 
-                let mut extent = hb_glyph_extents_t{
+                let mut extent = hb_glyph_extents_t {
                     x_bearing: 0,
                     y_bearing: 0,
                     width: 0,
                     height: 0,
                 };
-                hb_font_get_glyph_extents(hb_font,(*info).codepoint,&mut extent as *mut hb_glyph_extents_t);
+                hb_font_get_glyph_extents(
+                    hb_font,
+                    (*info).codepoint,
+                    &mut extent as *mut hb_glyph_extents_t,
+                );
 
-                let metric = GlyphMetric{
-                    advance: Position{ x: (*pos).x_advance as f32, y: (*pos).y_advance as f32},
-                    offset: Position{ x: (*pos).x_offset as f32, y: (*pos).y_offset as f32 },
-                    bearing: Position{ x: extent.x_bearing as f32, y: extent.y_bearing as f32 },
+                let metric = GlyphMetric {
+                    advance: Position {
+                        x: (*pos).x_advance as f32,
+                        y: (*pos).y_advance as f32,
+                    },
+                    offset: Position {
+                        x: (*pos).x_offset as f32,
+                        y: (*pos).y_offset as f32,
+                    },
+                    bearing: Position {
+                        x: extent.x_bearing as f32,
+                        y: extent.y_bearing as f32,
+                    },
                     width: extent.width as f32,
                     height: extent.height as f32,
                     size: size as f32,
@@ -171,7 +187,7 @@ mod shaper{
 
                 let glyphid = (*info).codepoint;
 
-                g_vec.push((glyphid, metric) );
+                g_vec.push((glyphid, metric));
             }
 
             //destroy all
@@ -181,7 +197,6 @@ mod shaper{
         }
     }
 }
-
 
 fn load_font_by_name(name: &str) -> font::Font {
     let mut props = font_kit::properties::Properties::new();
@@ -211,7 +226,7 @@ fn add_font(font: &font_kit::font::Font, api: &RenderApi, document_id: DocumentI
 }
 
 #[derive(Debug, Clone)]
-pub struct Char{
+pub struct Char {
     char: char,
     metric: GlyphMetric,
     index: usize,
@@ -222,7 +237,7 @@ pub struct Char{
 
 impl Char {
     fn new(char: char, index: usize, rtl: bool) -> Char {
-        Char{
+        Char {
             char,
             metric: GlyphMetric {
                 advance: Position { x: 0.0, y: 0.0 },
@@ -236,20 +251,32 @@ impl Char {
             index,
             position: Position { x: 0.0, y: 0.0 },
             rtl,
-            glyph: 0
+            glyph: 0,
         }
     }
 
-    pub fn get_char(&self) -> char {self.char}
-    pub fn get_metric(&self) -> GlyphMetric {self.metric.clone()}
-    pub fn get_index(&self) -> usize {self.index}
-    pub fn get_position(&self) -> Position {self.position.clone()}
-    pub fn get_rtl(&self) -> bool {self.rtl}
-    pub fn get_glyph(&self) -> GlyphIndex {self.glyph}
+    pub fn get_char(&self) -> char {
+        self.char
+    }
+    pub fn get_metric(&self) -> GlyphMetric {
+        self.metric.clone()
+    }
+    pub fn get_index(&self) -> usize {
+        self.index
+    }
+    pub fn get_position(&self) -> Position {
+        self.position.clone()
+    }
+    pub fn get_rtl(&self) -> bool {
+        self.rtl
+    }
+    pub fn get_glyph(&self) -> GlyphIndex {
+        self.glyph
+    }
 }
 
 #[derive(Debug, Clone)]
-pub struct Segment{
+pub struct Segment {
     rtl: bool,
     extent: Extent,
     class: BidiClass,
@@ -258,35 +285,36 @@ pub struct Segment{
     glyphs: Vec<GlyphInstance>,
 }
 
-impl Segment{
-    pub fn resolve_class(level: &super::super::unicode_bidi::Level, class: BidiClass) -> BidiClass{
+impl Segment {
+    pub fn resolve_class(level: &super::super::unicode_bidi::Level, class: BidiClass) -> BidiClass {
         match class {
-            BidiClass::B => {BidiClass::B},
-            BidiClass::WS => {BidiClass::WS},
-            BidiClass::S => {BidiClass::S},
-            _ =>  level.bidi_class(),
+            BidiClass::B => BidiClass::B,
+            BidiClass::WS => BidiClass::WS,
+            BidiClass::S => BidiClass::S,
+            _ => level.bidi_class(),
         }
     }
 
     pub fn breaking_class(&self) -> bool {
         match self.class {
-            BidiClass::B => {true},
-            BidiClass::WS => {true},
-            BidiClass::S => {true},
-            _ =>  false,
+            BidiClass::B => true,
+            BidiClass::WS => true,
+            BidiClass::S => true,
+            _ => false,
         }
     }
 
-    fn shape(
-        &mut self,
-        size: f32,
-        baseline: f32,
-        family: &str,
-    ) {
+    fn shape(&mut self, size: f32, baseline: f32, family: &str) {
+        let value: String = self.chars.iter().map(|c| c.char).collect();
 
-        let value : String = self.chars.iter().map(|c|{c.char}).collect();
-
-        let glyphs = shaper::shape_text(value.as_str(), size as u32, baseline, family, self.rtl, self.script);
+        let glyphs = shaper::shape_text(
+            value.as_str(),
+            size as u32,
+            baseline,
+            family,
+            self.rtl,
+            self.script,
+        );
 
         self.glyphs.clear();
 
@@ -301,7 +329,7 @@ impl Segment{
             self.chars[i].position.x = _x;
             self.chars[i].position.y = size;
 
-            i+=1;
+            i += 1;
             _x += metric.advance.x;
         }
         self.extent.h = size;
@@ -321,69 +349,62 @@ impl Segment{
 
             _x += ch.metric.advance.x;
 
-            self.glyphs.push(GlyphInstance{ index: ch.glyph, point: LayoutPoint::new(ch.position.x, ch.position.y) });
+            self.glyphs.push(GlyphInstance {
+                index: ch.glyph,
+                point: LayoutPoint::new(ch.position.x, ch.position.y),
+            });
         }
     }
 }
 
 #[derive(Debug, Clone)]
-pub struct SegmentRef<'a>{
-    _ref:&'a Segment
+pub struct SegmentRef<'a> {
+    _ref: &'a Segment,
 }
 
 #[derive(Debug, Clone)]
-pub struct ParaLine{
+pub struct ParaLine {
     extent: Extent,
     segments: Vec<SegmentRef<'static>>,
 }
 
 impl ParaLine {
     #[allow(mutable_transmutes)]
-    fn position(
-        &mut self,
-        x: f32,
-        y: f32
-    ){
+    fn position(&mut self, x: f32, y: f32) {
         self.extent.x = x;
         self.extent.y = y;
         let mut _x = x;
-        for segment in self.segments.iter_mut(){
-            let tmp = unsafe{std::mem::transmute::<&'static Segment, &'static mut Segment>(segment._ref)};
-            tmp.position(_x,y);
+        for segment in self.segments.iter_mut() {
+            let tmp = unsafe {
+                std::mem::transmute::<&'static Segment, &'static mut Segment>(segment._ref)
+            };
+            tmp.position(_x, y);
             _x += tmp.extent.w;
         }
     }
 }
 
 #[derive(Debug, Clone)]
-pub struct ParaText{
+pub struct ParaText {
     extent: Extent,
     lines: Vec<ParaLine>,
     rtl: bool,
 }
 
 impl ParaText {
-    fn position(
-        &mut self,
-        x: f32,
-        y: f32,
-        w: f32,
-        _h: f32,
-        size: f32,
-        text_align: &Align
-    ){
+    fn position(&mut self, x: f32, y: f32, w: f32, _h: f32, size: f32, text_align: &Align) {
         let mut _y = y;
         let mut max_w = 0.;
-        let mut min_x = x+w;
+        let mut min_x = x + w;
         for line in self.lines.iter_mut() {
             let mut tmp = 0.;
             match text_align {
                 Align::Middle => {
-                    tmp = (w - line.extent.w)/2.;
-                },
+                    tmp = (w - line.extent.w) / 2.;
+                }
                 Align::Right => {
                     tmp = w - line.extent.w;
-                },
+                }
                 _ => (),
             }
 
@@ -405,11 +426,11 @@ impl ParaText {
         self.extent.h = size * self.lines.len() as f32;
     }
 
-    fn shape_ltr(&mut self, line_directions: Vec<(usize, bool)>, w : f32){
+    fn shape_ltr(&mut self, line_directions: Vec<(usize, bool)>, w: f32) {
         let para = self;
         let line = para.lines.pop().unwrap();
 
-        let mut tmp_line = ParaLine{
+        let mut tmp_line = ParaLine {
             segments: Vec::new(),
             extent: Extent::new(),
         };
@@ -417,18 +438,16 @@ impl ParaText {
         let mut prev_rtl = false;
         let mut prev_rtl_pos = 0;
         let mut i = 0;
-        for dir in line_directions.iter(){
+        for dir in line_directions.iter() {
             let _tmp = dir.1;
             let mut prev_breaking_class = false;
             for j in i..dir.0 {
-                if line.segments[j]._ref.extent.w+tmp_line.extent.w > w
-                    && prev_breaking_class
-                {
+                if line.segments[j]._ref.extent.w + tmp_line.extent.w > w && prev_breaking_class {
                     if para.extent.w < tmp_line.extent.w {
                         para.extent.w = tmp_line.extent.w;
                     }
                     para.lines.push(tmp_line);
-                    tmp_line = ParaLine{
+                    tmp_line = ParaLine {
                         segments: Vec::new(),
                         extent: Extent::new(),
                     };
@@ -449,13 +468,14 @@ impl ParaText {
                 }
 
                 if prev_rtl {
-                    tmp_line.segments.insert(prev_rtl_pos, line.segments[j].clone());
+                    tmp_line
+                        .segments
+                        .insert(prev_rtl_pos, line.segments[j].clone());
                 } else {
                     tmp_line.segments.push(line.segments[j].clone());
                 }
-
             }
-            i= dir.0;
+            i = dir.0;
         }
         if para.extent.w < tmp_line.extent.w {
             para.extent.w = tmp_line.extent.w;
@@ -463,27 +483,27 @@ impl ParaText {
         para.lines.push(tmp_line);
     }
 
-    fn shape_rtl(&mut self, line_directions: Vec<(usize, bool)>, w : f32){
+    fn shape_rtl(&mut self, line_directions: Vec<(usize, bool)>, w: f32) {
         let para = self;
         let line = para.lines.pop().unwrap();
 
-        let mut tmp_line = ParaLine{
+        let mut tmp_line = ParaLine {
             segments: Vec::new(),
             extent: Extent::new(),
         };
 
         let mut i = 0;
         let mut ltr_pos: Option<usize> = None;
-        for dir in line_directions.iter(){
+        for dir in line_directions.iter() {
             let mut prev_breaking_class = false;
 
             for j in i..dir.0 {
-                if line.segments[j]._ref.extent.w+tmp_line.extent.w > w && prev_breaking_class {
+                if line.segments[j]._ref.extent.w + tmp_line.extent.w > w && prev_breaking_class {
                     if para.extent.w < tmp_line.extent.w {
                         para.extent.w = tmp_line.extent.w;
                     }
                     para.lines.push(tmp_line);
-                    tmp_line = ParaLine{
+                    tmp_line = ParaLine {
                         segments: Vec::new(),
                         extent: Extent::new(),
                     };
@@ -491,8 +511,7 @@ impl ParaText {
                     ltr_pos = None;
                 }
 
-                let tmp_pos =
-                if line.segments[j]._ref.rtl {
+                let tmp_pos = if line.segments[j]._ref.rtl {
                     ltr_pos = None;
                     0
                 } else {
@@ -501,8 +520,11 @@ impl ParaText {
                         0
                     } else {
                         match ltr_pos {
-                            Some(ref mut x) => { (*x)+=1; (*x).clone()}
-                            _ => 0
+                            Some(ref mut x) => {
+                                (*x) += 1;
+                                (*x).clone()
+                            }
+                            _ => 0,
                         }
                     }
                 };
@@ -510,9 +532,9 @@ impl ParaText {
                 prev_breaking_class = line.segments[j]._ref.breaking_class();
                 tmp_line.extent.w += line.segments[j]._ref.extent.w;
 
-                tmp_line.segments.insert(tmp_pos,line.segments[j].clone());
+                tmp_line.segments.insert(tmp_pos, line.segments[j].clone());
             }
-            i= dir.0;
+            i = dir.0;
         }
         if para.extent.w < tmp_line.extent.w {
             para.extent.w = tmp_line.extent.w;
@@ -522,15 +544,19 @@ impl ParaText {
 }
 
 #[derive(Debug, Clone)]
-pub struct Paragraphs{
+pub struct Paragraphs {
     extent: Extent,
     segments: Vec<Segment>,
     paras: Vec<ParaText>,
 }
 
 impl Paragraphs {
-    pub fn new()-> Paragraphs{
-        Paragraphs{ segments: Vec::new(), paras: Vec::new(), extent: Extent::new() }
+    pub fn new() -> Paragraphs {
+        Paragraphs {
+            segments: Vec::new(),
+            paras: Vec::new(),
+            extent: Extent::new(),
+        }
     }
 
     pub fn get_extent(&mut self) -> Extent {
@@ -545,7 +571,6 @@ impl Paragraphs {
             let value: String = text.iter().collect();
             let info = BidiInfo::new(&value, None);
 
-
             let mut class = Segment::resolve_class(&info.levels[0], info.original_classes[0]);
             let mut script = super::script::get_script(text[0].clone());
             let mut segment = Segment {
@@ -559,11 +584,13 @@ impl Paragraphs {
             let mut i = 0;
             let mut j = 0;
 
-            for c in text.iter()  {
+            for c in text.iter() {
                 script = super::script::get_script(c.clone());
                 class = Segment::resolve_class(&info.levels[i], info.original_classes[i]);
                 if class != BidiClass::B && class == segment.class && script == segment.script {
-                    segment.chars.push(Char::new(c.clone(), j, info.levels[i].is_rtl()));
+                    segment
+                        .chars
+                        .push(Char::new(c.clone(), j, info.levels[i].is_rtl()));
                 } else {
                     segments.push(segment);
                     segment = Segment {
@@ -584,39 +611,50 @@ impl Paragraphs {
             segments.push(segment);
         }
 
-        Paragraphs{segments, paras: vec![], extent: Extent::new()}
+        Paragraphs {
+            segments,
+            paras: vec![],
+            extent: Extent::new(),
+        }
     }
 
     fn init_paras<'a>(
         &'a mut self,
         size: f32,
         baseline: f32,
-        family: &str
-    ) -> Vec<Vec<(usize, bool)>>{
+        family: &str,
+    ) -> Vec<Vec<(usize, bool)>> {
         self.paras.clear();
 
         let mut ret_direction = vec![];
 
-        let mut para = ParaText{ lines: Vec::new(), extent: Extent::new(), rtl: false };
-        let mut line = ParaLine{ segments: Vec::new(), extent: Extent::new() };
+        let mut para = ParaText {
+            lines: Vec::new(),
+            extent: Extent::new(),
+            rtl: false,
+        };
+        let mut line = ParaLine {
+            segments: Vec::new(),
+            extent: Extent::new(),
+        };
         let mut i = 0;
         let mut direction = false;
         let mut para_direction = vec![];
-        let mut rtl:Option<bool> = None;
-        for segment in self.segments.iter_mut(){
-//print!("{:?}", segment.class);
+        let mut rtl: Option<bool> = None;
+        for segment in self.segments.iter_mut() {
+            //print!("{:?}", segment.class);
 
             if rtl.is_none() {
                 rtl = Some(true);
                 para.rtl = segment.rtl;
             }
-            segment.shape(size,baseline,family);
+            segment.shape(size, baseline, family);
 
-            let tmp = unsafe{std::mem::transmute::<&'a Segment,&'static Segment>(segment)};
-            let tmp = SegmentRef{ _ref: tmp };
+            let tmp = unsafe { std::mem::transmute::<&'a Segment, &'static Segment>(segment) };
+            let tmp = SegmentRef { _ref: tmp };
             if direction != segment.rtl {
-                if line.segments.len()>0 {
-                    para_direction.push((i,direction));
+                if line.segments.len() > 0 {
+                    para_direction.push((i, direction));
                 }
                 direction = segment.rtl;
             }
@@ -624,24 +662,29 @@ impl Paragraphs {
             line.segments.push(tmp);
 
             if segment.class == BidiClass::B {
-                para_direction.push((i,direction));
+                para_direction.push((i, direction));
                 para.lines.push(line);
                 self.paras.push(para);
                 ret_direction.push(para_direction);
-                para = ParaText{ lines: Vec::new(), extent: Extent::new(), rtl: false};
-                line = ParaLine{ segments: Vec::new(), extent: Extent::new() };
+                para = ParaText {
+                    lines: Vec::new(),
+                    extent: Extent::new(),
+                    rtl: false,
+                };
+                line = ParaLine {
+                    segments: Vec::new(),
+                    extent: Extent::new(),
+                };
                 para_direction = vec![];
                 rtl = None;
-                i=0;
+                i = 0;
                 direction = false;
             } else {
-                i+=1;
+                i += 1;
             }
-
-
         }
-        if line.segments.len()>0 {
-            para_direction.push((i,direction));
+        if line.segments.len() > 0 {
+            para_direction.push((i, direction));
         }
         ret_direction.push(para_direction);
         para.lines.push(line);
@@ -663,7 +706,7 @@ impl Paragraphs {
     ) {
         let mut para_directions = self.init_paras(size, baseline, family);
 
-        for para in self.paras.iter_mut(){
+        for para in self.paras.iter_mut() {
             let mut line_directions = para_directions.remove(0);
             if para.lines.len() == 0 || para.lines[0].segments.len() == 0 {
                 continue;
@@ -676,25 +719,17 @@ impl Paragraphs {
             }
         }
 
-        self.position(x,y,w,h,size,text_align);
+        self.position(x, y, w, h, size, text_align);
     }
 
-    fn position(
-        &mut self,
-        x: f32,
-        y: f32,
-        w: f32,
-        h: f32,
-        size: f32,
-        text_align: &Align
-    ){
+    fn position(&mut self, x: f32, y: f32, w: f32, h: f32, size: f32, text_align: &Align) {
         let mut _y = y;
         let mut min_x = x + w;
         let mut min_y = y + h;
 
         let mut max_w = 0.;
         for para in self.paras.iter_mut() {
-            para.position(x,_y,w,h,size,text_align);
+            para.position(x, _y, w, h, size, text_align);
 
             if para.extent.w > max_w {
                 max_w = para.extent.w;
@@ -705,7 +740,7 @@ impl Paragraphs {
             if min_y > para.extent.y {
                 min_y = para.extent.y;
             }
-            _y+=para.extent.h;
+            _y += para.extent.h;
         }
 
         self.extent.x = min_x;
@@ -714,7 +749,11 @@ impl Paragraphs {
         self.extent.h = _y - y;
     }
 
-    pub fn get_char_at_pos(&self,_p: &super::properties::Position, _val: &Vec<char>) -> Option<Char>{
+    pub fn get_char_at_pos(
+        &self,
+        _p: &super::properties::Position,
+        _val: &Vec<char>,
+    ) -> Option<Char> {
         //let mut cursor = 0;
         //let mut pos = super::properties::Position{ x: 0.0, y: 0.0 };
         let ret = None;

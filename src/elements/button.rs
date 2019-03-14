@@ -91,7 +91,8 @@ impl Button {
         let mut stretchy: f32 = 0.0;
         let num_lines = {
             let tmp: String = self.value.iter().collect();
-            tmp.lines().count() as i32};
+            tmp.lines().count() as i32
+        };
         let mut pixel: f32 = (self.props.get_size() * num_lines) as f32;
 
         match top {
@@ -214,26 +215,28 @@ impl Element for Button {
             _ => (),
         }
 
-        let text_y = calc_y + (calc_h - self.text_bounds.h)/2.0;
+        let text_y = calc_y + (calc_h - self.text_bounds.h) / 2.0;
         let metrics = font_store.get_font_metrics(&family);
         let baseline = match metrics {
             Some(metrics) => {
-                let tmp = metrics.ascent-metrics.descent;
+                let tmp = metrics.ascent - metrics.descent;
                 let tmp = size / tmp;
                 tmp * (metrics.ascent)
-            },
+            }
             None => size,
         };
 
         let mut paras = font::Paragraphs::from_chars(&self.value);
-        paras.shape(calc_x,
-                                  text_y,
-                                  calc_w,
-                                  calc_h,
-                                  size,
-                                  baseline,
-                                  &family,
-                                  &text_align);
+        paras.shape(
+            calc_x,
+            text_y,
+            calc_w,
+            calc_h,
+            size,
+            baseline,
+            &family,
+            &text_align,
+        );
 
         self.text_bounds = paras.get_extent();
 
@@ -261,7 +264,6 @@ impl Element for Button {
             h: calc_h,
             dpi: extent.dpi,
         };
-
 
         let mut info = LayoutPrimitiveInfo::new(LayoutRect::new(
             LayoutPoint::new(extent.x, extent.y),

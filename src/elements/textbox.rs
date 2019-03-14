@@ -197,22 +197,31 @@ impl Element for TextBox {
 
         let value = if value.is_empty() {
             &self.placeholder
-        }else {
+        } else {
             &value
         };
 
         let metrics = font_store.get_font_metrics(&family);
         let baseline = match metrics {
             Some(metrics) => {
-                let tmp = metrics.ascent-metrics.descent;
+                let tmp = metrics.ascent - metrics.descent;
                 let tmp = size / tmp;
                 tmp * (metrics.ascent)
-            },
+            }
             None => size,
         };
 
         let mut paras = font::Paragraphs::from_chars(value);
-        paras.shape(extent.x,extent.y,extent.w,extent.h,size,baseline,&family,&text_align);
+        paras.shape(
+            extent.x,
+            extent.y,
+            extent.w,
+            extent.h,
+            size,
+            baseline,
+            &family,
+            &text_align,
+        );
         let _bounds = paras.get_extent();
         let glyphs = paras.glyphs();
 
@@ -232,9 +241,6 @@ impl Element for TextBox {
             cursor_x = (self.cache[cursor_i - 1].1).0;
             cursor_y = (self.cache[cursor_i - 1].1).1;
         }*/
-
-
-
 
         let mut calc_w = _bounds.w;
         let mut calc_h = _bounds.h;
@@ -292,88 +298,87 @@ impl Element for TextBox {
         let mut handled = false;
         match e {
             /*PrimitiveEvent::Char(mut c) => {
-                if self.focus && self.enabled && self.editable {
-                    if c == '\x08' {
-                        let mut l = self.cursor;
-                        if l > 0 {
-                            //l -= 1;
-                            /*while !self.value.is_char_boundary(l) && l > 0 {
-                                l -= 1;
-                            }
-                            self.value =
-                                //format!("{}{}", &self.value[0..l], &self.value[self.cursor..]);
-                            self.cursor = l;*/
-                            self.value.remove(l);
-                            self.cursor -=1;
+            if self.focus && self.enabled && self.editable {
+                if c == '\x08' {
+                    let mut l = self.cursor;
+                    if l > 0 {
+                        //l -= 1;
+                        /*while !self.value.is_char_boundary(l) && l > 0 {
+                            l -= 1;
                         }
-                    } else if c == '\u{3}' {
-                        if !self.is_password {
-                            let mut ctx: ClipboardContext = ClipboardProvider::new().unwrap();
-                            ctx.set_contents(self.value.clone()).unwrap();
-                        }
-                    } else if c == '\u{16}' {
-                        let mut ctx: ClipboardContext = ClipboardProvider::new().unwrap();
-                        let vstr = ctx.get_contents().unwrap();
-                        self.value = format!(
-                            "{}{}{}",
-                            &self.value[0..self.cursor],
-                            &vstr[0..],
-                            &self.value[self.cursor..]
-                        );
-                        self.cursor += vstr.len();
-                    } else {
-                        if c == '\r' {
-                            c = '\n';
-                        }
-                        let mut tmp_chars = self.value.chars().collect_vec();
+                        self.value =
+                            //format!("{}{}", &self.value[0..l], &self.value[self.cursor..]);
+                        self.cursor = l;*/
+            self.value.remove(l);
+            self.cursor -=1;
+            }
+            } else if c == '\u{3}' {
+            if !self.is_password {
+            let mut ctx: ClipboardContext = ClipboardProvider::new().unwrap();
+            ctx.set_contents(self.value.clone()).unwrap();
+            }
+            } else if c == '\u{16}' {
+            let mut ctx: ClipboardContext = ClipboardProvider::new().unwrap();
+            let vstr = ctx.get_contents().unwrap();
+            self.value = format!(
+            "{}{}{}",
+            &self.value[0..self.cursor],
+            &vstr[0..],
+            &self.value[self.cursor..]
+            );
+            self.cursor += vstr.len();
+            } else {
+            if c == '\r' {
+            c = '\n';
+            }
+            let mut tmp_chars = self.value.chars().collect_vec();
 
-                        if self.singleline && c == '\n' {
-                            //do not save the new line
-                        } else {
-                            /*if self.cursor == 0 {
-                                let mut newstr = format!("{}", c);
-                                newstr.push_str(&self.value[0..]);
-                                self.value = newstr;
-                            } else if self.cursor < tmp_chars.len() {
-                                tmp_chars.insert(self.cursor,c);
-                                self.value = tmp_chars.into_iter().collect();
-                            } else {
-                                self.value.push(c);
-                            }*/
+            if self.singleline && c == '\n' {
+            //do not save the new line
+            } else {
+            /*if self.cursor == 0 {
+                let mut newstr = format!("{}", c);
+                newstr.push_str(&self.value[0..]);
+                self.value = newstr;
+            } else if self.cursor < tmp_chars.len() {
+                tmp_chars.insert(self.cursor,c);
+                self.value = tmp_chars.into_iter().collect();
+            } else {
+                self.value.push(c);
+            }*/
+            if self.cursor == tmp_chars.len() {
+            self.value.push(c);
+            } else {
+            tmp_chars.insert(self.cursor,c);
+            self.value = tmp_chars.into_iter().collect();
+            }
 
-                            if self.cursor == tmp_chars.len() {
-                                self.value.push(c);
-                            } else {
-                                tmp_chars.insert(self.cursor,c);
-                                self.value = tmp_chars.into_iter().collect();
-                            }
-
-                            self.cursor += 1;
-                        }
-                    }
-                    handled = true;
-                }
+            self.cursor += 1;
+            }
+            }
+            handled = true;
+            }
             },
             PrimitiveEvent::KeyInput(vkc, _sc, s, _m) => match vkc {
-                Some(VirtualKeyCode::Right) => {
-                    if self.cursor < self.value.len() && s == properties::ButtonState::Pressed {
-                        self.cursor += 1;
-                    }
-                }
-                Some(VirtualKeyCode::Left) => {
-                    if self.cursor > 0 && s == properties::ButtonState::Pressed {
-                        self.cursor -= 1;
-                    }
-                }
-                _ => (),
+            Some(VirtualKeyCode::Right) => {
+            if self.cursor < self.value.len() && s == properties::ButtonState::Pressed {
+            self.cursor += 1;
+            }
+            }
+            Some(VirtualKeyCode::Left) => {
+            if self.cursor > 0 && s == properties::ButtonState::Pressed {
+            self.cursor -= 1;
+            }
+            }
+            _ => (),
             },*/
             PrimitiveEvent::KeyInput(vkc, _sc, _s, _m) => match vkc {
                 _ => (),
             },
             PrimitiveEvent::Char(mut c) => {
-
                 if self.focus && self.enabled && self.editable {
-                    if c == '\x08' { //backspace
+                    if c == '\x08' {
+                        //backspace
                         let len = self.value.len();
                         if len > 0 {
                             self.value.pop();
@@ -390,31 +395,31 @@ impl Element for TextBox {
                     }
                     handled = true;
                 }
-            },
+            }
             PrimitiveEvent::SetFocus(f) => {
                 if self.enabled && self.focus != f {
                     self.focus = f;
                     handled = self.exec_handler(ElementEvent::FocusChange, &f);
                 }
-            },
+            }
             PrimitiveEvent::Button(_p, _b, _s, _m) => {
                 /*if !ext_ids.is_empty()
-                    && ext_ids[0].0 == self.ext_id
-                    && b == properties::Button::Left
-                    && s == properties::ButtonState::Released
-                    {
-                        //TODO: uncomment the following
-                        self.cursor = self.get_index_at(&p);
-                        println!("pressed index at {}", self.cursor);
-                        handled = self.exec_handler(ElementEvent::Clicked, &m);
-                    }*/
-            },
+                && ext_ids[0].0 == self.ext_id
+                && b == properties::Button::Left
+                && s == properties::ButtonState::Released
+                {
+                    //TODO: uncomment the following
+                    self.cursor = self.get_index_at(&p);
+                    println!("pressed index at {}", self.cursor);
+                    handled = self.exec_handler(ElementEvent::Clicked, &m);
+                }*/
+            }
             PrimitiveEvent::HoverBegin(n_tags) => {
                 let matched = n_tags.iter().find(|x| x.0 == self.ext_id);
                 if matched.is_some() {
                     self.hovering = true;
                 }
-            },
+            }
             PrimitiveEvent::HoverEnd(o_tags) => {
                 let matched = o_tags.iter().find(|x| x.0 == self.ext_id);
                 if matched.is_some() {

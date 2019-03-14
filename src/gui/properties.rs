@@ -14,7 +14,7 @@ pub struct Point {
 
 impl Point {
     pub fn new() -> Point {
-        Point{ x: 0.0, y: 0.0 }
+        Point { x: 0.0, y: 0.0 }
     }
 }
 
@@ -29,12 +29,12 @@ pub struct Extent {
 
 impl Extent {
     pub fn new() -> Extent {
-        Extent{
+        Extent {
             x: 0.0,
             y: 0.0,
             w: 0.0,
             h: 0.0,
-            dpi: 0.0
+            dpi: 0.0,
         }
     }
 }
