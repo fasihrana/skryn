@@ -288,7 +288,7 @@ impl Element for TextBox {
         self.bounds.clone()
     }
 
-    fn on_primitive_event(&mut self, ext_ids: &[ItemTag], e: PrimitiveEvent) -> bool {
+    fn on_primitive_event(&mut self, _ext_ids: &[ItemTag], e: PrimitiveEvent) -> bool {
         let mut handled = false;
         match e {
             /*PrimitiveEvent::Char(mut c) => {
@@ -367,7 +367,7 @@ impl Element for TextBox {
                 }
                 _ => (),
             },*/
-            PrimitiveEvent::KeyInput(vkc, _sc, s, _m) => match vkc {
+            PrimitiveEvent::KeyInput(vkc, _sc, _s, _m) => match vkc {
                 _ => (),
             },
             PrimitiveEvent::Char(mut c) => {
@@ -397,7 +397,7 @@ impl Element for TextBox {
                     handled = self.exec_handler(ElementEvent::FocusChange, &f);
                 }
             },
-            PrimitiveEvent::Button(p, b, s, m) => {
+            PrimitiveEvent::Button(_p, _b, _s, _m) => {
                 /*if !ext_ids.is_empty()
                     && ext_ids[0].0 == self.ext_id
                     && b == properties::Button::Left

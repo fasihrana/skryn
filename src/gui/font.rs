@@ -368,7 +368,7 @@ impl ParaText {
         x: f32,
         y: f32,
         w: f32,
-        h: f32,
+        _h: f32,
         size: f32,
         text_align: &Align
     ){
@@ -406,8 +406,8 @@ impl ParaText {
     }
 
     fn shape_ltr(&mut self, line_directions: Vec<(usize, bool)>, w : f32){
-        let mut para = self;
-        let mut line = para.lines.pop().unwrap();
+        let para = self;
+        let line = para.lines.pop().unwrap();
 
         let mut tmp_line = ParaLine{
             segments: Vec::new(),
@@ -418,7 +418,7 @@ impl ParaText {
         let mut prev_rtl_pos = 0;
         let mut i = 0;
         for dir in line_directions.iter(){
-            let tmp = dir.1;
+            let _tmp = dir.1;
             let mut prev_breaking_class = false;
             for j in i..dir.0 {
                 if line.segments[j]._ref.extent.w+tmp_line.extent.w > w
@@ -464,8 +464,8 @@ impl ParaText {
     }
 
     fn shape_rtl(&mut self, line_directions: Vec<(usize, bool)>, w : f32){
-        let mut para = self;
-        let mut line = para.lines.pop().unwrap();
+        let para = self;
+        let line = para.lines.pop().unwrap();
 
         let mut tmp_line = ParaLine{
             segments: Vec::new(),
@@ -714,10 +714,10 @@ impl Paragraphs {
         self.extent.h = _y - y;
     }
 
-    pub fn get_char_at_pos(&self,p: &super::properties::Position, val: &Vec<char>) -> Option<Char>{
+    pub fn get_char_at_pos(&self,_p: &super::properties::Position, _val: &Vec<char>) -> Option<Char>{
         //let mut cursor = 0;
         //let mut pos = super::properties::Position{ x: 0.0, y: 0.0 };
-        let mut ret = None;
+        let ret = None;
         /*if !self.list.is_empty() {
             for para in self.list.iter() {
                 if para.extent.y + para.extent.h < p.y {
