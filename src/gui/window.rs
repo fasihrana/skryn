@@ -5,10 +5,10 @@ use glutin::GlContext;
 use webrender;
 use webrender::api::*;
 
-use elements::{Element, PrimitiveEvent};
-use gui::font;
-use gui::properties;
-use util::*;
+use crate::elements::{Element, PrimitiveEvent};
+use crate::gui::font;
+use crate::gui::properties;
+use crate::util::*;
 
 use std::mem;
 use std::ops::DerefMut;

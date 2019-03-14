@@ -9,8 +9,8 @@ use glutin::{ScanCode, VirtualKeyCode};
 use webrender::api::*;
 use winit;
 
-use gui::font;
-use gui::properties;
+use crate::gui::font;
+use crate::gui::properties;
 
 #[derive(Debug, Clone)]
 pub enum PrimitiveEvent {
@@ -106,12 +106,12 @@ pub trait Element: Send + Sync {
         extent: properties::Extent,
         font_store: &mut font::FontStore,
         props: Option<Arc<properties::Properties>>,
-        &mut properties::IdGenerator,
+        id: &mut properties::IdGenerator
     );
     fn get_bounds(&self) -> properties::Extent;
-    fn on_primitive_event(&mut self, &[ItemTag], e: PrimitiveEvent) -> bool;
-    fn set_handler(&mut self, _e: ElementEvent, _f: EventFn) {}
-    fn exec_handler(&mut self, _e: ElementEvent, _d: &Any) -> bool {
+    fn on_primitive_event(&mut self, item_tag: &[ItemTag], e: PrimitiveEvent) -> bool;
+    fn set_handler(&mut self, e: ElementEvent, f: EventFn) {}
+    fn exec_handler(&mut self, e: ElementEvent, d: &Any) -> bool {
         false
     }
     fn as_any(&self) -> &Any;

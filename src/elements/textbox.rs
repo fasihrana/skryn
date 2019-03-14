@@ -5,9 +5,9 @@ use clipboard::{ClipboardContext, ClipboardProvider};
 use glutin::VirtualKeyCode;
 use webrender::api::*;
 
-use elements::element::*;
-use gui::font;
-use gui::properties;
+use crate::elements::element::*;
+use crate::gui::font;
+use crate::gui::properties;
 
 pub struct TextBox {
     ext_id: u64,

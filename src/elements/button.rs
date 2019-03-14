@@ -3,9 +3,9 @@ use std::sync::Arc;
 
 use webrender::api::*;
 
-use elements::element::*;
-use gui::font;
-use gui::properties;
+use crate::elements::element::*;
+use crate::gui::font;
+use crate::gui::properties;
 
 pub struct Button {
     ext_id: u64,

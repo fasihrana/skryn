@@ -1,12 +1,12 @@
 use app_units;
 use font_kit;
 use font_kit::{family_name::FamilyName, font, source::SystemSource};
-use gui::properties::*;
+use super::properties::*;
 use std::collections::HashMap;
 use webrender::api::*;
 
 use super::properties::{Align, Position};
-use gui::font::shaper::GlyphMetric;
+use self::shaper::GlyphMetric;
 use harfbuzz_sys::hb_script_t;
 use itertools::*;
 use unicode_bidi::BidiClass;

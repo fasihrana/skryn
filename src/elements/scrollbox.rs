@@ -4,10 +4,10 @@ use std::sync::{Arc, Mutex};
 
 use webrender::api::*;
 
-use elements::element::*;
-use gui::font;
-use gui::properties;
-use util::*;
+use crate::elements::element::*;
+use crate::gui::font;
+use crate::gui::properties;
+use crate::util::*;
 
 pub struct ScrollBox {
     ext_id: u64,
