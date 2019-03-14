@@ -17,7 +17,7 @@ pub struct Image {
 impl Image {
     pub fn load(path: ImagePath) -> Option<Image> {
         if let ImagePath::Local(_s) = path.clone() {
-            let mut f = File::open(&_s[0..]);
+            let f = File::open(&_s[0..]);
             if let Ok(mut c) = f {
                 let l = c.metadata().unwrap().len();
                 let mut bytes: Vec<u8> = Vec::new();

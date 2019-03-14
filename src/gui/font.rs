@@ -18,10 +18,11 @@ mod shaper {
     use webrender::api::GlyphIndex;
     //harfbuzz functions
     use harfbuzz_sys::{
-        hb_blob_create, hb_blob_destroy, hb_buffer_add_utf8, hb_buffer_create, hb_buffer_destroy,
+        hb_blob_create, hb_buffer_add_utf8, hb_buffer_create, hb_buffer_destroy,
         hb_buffer_get_glyph_infos, hb_buffer_get_glyph_positions, hb_buffer_set_direction,
-        hb_buffer_set_script, hb_face_create, hb_face_destroy, hb_font_create, hb_font_destroy,
+        hb_buffer_set_script, hb_face_create, hb_font_create,
         hb_font_get_glyph_extents, hb_font_set_ppem, hb_font_set_scale, hb_shape,
+        //hb_blob_destroy, hb_face_destroy, hb_font_destroy,
     };
     //harfbuzz structs
     use harfbuzz_sys::{
@@ -445,7 +446,6 @@ impl ParaText {
                         segments: Vec::new(),
                         extent: Extent::new(),
                     };
-                    prev_breaking_class = false;
                     prev_rtl = false;
                     prev_rtl_pos = 0;
                 }
@@ -501,7 +501,6 @@ impl ParaText {
                         segments: Vec::new(),
                         extent: Extent::new(),
                     };
-                    prev_breaking_class = false;
                     ltr_pos = None;
                 }
 
@@ -701,7 +700,7 @@ impl Paragraphs {
         let mut para_directions = self.init_paras(size, baseline, family);
 
         for para in self.paras.iter_mut() {
-            let mut line_directions = para_directions.remove(0);
+            let line_directions = para_directions.remove(0);
             if para.lines.len() == 0 || para.lines[0].segments.len() == 0 {
                 continue;
             }

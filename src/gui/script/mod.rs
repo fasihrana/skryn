@@ -162,10 +162,10 @@ fn bsearch_range_value_table(c: char, r: &'static [(char, char, Script)]) -> Scr
 
 /// Find the script of a single char.
 pub fn get_script(c: char) -> Script {
-    bsearch_range_value_table(c, script_table)
+    bsearch_range_value_table(c, SCRIPT_TABLE)
 }
 
-const script_table: &'static [(char, char, Script)] = &[
+const SCRIPT_TABLE: &'static [(char, char, Script)] = &[
     ('\u{0}', '\u{40}', Common),
     ('\u{41}', '\u{5a}', Latin),
     ('\u{5b}', '\u{60}', Common),

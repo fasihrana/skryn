@@ -109,8 +109,11 @@ pub trait Element: Send + Sync {
         id: &mut properties::IdGenerator
     );
     fn get_bounds(&self) -> properties::Extent;
+    #[allow(unused)]
     fn on_primitive_event(&mut self, item_tag: &[ItemTag], e: PrimitiveEvent) -> bool;
+    #[allow(unused)]
     fn set_handler(&mut self, e: ElementEvent, f: EventFn) {}
+    #[allow(unused)]
     fn exec_handler(&mut self, e: ElementEvent, d: &Any) -> bool {
         false
     }
@@ -125,7 +128,6 @@ pub trait Element: Send + Sync {
     ) -> bool {
         false
     }
-    //fn is_invalid(&self) -> bool;
 }
 
 pub type ElementObj = Arc<Mutex<Element>>;
