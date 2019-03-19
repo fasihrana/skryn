@@ -123,16 +123,11 @@ mod shaper {
                 0,
                 val.len() as c_int,
             );
+            hb_buffer_set_script(buf, script);
             if rtl {
                 hb_buffer_set_direction(buf, HB_DIRECTION_RTL);
-                hb_buffer_set_script(buf, script);
-            //let lang = hb_language_from_string("URD".as_ptr() as *const c_char, 3);
-            //hb_buffer_set_language(buf,lang);
             } else {
                 hb_buffer_set_direction(buf, HB_DIRECTION_LTR);
-                //hb_buffer_set_script(buf, HB_SCRIPT_LATIN);
-                //let lang = hb_language_from_string("ENG".as_ptr() as *const c_char, 3);
-                //hb_buffer_set_language(buf,lang);
             }
 
             hb_shape(hb_font, buf, ptr::null_mut(), 0);
