@@ -15,6 +15,7 @@ use std::ops::DerefMut;
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, SystemTime};
+use std::fmt;
 
 impl Into<properties::Position> for glutin::dpi::LogicalPosition {
     fn into(self) -> properties::Position {
@@ -120,6 +121,13 @@ struct Internals {
     cursor_in_window: bool,
 }
 
+impl fmt::Debug for Internals {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Internals {{ window_id: {:?}, document_id: {:?}, pipeline_id: {:?}, cursor_position: {}, dpi: {} }}",
+            self.gl_window.id(), self.document_id, self.pipeline_id, self.cursor_position, self.dpi )
+    }
+}
+
 impl Internals {
     fn new(name: &str, width: f64, height: f64) -> Internals {
         let events_loop = glutin::EventsLoop::new();
@@ -213,6 +221,7 @@ impl Internals {
                     event: glutin::WindowEvent::CloseRequested,
                     window_id,
                 } => {
+                    println!("window id deleting .... {:?}", window_id);
                     {
                         TODEL.lock().unwrap().push(window_id);
                     }
@@ -220,9 +229,10 @@ impl Internals {
                 }
                 glutin::Event::WindowEvent {
                     event: glutin::WindowEvent::CursorEntered { .. },
-                    ..
+                    window_id,
                 } => {
                     //events.push(PrimitiveEvent::CursorEntered);
+                    println!("window ID cursor entered ... {:?}", window_id);
                     cursor_in_window = true;
                 }
                 glutin::Event::WindowEvent {
@@ -378,6 +388,12 @@ pub struct Window {
     id_generator: properties::IdGenerator,
     internals: Option<Internals>,
     tags: Vec<ItemTag>,
+}
+
+impl fmt::Debug for Window {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Window {{ name: {}, width: {}, height: {}, internals: {:?} }}", self.name, self.width, self.height, self.internals)
+    }
 }
 
 impl Window {
@@ -552,7 +568,10 @@ impl Window {
 
         let (layout_size, framebuffer_size) = if let Some(ref mut i) = self.internals {
             unsafe {
-                i.gl_window.make_current().ok();
+                let tmp_r = i.gl_window.make_current();
+                if tmp_r.is_err() {
+                    return false;
+                }
             }
 
             dpi = i.gl_window.get_hidpi_factor();
@@ -674,13 +693,6 @@ impl Manager {
     }
 
     pub fn start(fps: u64) {
-        /*
-            TODO: Have a better frame rate implementation
-            the remaining time to sleep is the max time
-            to sleep minus the time taken to render the
-            windows.
-        */
-
         let fps = 1000 / fps;
         let mut lasttime;
         loop {
@@ -702,18 +714,15 @@ impl Manager {
                     }
                     //render the windows
                     while i < wm.windows.len() {
-                        //if
-                        wm.windows[i].tick(); // {
-                                              //    let w = wm.windows.remove(i);
-                                              //    w.deinit();
-                                              //} else {
+                        wm.windows[i].tick();
                         i += 1;
-                        //}
                     }
                     //Remove Windows not required
                     if let Ok(ref mut to_del) = TODEL.lock() {
                         loop {
                             if to_del.len() > 0 {
+                                println!("{:?}", wm.windows);
+
                                 let wid = to_del.remove(0);
                                 wm.windows.retain(|elm| {
                                     let mut keep = true;
@@ -725,6 +734,8 @@ impl Manager {
                                     }
                                     keep
                                 });
+
+                                println!("{:?}", wm.windows);
                             } else {
                                 break;
                             }
