@@ -329,7 +329,11 @@ impl Alert {
 
 fn main() {
     //create the person.
-    let person = Person::new(String::from(""), 0);
+    let mut person = Person::new(String::from(""), 0);
+    //let mut person = skryn::elements::VBox::new();//Person::new(String::from(""), 0);
+    //person.set(skryn::gui::properties::Property::Width(skryn::gui::properties::Unit::Pixel(100.)));
+    //person.set(skryn::gui::properties::Property::Height(skryn::gui::properties::Unit::Pixel(100.)));
+    //person.set(skryn::gui::properties::Property::BgColor(ColorF::new(1.,1.,1.,1.)));
 
     let person = Arc::new(Mutex::new(person));
 
@@ -340,6 +344,7 @@ fn main() {
     let form = PersonElm::new(person);
     skryn::gui::window::Manager::add(
         Arc::new(Mutex::new(form)),
+    //    person,
         String::from("Main window"),
         300.0,
         200.0,

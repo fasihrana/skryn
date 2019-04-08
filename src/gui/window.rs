@@ -221,7 +221,6 @@ impl Internals {
                     event: glutin::WindowEvent::CloseRequested,
                     window_id,
                 } => {
-                    println!("window id deleting .... {:?}", window_id);
                     {
                         TODEL.lock().unwrap().push(window_id);
                     }
@@ -376,7 +375,9 @@ impl Internals {
     fn deinit(self) {
         self.font_store.lock().unwrap().deinit();
         self.renderer.deinit();
+        self.api.shut_down();
         self.api.delete_document(self.document_id);
+
     }
 }
 
@@ -470,6 +471,7 @@ impl Window {
     }
 
     pub fn tick(&mut self) -> bool {
+
         let (new_tags, old_tags) = self.get_tags();
         let tags = self.tags.clone();
 
@@ -714,19 +716,39 @@ impl Manager {
                     }
                     //render the windows
                     while i < wm.windows.len() {
+                        /*if let Some(ref mut _int) = wm.windows[i].internals {
+                            println!("Mem Rep : {:?} --> {:?}", _int.get_window_id(), _int.api.report_memory());//_int.api.report_memory()
+                        }*/
                         wm.windows[i].tick();
                         i += 1;
                     }
                     //Remove Windows not required
                     if let Ok(ref mut to_del) = TODEL.lock() {
-                        loop {
+
+                        for wid in to_del.iter() {
+                            let wid = wid.clone();
+                            println!("remove window ID {:?}", wid);
+
+                            for i in 0..wm.windows.len(){
+                                if let Some(ref mut int) = wm.windows[i].internals {
+                                    if wid == int.get_window_id() {
+                                        //int.api.shut_down();
+                                        wm.windows.remove(i);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        to_del.clear();
+                        /*loop {
                             if to_del.len() > 0 {
+
                                 println!("{:?}", wm.windows);
 
                                 let wid = to_del.remove(0);
                                 wm.windows.retain(|elm| {
                                     let mut keep = true;
-                                    if let Some(ref int) = elm.internals {
+                                    if let Some(ref mut int) = elm.internals {
                                         let _tid = int.get_window_id();
                                         if wid == _tid {
                                             keep = false;
@@ -739,7 +761,7 @@ impl Manager {
                             } else {
                                 break;
                             }
-                        }
+                        }*/
                     }
                     //if all windows done, then exit the app
                     if wm.windows.is_empty() {
