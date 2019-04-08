@@ -568,13 +568,16 @@ impl Window {
         let mut builder = None;
         let mut font_store = None;
 
-        let (layout_size, framebuffer_size) = if let Some(ref mut i) = self.internals {
-            unsafe {
+        let (layout_size, framebuffer_size, win_id) = if let Some(ref mut i) = self.internals {
+            let win_id = unsafe {
+                println!("making window current {:?}, thread ID {:?}", i.get_window_id(), thread::current().id());
                 let tmp_r = i.gl_window.make_current();
                 if tmp_r.is_err() {
                     return false;
                 }
-            }
+
+                i.get_window_id()
+            };
 
             dpi = i.gl_window.get_hidpi_factor();
             let framebuffer_size = {
@@ -588,9 +591,9 @@ impl Window {
 
             font_store = Some(i.font_store.clone());
 
-            (Some(layout_size), Some(framebuffer_size))
+            (Some(layout_size), Some(framebuffer_size), Some(win_id))
         } else {
-            (None, None)
+            (None, None, None)
         };
 
         let mut builder = builder.unwrap();
@@ -620,6 +623,8 @@ impl Window {
             let _ = i.renderer.flush_pipeline_info();
             i.gl_window.swap_buffers().ok();
         }
+
+        println!("tick complete for window ID : {:?}", win_id);
 
         exit
     }
@@ -727,13 +732,15 @@ impl Manager {
 
                         for wid in to_del.iter() {
                             let wid = wid.clone();
-                            println!("remove window ID {:?}", wid);
+                            println!("Drop window ID {:?}, thread ID: {:?}", wid, thread::current().id());
 
                             for i in 0..wm.windows.len(){
-                                if let Some(ref mut int) = wm.windows[i].internals {
-                                    if wid == int.get_window_id() {
-                                        //int.api.shut_down();
-                                        wm.windows.remove(i);
+                                if let Some(ref mut internal) = wm.windows[i].internals {
+                                    if wid == internal.get_window_id() {
+                                        internal.api.shut_down();
+                                        let x = wm.windows.remove(i);
+                                        drop(x);
+                                        println!("Window ID dropped {:?},, thread ID: {:?}", wid, thread::current().id());
                                         break;
                                     }
                                 }
