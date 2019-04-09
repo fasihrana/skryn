@@ -13,7 +13,7 @@ exclude = [
 
 [dependencies]
 winit = "^0.19"
-glutin = "^0.20"
+glutin = "^0.21.0-rc1"
 webrender = "^0.58"
 gleam = "^0.6.13"
 app_units = "0.7"
