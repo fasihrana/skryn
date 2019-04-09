@@ -375,8 +375,8 @@ impl Internals {
     fn deinit(self) {
         self.font_store.lock().unwrap().deinit();
         self.renderer.deinit();
-        self.api.shut_down();
-        self.api.delete_document(self.document_id);
+//        self.api.shut_down();
+//        self.api.delete_document(self.document_id);
 
     }
 }
