@@ -220,6 +220,11 @@ impl Internals {
 
         self.events_loop.poll_events(|event| {
             match event {
+                glutin::Event::Awakened => return,
+                _ => ()
+            }
+            //println!("event -> {:?}", &event);
+            match event {
                 glutin::Event::WindowEvent {
                     event: glutin::WindowEvent::CloseRequested,
                     window_id,
@@ -241,6 +246,7 @@ impl Internals {
                     event: glutin::WindowEvent::CursorMoved { position, .. },
                     ..
                 } => {
+                    //println!(" >>>>>>>>>>>> cursor moved <<<<<<<<<<<< {}", cursor_in_window);
                     if cursor_in_window {
                         cursor_position = WorldPoint::new(position.x as f32, position.y as f32);
                         events.push(PrimitiveEvent::CursorMoved(position.into()));
@@ -248,9 +254,12 @@ impl Internals {
                 }
                 glutin::Event::WindowEvent {
                     event: glutin::WindowEvent::CursorLeft { .. },
+                    window_id,
                     ..
                 } => {
                     //events.push(PrimitiveEvent::CursorLeft);
+
+                    println!("window ID cursor left ... {:?}", window_id);
                     cursor_in_window = false;
                     cursor_position.x = -1.0;
                     cursor_position.y = -1.0;
@@ -565,6 +574,10 @@ impl Window {
                 .on_primitive_event(&[], PrimitiveEvent::HoverEnd(old_tags));
         }
 
+        //if events.len() > 0 {
+        //    println!("{:?}", events);
+        //}
+
         self.action_events(events, &tags);
 
         let mut window: Option<glutin::WindowedContext<glutin::NotCurrent>> = None;
@@ -577,9 +590,9 @@ impl Window {
             _ => ()
         }
 
-        let mut window = unsafe{window.unwrap().make_current().unwrap()};
+        let window = unsafe{window.unwrap().make_current().unwrap()};
 
-        let win_id = window.window().id();
+        //let win_id = window.window().id();
         let mut txn = Transaction::new();
         let mut builder = None;
         let mut font_store = None;
