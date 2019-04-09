@@ -186,11 +186,11 @@ impl Properties {
     }
 
     pub fn default(&mut self) -> &mut Properties {
-        #[cfg(windows)]
+        #[cfg(not(linux))]
         {
             self.set(Property::Family(String::from("Arial")));
         }
-        #[cfg(not(windows))]
+        #[cfg(linux)]
         {
             self.set(Property::Family(String::from("FreeMono")));
         }
