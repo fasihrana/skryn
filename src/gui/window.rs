@@ -1,7 +1,7 @@
 use euclid;
 use gleam::gl;
 use glutin;
-use glutin::ContextTrait;
+use glutin::ContextWrapper;
 use webrender;
 use webrender::api::*;
 
@@ -107,8 +107,9 @@ impl RenderNotifier for WindowNotifier {
     }
 }
 
+
 struct Internals {
-    gl_window: glutin::WindowedContext,
+    gl_window: Option<glutin::WindowedContext<glutin::NotCurrent>>,
     events_loop: glutin::EventsLoop,
     font_store: Arc<Mutex<font::FontStore>>,
     api: RenderApi,
@@ -124,7 +125,7 @@ struct Internals {
 impl fmt::Debug for Internals {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Internals {{ window_id: {:?}, document_id: {:?}, pipeline_id: {:?}, cursor_position: {}, dpi: {} }}",
-            self.gl_window.id(), self.document_id, self.pipeline_id, self.cursor_position, self.dpi )
+            self.get_window_id()/*gl_window.window().id()*/, self.document_id, self.pipeline_id, self.cursor_position, self.dpi )
     }
 }
 
@@ -144,9 +145,9 @@ impl Internals {
                 .build_windowed(window_builder, &events_loop)
                 .unwrap();
 
-        unsafe {
-            window.make_current().ok();
-        }
+        let window = unsafe {
+            window.make_current().unwrap()
+        };
 
         let gl = match window.get_api() {
             glutin::Api::OpenGl => unsafe {
@@ -158,7 +159,7 @@ impl Internals {
             glutin::Api::WebGl => unimplemented!(),
         };
 
-        let dpi = window.get_hidpi_factor();
+        let dpi = window.window().get_hidpi_factor();
 
         let opts = webrender::RendererOptions {
             device_pixel_ratio: dpi as f32,
@@ -169,7 +170,7 @@ impl Internals {
         };
 
         let framebuffer_size = {
-            let size = window.get_inner_size().unwrap().to_physical(dpi);
+            let size = window.window().get_inner_size().unwrap().to_physical(dpi);
             DeviceIntSize::new(size.width as i32, size.height as i32)
             //DeviceUintSize::new(size.width as u32, size.height as u32)
         };
@@ -192,8 +193,10 @@ impl Internals {
         txn.set_root_pipeline(pipeline_id);
         api.send_transaction(document_id, txn);
 
+        let window = unsafe{window.make_not_current().unwrap()};
+
         Internals {
-            gl_window: window,
+            gl_window: Some(window),
             events_loop,
             font_store,
             api,
@@ -368,16 +371,17 @@ impl Internals {
         events
     }
 
-    fn get_window_id(&self) -> glutin::WindowId {
-        self.gl_window.id()
+    fn get_window_id(&self) -> Option<glutin::WindowId> {
+        match self.gl_window {
+            None => None,
+            Some(ref window) => Some(window.window().id()),
+        }
+
     }
 
     fn deinit(self) {
         self.font_store.lock().unwrap().deinit();
         self.renderer.deinit();
-//        self.api.shut_down();
-//        self.api.delete_document(self.document_id);
-
     }
 }
 
@@ -470,47 +474,7 @@ impl Window {
         (new_tags, old_tags)
     }
 
-    pub fn tick(&mut self) -> bool {
-
-        let (new_tags, old_tags) = self.get_tags();
-        let tags = self.tags.clone();
-
-        let events;
-        let mut dpi;
-        let api;
-
-        match self.internals {
-            Some(ref mut i) => {
-                events = i.events(&tags);
-                dpi = i.dpi;
-                api = i.api.clone_sender().create_api();
-            }
-            _ => panic!("in tick but no window internals initialized"),
-        }
-
-        if !new_tags.is_empty() {
-            //events.insert(0,PrimitiveEvent::HoverBegin(new_tags));
-            self.root
-                .lock()
-                .unwrap()
-                .on_primitive_event(&[], PrimitiveEvent::HoverBegin(new_tags));
-        }
-
-        if !old_tags.is_empty() {
-            //events.insert( 0,PrimitiveEvent::HoverEnd(old_tags));
-            self.root
-                .lock()
-                .unwrap()
-                .on_primitive_event(&[], PrimitiveEvent::HoverEnd(old_tags));
-        }
-
-        //only for debug. take out later?
-        if !events.is_empty() {
-            println!("{:?}", events);
-        }
-
-        let exit = false;
-
+    fn action_events(&mut self, events: Vec<PrimitiveEvent>, tags: &Vec<ItemTag>) {
         for e in events.iter() {
             /*if exit {
                 return true;
@@ -563,37 +527,80 @@ impl Window {
                 _ => (),
             }
         }
+    }
 
+    pub fn tick(&mut self) -> bool {
+        let exit = false;
+
+        let events;
+        let mut dpi;
+        let api;
+
+        let (new_tags, old_tags) = self.get_tags();
+        let tags = self.tags.clone();
+
+        //collect events
+        match self.internals {
+            Some(ref mut i) => {
+                events = i.events(&tags);
+                dpi = i.dpi;
+                api = i.api.clone_sender().create_api();
+            },
+            _ => panic!("in tick but no window internals initialized"),
+        }
+
+        if !new_tags.is_empty() {
+            //events.insert(0,PrimitiveEvent::HoverBegin(new_tags));
+            self.root
+                .lock()
+                .unwrap()
+                .on_primitive_event(&[], PrimitiveEvent::HoverBegin(new_tags));
+        }
+
+        if !old_tags.is_empty() {
+            //events.insert( 0,PrimitiveEvent::HoverEnd(old_tags));
+            self.root
+                .lock()
+                .unwrap()
+                .on_primitive_event(&[], PrimitiveEvent::HoverEnd(old_tags));
+        }
+
+        self.action_events(events, &tags);
+
+        let mut window: Option<glutin::WindowedContext<glutin::NotCurrent>> = None;
+
+        match self.internals {
+            Some(ref mut i) => {
+                //begin
+                std::mem::swap(&mut i.gl_window, &mut window);
+            },
+            _ => ()
+        }
+
+        let mut window = unsafe{window.unwrap().make_current().unwrap()};
+
+        let win_id = window.window().id();
         let mut txn = Transaction::new();
         let mut builder = None;
         let mut font_store = None;
 
-        let (layout_size, framebuffer_size, win_id) = if let Some(ref mut i) = self.internals {
-            let win_id = unsafe {
-                println!("making window current {:?}, thread ID {:?}", i.get_window_id(), thread::current().id());
-                let tmp_r = i.gl_window.make_current();
-                if tmp_r.is_err() {
-                    return false;
-                }
+        let (layout_size, framebuffer_size) = match self.internals {
+            Some(ref mut i) => {
+                dpi = window.window().get_hidpi_factor();
+                let framebuffer_size = {
+                    let size = window.window().get_inner_size().unwrap().to_physical(dpi);
+                    DeviceIntSize::new(size.width as i32, size.height as i32)
+                    //DeviceUintSize::new(size.width as u32, size.height as u32)
+                };
+                let layout_size = framebuffer_size.to_f32() / euclid::TypedScale::new(dpi as f32);
 
-                i.get_window_id()
-            };
+                builder = Some(DisplayListBuilder::new(i.pipeline_id, layout_size));
 
-            dpi = i.gl_window.get_hidpi_factor();
-            let framebuffer_size = {
-                let size = i.gl_window.get_inner_size().unwrap().to_physical(dpi);
-                DeviceIntSize::new(size.width as i32, size.height as i32)
-                //DeviceUintSize::new(size.width as u32, size.height as u32)
-            };
-            let layout_size = framebuffer_size.to_f32() / euclid::TypedScale::new(dpi as f32);
+                font_store = Some(i.font_store.clone());
 
-            builder = Some(DisplayListBuilder::new(i.pipeline_id, layout_size));
-
-            font_store = Some(i.font_store.clone());
-
-            (Some(layout_size), Some(framebuffer_size), Some(win_id))
-        } else {
-            (None, None, None)
+                (Some(layout_size), Some(framebuffer_size))
+            },
+            _ => (None, None)
         };
 
         let mut builder = builder.unwrap();
@@ -621,10 +628,17 @@ impl Window {
             i.renderer.update();
             i.renderer.render(framebuffer_size).unwrap();
             let _ = i.renderer.flush_pipeline_info();
-            i.gl_window.swap_buffers().ok();
+            window.swap_buffers().ok();
         }
 
-        println!("tick complete for window ID : {:?}", win_id);
+        let mut window = unsafe{Some(window.make_not_current().unwrap())};
+        match self.internals {
+            Some(ref mut i) => {
+                //Finally
+                std::mem::swap(&mut i.gl_window, &mut window);
+            },
+            _ => ()
+        }
 
         exit
     }
@@ -736,7 +750,7 @@ impl Manager {
 
                             for i in 0..wm.windows.len(){
                                 if let Some(ref mut internal) = wm.windows[i].internals {
-                                    if wid == internal.get_window_id() {
+                                    if wid == internal.get_window_id().unwrap() {
                                         internal.api.shut_down();
                                         let x = wm.windows.remove(i);
                                         drop(x);
