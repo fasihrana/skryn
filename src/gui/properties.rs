@@ -186,13 +186,13 @@ impl Properties {
     }
 
     pub fn default(&mut self) -> &mut Properties {
-        #[cfg(not(linux))]
-        {
-            self.set(Property::Family(String::from("Arial")));
-        }
-        #[cfg(linux)]
+        if cfg!(target_os = "linux")
         {
             self.set(Property::Family(String::from("FreeMono")));
+        }
+        if cfg!(target_os = "windows") || cfg!(target_os = "macos")
+        {
+            self.set(Property::Family(String::from("Arial")));
         }
         self.set(Property::Size(16))
             .set(Property::Left(Unit::Stretch(0.0)))
