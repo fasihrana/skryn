@@ -246,10 +246,15 @@ impl Internals {
                     event: glutin::WindowEvent::CursorMoved { position, .. },
                     ..
                 } => {
-                    //println!(" >>>>>>>>>>>> cursor moved <<<<<<<<<<<< {}", cursor_in_window);
-                    if cursor_in_window {
+                    //until tomaka/winit#807 is fixed, we'll just not check whether the cursor is in the window
+                    if cfg!(target_os = "macos"){
                         cursor_position = WorldPoint::new(position.x as f32, position.y as f32);
                         events.push(PrimitiveEvent::CursorMoved(position.into()));
+                    } else {
+                        if cursor_in_window {
+                            cursor_position = WorldPoint::new(position.x as f32, position.y as f32);
+                            events.push(PrimitiveEvent::CursorMoved(position.into()));
+                        }
                     }
                 }
                 glutin::Event::WindowEvent {
