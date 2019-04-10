@@ -1,6 +1,6 @@
 [package]
 name = "skryn"                                             
-version = "0.0.3"                                          
+version = "0.0.4"
 authors = ["Fasih Rana <fasih.rana@obsidium.co>"]          
 edition = "2018"                                           
 description = "A servo/webrender based Desktop GUI library"
