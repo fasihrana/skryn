@@ -21,7 +21,7 @@ pub struct TextBox {
     editable: bool,
     enabled: bool,
     singleline: bool,
-    cursor: usize,
+    cursor: Option<font::Char>,
     hovering: bool,
     is_password: bool,
     cache: font::Paragraphs,
@@ -50,7 +50,7 @@ impl TextBox {
             editable: true,
             enabled: true,
             singleline: false,
-            cursor: 0,
+            cursor: None,
             hovering: false,
             is_password: false,
             cache: font::Paragraphs::new(),
@@ -92,32 +92,11 @@ impl TextBox {
         self.singleline = singleline;
     }
 
-    pub fn get_index_at(&self, p: &properties::Position) -> usize {
-        let x = self.cache.get_char_at_pos(p, &self.value);
-
-        if x.is_some() {
-            x.unwrap().get_index()
-        } else {
-            0
+    pub fn get_index_at(&self) -> usize {
+        match self.cursor {
+            None => 0,
+            Some(ref ch) => {ch.get_index()}
         }
-        /*let size = self.props.get_size() as f32;
-        let mut i = 0;
-
-        while i < self.cache.len() {
-            let pmin = self.cache[i as usize].0;
-            let pmax = self.cache[i as usize].1;
-            if p.y > (pmax.1 - size) && p.x > pmin.0 {
-                //if the click is before half-x of the character, assign i
-                //otherwise assign i+1
-                let mid_x = ((pmax.0 - pmin.0) / 2.0) + pmin.0;
-                if p.x < mid_x {
-                    cursor = i;
-                } else {
-                    cursor = i + 1;
-                }
-            }
-            i += 1;
-        }*/
     }
 
     pub fn set_placeholder(&mut self, p: String) {
@@ -280,21 +259,32 @@ impl Element for TextBox {
         ));
         builder.push_text(&info, &glyphs, fi_key, color, Some(GlyphOptions::default()));
 
-        /*/add the cursor
+        //add the cursor
         if self.focus && self.enabled && self.editable {
-            let info = LayoutPrimitiveInfo::new(LayoutRect::new(
-                LayoutPoint::new(cursor_x, cursor_y - size),
-                LayoutSize::new(1.0, size),
-            ));
-            builder.push_rect(&info, color);
-        }*/
+            if self.cursor.is_some() {
+                if let Some(ref ch) = self.cursor {
+                    self.cursor = self.cache.get_char_at_index(ch.get_index())
+                };
+                match self.cursor {
+                    Some(ref ch) => {
+                        let pos = ch.get_position();
+                        let info = LayoutPrimitiveInfo::new(LayoutRect::new(
+                            LayoutPoint::new(pos.x, pos.y - size),
+                            LayoutSize::new(1.0, size),
+                        ));
+                        builder.push_rect(&info, color);
+                    },
+                    None => (),
+                }
+            }
+        }
     }
 
     fn get_bounds(&self) -> properties::Extent {
         self.bounds.clone()
     }
 
-    fn on_primitive_event(&mut self, _ext_ids: &[ItemTag], e: PrimitiveEvent) -> bool {
+    fn on_primitive_event(&mut self, ext_ids: &[ItemTag], e: PrimitiveEvent) -> bool {
         let mut handled = false;
         match e {
             /*PrimitiveEvent::Char(mut c) => {
@@ -402,17 +392,16 @@ impl Element for TextBox {
                     handled = self.exec_handler(ElementEvent::FocusChange, &f);
                 }
             }
-            PrimitiveEvent::Button(_p, _b, _s, _m) => {
-                /*if !ext_ids.is_empty()
+            PrimitiveEvent::Button(p, b, s, m) => {
+                if !ext_ids.is_empty()
                 && ext_ids[0].0 == self.ext_id
                 && b == properties::Button::Left
                 && s == properties::ButtonState::Released
                 {
-                    //TODO: uncomment the following
-                    self.cursor = self.get_index_at(&p);
-                    println!("pressed index at {}", self.cursor);
+                    self.cursor = self.cache.get_char_at_pos(&p, &self.value);
+                    println!("Clicked at {:?}", self.cursor);
                     handled = self.exec_handler(ElementEvent::Clicked, &m);
-                }*/
+                }
             }
             PrimitiveEvent::HoverBegin(n_tags) => {
                 let matched = n_tags.iter().find(|x| x.0 == self.ext_id);

@@ -753,15 +753,11 @@ impl Manager {
                     }
                     //render the windows
                     while i < wm.windows.len() {
-                        /*if let Some(ref mut _int) = wm.windows[i].internals {
-                            println!("Mem Rep : {:?} --> {:?}", _int.get_window_id(), _int.api.report_memory());//_int.api.report_memory()
-                        }*/
                         wm.windows[i].tick();
                         i += 1;
                     }
                     //Remove Windows not required
                     if let Ok(ref mut to_del) = TODEL.lock() {
-
                         for wid in to_del.iter() {
                             let wid = wid.clone();
                             println!("Drop window ID {:?}, thread ID: {:?}", wid, thread::current().id());
@@ -772,35 +768,13 @@ impl Manager {
                                         internal.api.shut_down();
                                         let x = wm.windows.remove(i);
                                         drop(x);
-                                        println!("Window ID dropped {:?},, thread ID: {:?}", wid, thread::current().id());
+                                        println!("Window ID dropped {:?}, thread ID: {:?}", wid, thread::current().id());
                                         break;
                                     }
                                 }
                             }
                         }
                         to_del.clear();
-                        /*loop {
-                            if to_del.len() > 0 {
-
-                                println!("{:?}", wm.windows);
-
-                                let wid = to_del.remove(0);
-                                wm.windows.retain(|elm| {
-                                    let mut keep = true;
-                                    if let Some(ref mut int) = elm.internals {
-                                        let _tid = int.get_window_id();
-                                        if wid == _tid {
-                                            keep = false;
-                                        }
-                                    }
-                                    keep
-                                });
-
-                                println!("{:?}", wm.windows);
-                            } else {
-                                break;
-                            }
-                        }*/
                     }
                     //if all windows done, then exit the app
                     if wm.windows.is_empty() {

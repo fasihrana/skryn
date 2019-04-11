@@ -95,7 +95,7 @@ impl PersonElm {
     fn new(p: Arc<Mutex<Person>>) -> PersonElm {
         //Create two TextBoxes and display their initial value
         let mut _p = p.lock().unwrap();
-        let mut _tbox = TextBox::new(format!(""));
+        let mut _tbox = TextBox::new(format!("fasih is the author of skryn and his middle and last name respectively are:\nahmed\nrana"));
         //let mut _tbox = TextBox::new(format!("{}\n\n{}",
         //                                     "Fasih's full name is فصیح احمد رانا, and his first name means eloquent.",
         //w                                    "فصیح کا پورا نام Fasih Ahmed Rana ہے، اور انگریزی میں اس کے نام کا مطلب eloquent ہے."));
@@ -329,11 +329,7 @@ impl Alert {
 
 fn main() {
     //create the person.
-    let mut person = Person::new(String::from(""), 0);
-    //let mut person = skryn::elements::VBox::new();//Person::new(String::from(""), 0);
-    //person.set(skryn::gui::properties::Property::Width(skryn::gui::properties::Unit::Pixel(100.)));
-    //person.set(skryn::gui::properties::Property::Height(skryn::gui::properties::Unit::Pixel(100.)));
-    //person.set(skryn::gui::properties::Property::BgColor(ColorF::new(1.,1.,1.,1.)));
+    let person = Person::new(String::from(""), 0);
 
     let person = Arc::new(Mutex::new(person));
 
@@ -344,7 +340,6 @@ fn main() {
     let form = PersonElm::new(person);
     skryn::gui::window::Manager::add(
         Arc::new(Mutex::new(form)),
-    //    person,
         String::from("Main window"),
         300.0,
         200.0,

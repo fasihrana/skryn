@@ -372,6 +372,30 @@ impl ParaLine {
             _x += tmp.extent.w;
         }
     }
+
+    pub fn get_char_at_pos(
+        &self,
+        _p: &super::properties::Position,
+    ) -> Option<Char> {
+        let mut ch = Some(self.segments[0]._ref.chars[0].clone());
+        for r in self.segments.iter(){
+            if r._ref.class == BidiClass::R {
+                for _c in r._ref.chars.iter().rev() {
+                    if _c.position.x < _p.x {
+                        ch = Some(_c.clone());
+                    }
+                }
+            } else {
+                for _c in r._ref.chars.iter() {
+                    if _c.position.x < _p.x {
+                        ch = Some(_c.clone());
+                    }
+                }
+            }
+        }
+
+        ch
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -399,6 +423,7 @@ impl ParaText {
             }
 
             line.position(x + tmp, _y);
+            line.extent.h = size;
 
             if max_w < line.extent.w {
                 max_w = line.extent.w;
@@ -528,6 +553,45 @@ impl ParaText {
             para.extent.w = tmp_line.extent.w;
         }
         para.lines.push(tmp_line);
+    }
+
+    pub fn get_char_at_pos(
+        &self,
+        _p: &super::properties::Position,
+        _force: bool,
+    ) -> Option<Char> {
+        let mut ret = None;
+
+        let mut l = self.lines.len();
+        if l > 0 {
+            l-=1;
+            if _force {
+                if self.lines[0].extent.y > _p.y {
+                    //first line of para
+//println!("\t ... forced in first line of para");
+                    ret = self.lines[0].get_char_at_pos(_p);
+
+                } else {
+                    //last line of para
+//println!("\t ... forced in last line of para");
+                    ret = self.lines[l].get_char_at_pos(_p);
+                }
+            } else {
+                for i in 0..l+1 {
+                    let y1 = self.lines[i].extent.y;
+                    let y2 = self.lines[i].extent.y+self.lines[i].extent.h;
+//println!("\t ... checking line {} [p.y {} between {} and {}?]", i, _p.y, y1, y2);
+                    if y1 <= _p.y && y2 >= _p.y {
+//println!("\t ... in line {} of para", i);
+                        ret = self.lines[i].get_char_at_pos(_p);
+                    } else {
+//println!("\t ... skipped line {} of para", i);
+                    }
+                }
+            }
+        }
+
+        ret
     }
 }
 
@@ -742,25 +806,40 @@ impl Paragraphs {
         _p: &super::properties::Position,
         _val: &Vec<char>,
     ) -> Option<Char> {
-        //let mut cursor = 0;
-        //let mut pos = super::properties::Position{ x: 0.0, y: 0.0 };
-        let ret = None;
-        /*if !self.list.is_empty() {
-            for para in self.list.iter() {
-                if para.extent.y + para.extent.h < p.y {
-                    let tmp = &para.lines[para.lines.len()-1];
-                    let tmp = &tmp.line[tmp.line.len()-1].0.text;
-                    //cursor = tmp[tmp.len()-1].index;
-                    //pos = tmp[tmp.len()-1].position.clone();
-                    //ret = Some(tmp[tmp.len()-1].clone());
-                }
-                    else {
-                        for line in para.lines.iter() {
+        let mut ret = None;
 
+        let mut l = self.paras.len();
+        if l > 0 {
+            l-=1;
+            for i in 0..l+1 {
+                let force =  (i == 0 && self.paras[i].extent.y > _p.y) || (ret.is_none() && i==l);
+                if force || (self.paras[i].extent.y <= _p.y && self.paras[i].extent.y+self.paras[i].extent.h >= _p.y){
+//println!("checking para {} [{}, {:?}, {:?}]", i, force, _p, self.paras[i].extent);
+                    let tmp = self.paras[i].get_char_at_pos(_p, force);
+//println!("\t ... Char found {:?}", tmp);
+                    if tmp.is_some() {
+                        ret = tmp;
+                    }
+                }
+            }
+        }
+
+        ret
+    }
+
+    pub fn get_char_at_index(&self, index: usize) -> Option<Char>{
+        let mut ret = None;
+        for para in self.paras.iter() {
+            for line in para.lines.iter() {
+                for segment in line.segments.iter() {
+                    for ch in segment._ref.chars.iter() {
+                        if ch.index == index {
+                            return Some(ch.clone());
                         }
                     }
+                }
             }
-        }*/
+        }
         ret
     }
 
@@ -771,14 +850,6 @@ impl Paragraphs {
                 for segment in line.segments.iter() {
                     arr.append(&mut segment._ref.glyphs.clone());
                 }
-                /*let lim =  line.segments.len() - 1;
-                for i in 0..lim+1{
-                    if i == lim && line.segments[i]._ref.breaking_class() {
-                        continue;
-                    }
-                    let mut tmp = line.segments[i]._ref.glyphs.clone();
-                    arr.append(&mut tmp);
-                }*/
             }
         }
         arr
@@ -883,3 +954,4 @@ impl FontStore {
         self.api.send_transaction(self.document_id, txn);
     }
 }
+
