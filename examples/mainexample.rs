@@ -99,6 +99,7 @@ impl PersonElm {
         //let mut _tbox = TextBox::new(format!("{}\n\n{}",
         //                                     "Fasih's full name is فصیح احمد رانا, and his first name means eloquent.",
         //w                                    "فصیح کا پورا نام Fasih Ahmed Rana ہے، اور انگریزی میں اس کے نام کا مطلب eloquent ہے."));
+        _tbox.set(skryn::gui::properties::Property::TextAlign(skryn::gui::properties::Align::Middle));
         _tbox.set_placeholder("<enter bio here>".to_owned());
         let name = Arc::new(Mutex::new(_tbox));
         let age = Arc::new(Mutex::new(TextBox::new(String::from(format!(

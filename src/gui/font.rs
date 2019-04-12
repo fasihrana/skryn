@@ -257,6 +257,13 @@ impl Char {
     pub fn get_position(&self) -> Position {
         self.position.clone()
     }
+    pub fn get_cursor_position(&self, p: &Position) -> Position {
+        let mut ret = self.position.clone();
+        if p.x > ret.x + (self.metric.advance.x/2.) {
+            ret.x += self.metric.advance.x;
+        }
+        ret
+    }
     pub fn get_rtl(&self) -> bool {
         self.rtl
     }

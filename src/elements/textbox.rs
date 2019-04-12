@@ -21,7 +21,7 @@ pub struct TextBox {
     editable: bool,
     enabled: bool,
     singleline: bool,
-    cursor: Option<font::Char>,
+    cursor: Option<(font::Char, properties::Position)>,
     hovering: bool,
     is_password: bool,
     cache: font::Paragraphs,
@@ -92,10 +92,18 @@ impl TextBox {
         self.singleline = singleline;
     }
 
-    pub fn get_index_at(&self) -> usize {
+    pub fn get_cursor_index(&self) -> usize {
         match self.cursor {
             None => 0,
-            Some(ref ch) => {ch.get_index()}
+            Some((ref ch, ref p)) => {
+                let mut ind = ch.get_index();
+                let pos = ch.get_position();
+                let adv = ch.get_metric().advance;
+                if p.x > pos.x + (adv.x/2.) {
+                    ind += 1;
+                }
+                ind
+            }
         }
     }
 
@@ -262,12 +270,18 @@ impl Element for TextBox {
         //add the cursor
         if self.focus && self.enabled && self.editable {
             if self.cursor.is_some() {
-                if let Some(ref ch) = self.cursor {
-                    self.cursor = self.cache.get_char_at_index(ch.get_index())
+                if let Some((ref ch, ref p)) = self.cursor {
+                    let tmp = self.cache.get_char_at_index(ch.get_index());
+                    if tmp.is_some() {
+                        self.cursor = Some((tmp.unwrap(),p.clone()));
+                    } else {
+                        self.cursor = None;
+                    }
+                    //self.cursor = self.cache.get_char_at_index(ch.get_index())
                 };
                 match self.cursor {
-                    Some(ref ch) => {
-                        let pos = ch.get_position();
+                    Some((ref ch,ref p)) => {
+                        let pos = ch.get_cursor_position(p);
                         let info = LayoutPrimitiveInfo::new(LayoutRect::new(
                             LayoutPoint::new(pos.x, pos.y - size),
                             LayoutSize::new(1.0, size),
@@ -381,7 +395,10 @@ impl Element for TextBox {
                         if c == '\r' {
                             c = '\n';
                         }
-                        self.value.push(c);
+                        if self.cursor.is_some() {
+                            let ind = self.get_cursor_index();
+                            self.value.insert(ind,c);
+                        }
                     }
                     handled = true;
                 }
@@ -398,8 +415,12 @@ impl Element for TextBox {
                 && b == properties::Button::Left
                 && s == properties::ButtonState::Released
                 {
-                    self.cursor = self.cache.get_char_at_pos(&p, &self.value);
-                    println!("Clicked at {:?}", self.cursor);
+                    let tmp = self.cache.get_char_at_pos(&p, &self.value);
+                    if tmp.is_some() {
+                        self.cursor = Some((tmp.unwrap(),p.clone()));
+                        let ind = self.get_cursor_index();
+                        println!("Clicked at ind[{}] {:?}",ind, self.cursor);
+                    }
                     handled = self.exec_handler(ElementEvent::Clicked, &m);
                 }
             }
