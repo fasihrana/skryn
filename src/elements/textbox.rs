@@ -22,6 +22,8 @@ pub struct TextBox {
     enabled: bool,
     singleline: bool,
     cursor: Option<(font::Char, properties::Position)>,
+    cursor_index: usize,
+    cursor_after: bool,
     hovering: bool,
     is_password: bool,
     cache: font::Paragraphs,
@@ -51,6 +53,8 @@ impl TextBox {
             enabled: true,
             singleline: false,
             cursor: None,
+            cursor_index: 0,
+            cursor_after: false,
             hovering: false,
             is_password: false,
             cache: font::Paragraphs::new(),
@@ -92,17 +96,19 @@ impl TextBox {
         self.singleline = singleline;
     }
 
-    pub fn get_cursor_index(&self) -> usize {
+    pub fn get_cursor_index(&self) -> (usize,bool) {
         match self.cursor {
-            None => 0,
+            None => (0,false),
             Some((ref ch, ref p)) => {
                 let mut ind = ch.get_index();
                 let pos = ch.get_position();
                 let adv = ch.get_metric().advance;
+                let mut after = false;
                 if p.x > pos.x + (adv.x/2.) {
-                    ind += 1;
+                    //ind += 1;
+                    after = true;
                 }
-                ind
+                (ind,after)
             }
         }
     }
@@ -269,27 +275,23 @@ impl Element for TextBox {
 
         //add the cursor
         if self.focus && self.enabled && self.editable {
-            if self.cursor.is_some() {
-                if let Some((ref ch, ref p)) = self.cursor {
-                    let tmp = self.cache.get_char_at_index(ch.get_index());
-                    if tmp.is_some() {
-                        self.cursor = Some((tmp.unwrap(),p.clone()));
-                    } else {
-                        self.cursor = None;
-                    }
-                    //self.cursor = self.cache.get_char_at_index(ch.get_index())
-                };
-                match self.cursor {
-                    Some((ref ch,ref p)) => {
-                        let pos = ch.get_cursor_position(p);
-                        let info = LayoutPrimitiveInfo::new(LayoutRect::new(
-                            LayoutPoint::new(pos.x, pos.y - size),
+            let ch = self.cache.get_char_at_index(self.cursor_index);
+            match ch {
+                Some(ref ch) => {
+                    let pos = ch.get_position();
+                    let mut info = LayoutPrimitiveInfo::new(LayoutRect::new(
+                        LayoutPoint::new(pos.x, pos.y - size),
+                        LayoutSize::new(1.0, size),
+                    ));
+                    if self.cursor_after {
+                        info = LayoutPrimitiveInfo::new(LayoutRect::new(
+                            LayoutPoint::new(pos.x + ch.get_metric().advance.x, pos.y - size),
                             LayoutSize::new(1.0, size),
                         ));
-                        builder.push_rect(&info, color);
-                    },
-                    None => (),
-                }
+                    }
+                    builder.push_rect(&info, color);
+                },
+                None => (),
             }
         }
     }
@@ -384,8 +386,21 @@ impl Element for TextBox {
                     if c == '\x08' {
                         //backspace
                         let len = self.value.len();
-                        if len > 0 {
-                            self.value.pop();
+                        //if len > 0 and after is true then should delete from index
+                        if len > 0 && self.cursor_after {
+                            self.value.remove(self.cursor_index);
+                            if self.cursor_index == 0 {
+                                self.cursor_after = false;
+                            } else {
+                                self.cursor_index -= 1;
+                            }
+                        }
+                        // if len > 0 and after is false
+                        if len > 0 && !self.cursor_after {
+                            if self.cursor_index > 0 {
+                                self.value.remove(self.cursor_index - 1);
+                                self.cursor_index -= 1;
+                            }
                         }
                     } else if c == '\u{3}' {
 
@@ -396,8 +411,12 @@ impl Element for TextBox {
                             c = '\n';
                         }
                         if self.cursor.is_some() {
-                            let ind = self.get_cursor_index();
-                            self.value.insert(ind,c);
+                            if self.cursor_after {
+                                self.value.insert(self.cursor_index + 1,c);
+                            } else {
+                                self.value.insert(self.cursor_index,c);
+                            }
+                            self.cursor_index += 1;
                         }
                     }
                     handled = true;
@@ -418,8 +437,10 @@ impl Element for TextBox {
                     let tmp = self.cache.get_char_at_pos(&p, &self.value);
                     if tmp.is_some() {
                         self.cursor = Some((tmp.unwrap(),p.clone()));
-                        let ind = self.get_cursor_index();
-                        println!("Clicked at ind[{}] {:?}",ind, self.cursor);
+                        let tmp = self.get_cursor_index();
+                        self.cursor_index = tmp.0;
+                        self.cursor_after = tmp.1;
+                        println!("Clicked at ind[{}] {:?} ... appears after? {}",self.cursor_index, self.cursor, self.cursor_after);
                     }
                     handled = self.exec_handler(ElementEvent::Clicked, &m);
                 }

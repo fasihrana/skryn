@@ -1,12 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="5c32dbd9-0b30-470b-ab9f-bc177063d9e8" name="Default" comment="preparing for release 0.0.4">
+    <list default="true" id="5c32dbd9-0b30-470b-ab9f-bc177063d9e8" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/mainexample.rs" beforeDir="false" afterPath="$PROJECT_DIR$/examples/mainexample.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/elements/textbox.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/elements/textbox.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gui/font.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/gui/font.rs" afterDir="false" />
     </list>
     <ignored path="C:\Users\fasih\workspace\skryn\.idea\shelf/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -21,8 +18,8 @@
       <file leaf-file-name="font.rs" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/gui/font.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="406">
-              <caret line="850" column="5" lean-forward="true" selection-start-line="850" selection-start-column="5" selection-end-line="850" selection-end-column="5" />
+            <state relative-caret-position="14212">
+              <caret line="850" column="5" selection-start-line="850" selection-start-column="5" selection-end-line="850" selection-end-column="5" />
               <folding>
                 <element signature="e#7778#7779#0" expanded="true" />
                 <element signature="e#7814#7815#0" expanded="true" />
@@ -65,39 +62,31 @@
       <file leaf-file-name="textbox.rs" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/elements/textbox.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="356">
-              <caret line="105" column="13" selection-start-line="105" selection-start-column="13" selection-end-line="105" selection-end-column="13" />
+            <state relative-caret-position="527">
+              <caret line="401" column="55" selection-start-line="401" selection-start-column="55" selection-end-line="401" selection-end-column="55" />
               <folding>
-                <element signature="e#1886#1887#0" expanded="true" />
-                <element signature="e#1936#1937#0" expanded="true" />
-                <element signature="e#2161#2162#0" expanded="true" />
-                <element signature="e#2189#2190#0" expanded="true" />
-                <element signature="e#2241#2242#0" expanded="true" />
                 <element signature="e#2279#2280#0" expanded="true" />
-                <element signature="e#2337#2338#0" expanded="true" />
-                <element signature="e#2381#2382#0" expanded="true" />
+                <element signature="e#2323#2324#0" expanded="true" />
+                <element signature="e#2798#2799#0" expanded="true" />
                 <element signature="e#2852#2853#0" expanded="true" />
-                <element signature="e#2906#2907#0" expanded="true" />
-                <element signature="e#2953#2954#0" expanded="true" />
-                <element signature="e#3009#3010#0" expanded="true" />
-                <element signature="e#3697#3698#0" expanded="true" />
-                <element signature="e#3723#3724#0" expanded="true" />
-                <element signature="e#3776#3777#0" expanded="true" />
-                <element signature="e#3812#3813#0" expanded="true" />
-                <element signature="e#3993#3994#0" expanded="true" />
-                <element signature="e#4026#4027#0" expanded="true" />
-                <element signature="e#9394#9395#0" expanded="true" />
-                <element signature="e#9428#9429#0" expanded="true" />
-                <element signature="e#14807#14808#0" expanded="true" />
-                <element signature="e#14855#14856#0" expanded="true" />
-                <element signature="e#15125#15126#0" expanded="true" />
-                <element signature="e#15144#15145#0" expanded="true" />
-                <element signature="e#15187#15188#0" expanded="true" />
-                <element signature="e#15206#15207#0" expanded="true" />
-                <element signature="e#15284#15285#0" expanded="true" />
-                <element signature="e#15320#15321#0" expanded="true" />
-                <element signature="e#15357#15358#0" expanded="true" />
-                <element signature="e#15384#15385#0" expanded="true" />
+                <element signature="e#3130#3131#0" expanded="true" />
+                <element signature="e#3156#3157#0" expanded="true" />
+                <element signature="e#3209#3210#0" expanded="true" />
+                <element signature="e#3245#3246#0" expanded="true" />
+                <element signature="e#3426#3427#0" expanded="true" />
+                <element signature="e#3459#3460#0" expanded="true" />
+                <element signature="e#9446#9447#0" expanded="true" />
+                <element signature="e#9480#9481#0" expanded="true" />
+                <element signature="e#15022#15023#0" expanded="true" />
+                <element signature="e#15070#15071#0" expanded="true" />
+                <element signature="e#15340#15341#0" expanded="true" />
+                <element signature="e#15359#15360#0" expanded="true" />
+                <element signature="e#15402#15403#0" expanded="true" />
+                <element signature="e#15421#15422#0" expanded="true" />
+                <element signature="e#15435#15436#0" expanded="true" />
+                <element signature="e#15471#15472#0" expanded="true" />
+                <element signature="e#15508#15509#0" expanded="true" />
+                <element signature="e#15535#15536#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -141,8 +130,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>proper</find>
-      <find>push_stack</find>
       <find>Hover</find>
       <find>get_tags</find>
       <find>set_value</find>
@@ -171,6 +158,8 @@
       <find>ext_ids</find>
       <find>get_index</find>
       <find>dropped</find>
+      <find>self.cursor</find>
+      <find>get_cursor_index</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -224,6 +213,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="PackagesPane" />
       <pane id="ProjectPane">
         <subPane>
@@ -263,7 +253,6 @@
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -613,14 +602,14 @@
       <window_info anchor="right" id="Palette&#9;" order="5" />
       <window_info anchor="bottom" id="Event Log" order="10" sideWeight="0.50253236" side_tool="true" weight="0.32094944" />
       <window_info anchor="right" id="Maven Projects" order="6" />
-      <window_info anchor="bottom" id="Version Control" order="9" />
       <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.49746764" visible="true" weight="0.32094944" />
+      <window_info anchor="bottom" id="Version Control" order="9" />
       <window_info anchor="bottom" id="Terminal" order="7" />
       <window_info id="Designer" order="2" />
       <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.14800225" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
-      <window_info id="Favorites" order="3" side_tool="true" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
+      <window_info id="Favorites" order="3" side_tool="true" />
       <window_info anchor="right" id="Palette" order="4" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="3" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -637,7 +626,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Fixed the textbox displayed area." />
     <MESSAGE value="Testbox as Password field" />
     <MESSAGE value="vec replacement and vbox/hbox stretchy bits removed for now." />
     <MESSAGE value="place_line for button" />
@@ -662,7 +650,8 @@
     <MESSAGE value="macOS CursorEntered and CursorLeft fired at the same time investigation." />
     <MESSAGE value="preparing for release 0.0.4" />
     <MESSAGE value="Intermediate checkin for Cursor positioning" />
-    <option name="LAST_COMMIT_MESSAGE" value="Intermediate checkin for Cursor positioning" />
+    <MESSAGE value="Cursor now showing up correctly after the last character of the line." />
+    <option name="LAST_COMMIT_MESSAGE" value="Cursor now showing up correctly after the last character of the line." />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$USER_HOME$/.cargo/git/checkouts/webrender-c3596abe1cf4f320/b2c9201/webrender_api/src/units.rs" />
@@ -888,8 +877,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/gui/font.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="406">
-          <caret line="850" column="5" lean-forward="true" selection-start-line="850" selection-start-column="5" selection-end-line="850" selection-end-column="5" />
+        <state relative-caret-position="14212">
+          <caret line="850" column="5" selection-start-line="850" selection-start-column="5" selection-end-line="850" selection-end-column="5" />
           <folding>
             <element signature="e#7778#7779#0" expanded="true" />
             <element signature="e#7814#7815#0" expanded="true" />
@@ -899,39 +888,31 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/elements/textbox.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="356">
-          <caret line="105" column="13" selection-start-line="105" selection-start-column="13" selection-end-line="105" selection-end-column="13" />
+        <state relative-caret-position="527">
+          <caret line="401" column="55" selection-start-line="401" selection-start-column="55" selection-end-line="401" selection-end-column="55" />
           <folding>
-            <element signature="e#1886#1887#0" expanded="true" />
-            <element signature="e#1936#1937#0" expanded="true" />
-            <element signature="e#2161#2162#0" expanded="true" />
-            <element signature="e#2189#2190#0" expanded="true" />
-            <element signature="e#2241#2242#0" expanded="true" />
             <element signature="e#2279#2280#0" expanded="true" />
-            <element signature="e#2337#2338#0" expanded="true" />
-            <element signature="e#2381#2382#0" expanded="true" />
+            <element signature="e#2323#2324#0" expanded="true" />
+            <element signature="e#2798#2799#0" expanded="true" />
             <element signature="e#2852#2853#0" expanded="true" />
-            <element signature="e#2906#2907#0" expanded="true" />
-            <element signature="e#2953#2954#0" expanded="true" />
-            <element signature="e#3009#3010#0" expanded="true" />
-            <element signature="e#3697#3698#0" expanded="true" />
-            <element signature="e#3723#3724#0" expanded="true" />
-            <element signature="e#3776#3777#0" expanded="true" />
-            <element signature="e#3812#3813#0" expanded="true" />
-            <element signature="e#3993#3994#0" expanded="true" />
-            <element signature="e#4026#4027#0" expanded="true" />
-            <element signature="e#9394#9395#0" expanded="true" />
-            <element signature="e#9428#9429#0" expanded="true" />
-            <element signature="e#14807#14808#0" expanded="true" />
-            <element signature="e#14855#14856#0" expanded="true" />
-            <element signature="e#15125#15126#0" expanded="true" />
-            <element signature="e#15144#15145#0" expanded="true" />
-            <element signature="e#15187#15188#0" expanded="true" />
-            <element signature="e#15206#15207#0" expanded="true" />
-            <element signature="e#15284#15285#0" expanded="true" />
-            <element signature="e#15320#15321#0" expanded="true" />
-            <element signature="e#15357#15358#0" expanded="true" />
-            <element signature="e#15384#15385#0" expanded="true" />
+            <element signature="e#3130#3131#0" expanded="true" />
+            <element signature="e#3156#3157#0" expanded="true" />
+            <element signature="e#3209#3210#0" expanded="true" />
+            <element signature="e#3245#3246#0" expanded="true" />
+            <element signature="e#3426#3427#0" expanded="true" />
+            <element signature="e#3459#3460#0" expanded="true" />
+            <element signature="e#9446#9447#0" expanded="true" />
+            <element signature="e#9480#9481#0" expanded="true" />
+            <element signature="e#15022#15023#0" expanded="true" />
+            <element signature="e#15070#15071#0" expanded="true" />
+            <element signature="e#15340#15341#0" expanded="true" />
+            <element signature="e#15359#15360#0" expanded="true" />
+            <element signature="e#15402#15403#0" expanded="true" />
+            <element signature="e#15421#15422#0" expanded="true" />
+            <element signature="e#15435#15436#0" expanded="true" />
+            <element signature="e#15471#15472#0" expanded="true" />
+            <element signature="e#15508#15509#0" expanded="true" />
+            <element signature="e#15535#15536#0" expanded="true" />
           </folding>
         </state>
       </provider>
