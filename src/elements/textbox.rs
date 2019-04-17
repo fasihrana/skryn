@@ -383,8 +383,7 @@ impl Element for TextBox {
             },
             PrimitiveEvent::Char(mut c) => {
                 if self.focus && self.enabled && self.editable {
-                    if c == '\x08' {
-                        //backspace
+                    if c == '\x08' { //backspace
                         let len = self.value.len();
                         //if len > 0 and after is true then should delete from index
                         if len > 0 && self.cursor_after {
@@ -396,12 +395,26 @@ impl Element for TextBox {
                             }
                         }
                         // if len > 0 and after is false
-                        if len > 0 && !self.cursor_after {
+                        else if len > 0 && !self.cursor_after {
                             if self.cursor_index > 0 {
                                 self.value.remove(self.cursor_index - 1);
                                 self.cursor_index -= 1;
                             }
                         }
+                    } else if c == '\u{7f}' { //delete key
+                        let len = self.value.len();
+                        if len > self.cursor_index+1 && self.cursor_after {
+                            self.value.remove(self.cursor_index+1);
+                        }
+                        else if len > self.cursor_index && !self.cursor_after{
+                            self.value.remove(self.cursor_index);
+                            let len = self.value.len();
+                            if self.cursor_index > 0 && self.cursor_index == len && len > 0 {
+                                self.cursor_index -=1;
+                                self.cursor_after = true;
+                            }
+                        }
+
                     } else if c == '\u{3}' {
 
                     } else if c == '\u{16}' {
