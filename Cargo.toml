@@ -11,6 +11,9 @@ exclude = [
 	"Skryn.iml"
 ]
 
+[build-dependencies]
+cmake = "0.1.38"
+
 [dependencies]
 winit = "^0.19"
 glutin = "^0.21.0-rc2"
