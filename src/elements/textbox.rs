@@ -8,6 +8,7 @@ use webrender::api::*;
 use crate::elements::element::*;
 use crate::gui::font;
 use crate::gui::properties;
+use crate::gui::properties::Position;
 
 pub struct TextBox {
     ext_id: u64,
@@ -27,6 +28,7 @@ pub struct TextBox {
     hovering: bool,
     is_password: bool,
     cache: font::Paragraphs,
+    selecting: bool,
 }
 
 impl TextBox {
@@ -58,6 +60,7 @@ impl TextBox {
             hovering: false,
             is_password: false,
             cache: font::Paragraphs::new(),
+            selecting: false,
         }
     }
 
@@ -119,6 +122,17 @@ impl TextBox {
 
     pub fn get_placeholder(&self) -> String {
         self.placeholder.clone().iter().collect()
+    }
+
+    fn set_cursor(&mut self, p: &Position){
+        let tmp = self.cache.get_char_at_pos(&p, &self.value);
+        if tmp.is_some() {
+            self.cursor = Some((tmp.unwrap(), p.clone()));
+            let tmp = self.get_cursor_index();
+            self.cursor_index = tmp.0;
+            self.cursor_after = tmp.1;
+            //println!("Clicked at ind[{}] {:?} ... appears after? {}", self.cursor_index, self.cursor, self.cursor_after);
+        }
     }
 }
 
@@ -303,81 +317,6 @@ impl Element for TextBox {
     fn on_primitive_event(&mut self, ext_ids: &[ItemTag], e: PrimitiveEvent) -> bool {
         let mut handled = false;
         match e {
-            /*PrimitiveEvent::Char(mut c) => {
-            if self.focus && self.enabled && self.editable {
-                if c == '\x08' {
-                    let mut l = self.cursor;
-                    if l > 0 {
-                        //l -= 1;
-                        /*while !self.value.is_char_boundary(l) && l > 0 {
-                            l -= 1;
-                        }
-                        self.value =
-                            //format!("{}{}", &self.value[0..l], &self.value[self.cursor..]);
-                        self.cursor = l;*/
-            self.value.remove(l);
-            self.cursor -=1;
-            }
-            } else if c == '\u{3}' {
-            if !self.is_password {
-            let mut ctx: ClipboardContext = ClipboardProvider::new().unwrap();
-            ctx.set_contents(self.value.clone()).unwrap();
-            }
-            } else if c == '\u{16}' {
-            let mut ctx: ClipboardContext = ClipboardProvider::new().unwrap();
-            let vstr = ctx.get_contents().unwrap();
-            self.value = format!(
-            "{}{}{}",
-            &self.value[0..self.cursor],
-            &vstr[0..],
-            &self.value[self.cursor..]
-            );
-            self.cursor += vstr.len();
-            } else {
-            if c == '\r' {
-            c = '\n';
-            }
-            let mut tmp_chars = self.value.chars().collect_vec();
-
-            if self.singleline && c == '\n' {
-            //do not save the new line
-            } else {
-            /*if self.cursor == 0 {
-                let mut newstr = format!("{}", c);
-                newstr.push_str(&self.value[0..]);
-                self.value = newstr;
-            } else if self.cursor < tmp_chars.len() {
-                tmp_chars.insert(self.cursor,c);
-                self.value = tmp_chars.into_iter().collect();
-            } else {
-                self.value.push(c);
-            }*/
-            if self.cursor == tmp_chars.len() {
-            self.value.push(c);
-            } else {
-            tmp_chars.insert(self.cursor,c);
-            self.value = tmp_chars.into_iter().collect();
-            }
-
-            self.cursor += 1;
-            }
-            }
-            handled = true;
-            }
-            },
-            PrimitiveEvent::KeyInput(vkc, _sc, s, _m) => match vkc {
-            Some(VirtualKeyCode::Right) => {
-            if self.cursor < self.value.len() && s == properties::ButtonState::Pressed {
-            self.cursor += 1;
-            }
-            }
-            Some(VirtualKeyCode::Left) => {
-            if self.cursor > 0 && s == properties::ButtonState::Pressed {
-            self.cursor -= 1;
-            }
-            }
-            _ => (),
-            },*/
             PrimitiveEvent::KeyInput(vkc, _sc, _s, _m) => match vkc {
                 _ => (),
             },
@@ -429,41 +368,64 @@ impl Element for TextBox {
                             } else {
                                 self.value.insert(self.cursor_index,c);
                             }
-                            self.cursor_index += 1;
+                            if self.value.len() == 1 {
+                                self.cursor_index = 0;
+                                self.cursor_after = true;
+                            }
+                            else {
+                                self.cursor_index += 1;
+                            }
                         }
                     }
                     handled = true;
                 }
-            }
+            },
             PrimitiveEvent::SetFocus(f) => {
                 if self.enabled && self.focus != f {
                     self.focus = f;
                     handled = self.exec_handler(ElementEvent::FocusChange, &f);
                 }
-            }
+            },
             PrimitiveEvent::Button(p, b, s, m) => {
                 if !ext_ids.is_empty()
                 && ext_ids[0].0 == self.ext_id
                 && b == properties::Button::Left
-                && s == properties::ButtonState::Released
                 {
-                    let tmp = self.cache.get_char_at_pos(&p, &self.value);
+                    if s == properties::ButtonState::Pressed{
+                        self.selecting = true;
+                        self.set_cursor(&p);
+                    }
+                    else if s == properties::ButtonState::Released
+                    {
+                        self.selecting = false;
+                        self.set_cursor(&p);
+                        handled = self.exec_handler(ElementEvent::Clicked, &m);
+                    }
+                }
+            },
+            PrimitiveEvent::CursorMoved(p) => {
+
+                if self.selecting && !ext_ids.is_empty() && ext_ids[0].0 == self.ext_id{
+
+                    println!("cursor moved");
+                    self.set_cursor(&p);
+
+                    /*let tmp = self.cache.get_char_at_pos(&p, &self.value);
                     if tmp.is_some() {
-                        self.cursor = Some((tmp.unwrap(),p.clone()));
+                        self.cursor = Some((tmp.unwrap(), p.clone()));
                         let tmp = self.get_cursor_index();
                         self.cursor_index = tmp.0;
                         self.cursor_after = tmp.1;
-                        println!("Clicked at ind[{}] {:?} ... appears after? {}",self.cursor_index, self.cursor, self.cursor_after);
-                    }
-                    handled = self.exec_handler(ElementEvent::Clicked, &m);
+                        println!("Clicked at ind[{}] {:?} ... appears after? {}", self.cursor_index, self.cursor, self.cursor_after);
+                    }*/
                 }
-            }
+            },
             PrimitiveEvent::HoverBegin(n_tags) => {
                 let matched = n_tags.iter().find(|x| x.0 == self.ext_id);
                 if matched.is_some() {
                     self.hovering = true;
                 }
-            }
+            },
             PrimitiveEvent::HoverEnd(o_tags) => {
                 let matched = o_tags.iter().find(|x| x.0 == self.ext_id);
                 if matched.is_some() {
