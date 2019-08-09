@@ -24,3 +24,9 @@ There are many limitations in the project. Following is the known list of these 
 2. Observables need a better implementation.
 3. There are no animations at the moment. (Possible through implementation of own Element).
 4. Needs z-index like concept.
+
+## Build on Ubuntu
+### Requirements
+1. Install cmake
+2. Install libfreetype6-dev
+3. Install libexpat1-dev
