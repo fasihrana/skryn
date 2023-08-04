@@ -835,7 +835,7 @@ impl Paragraphs {
     }
 
     pub fn get_char_at_index(&self, index: usize) -> Option<Char>{
-        let mut ret = None;
+        let ret = None;
         for para in self.paras.iter() {
             for line in para.lines.iter() {
                 for segment in line.segments.iter() {

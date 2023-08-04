@@ -63,7 +63,7 @@ impl PartialEq for ElementEvent {
 }*/
 
 //pub type EventFn = fn(&mut Element, &Any) -> bool;
-pub type EventClosure = FnMut(&mut Element, &Any) -> bool;
+pub type EventClosure = dyn FnMut(&mut dyn Element, &dyn Any) -> bool;
 
 #[derive(Clone)]
 pub struct EventFn(Arc<Mutex<EventClosure>>);
@@ -78,7 +78,7 @@ impl EventFn {
         EventFn(f)
     }
 
-    pub fn call(&mut self, _e: &mut Element, _d: &Any) -> bool {
+    pub fn call(&mut self, _e: &mut dyn Element, _d: &dyn Any) -> bool {
         //let h = ;//.unwrap()(_d)
         if let Ok(mut f) = self.0.lock() {
             let x = f.deref_mut();
@@ -114,11 +114,11 @@ pub trait Element: Send + Sync {
     #[allow(unused)]
     fn set_handler(&mut self, e: ElementEvent, f: EventFn) {}
     #[allow(unused)]
-    fn exec_handler(&mut self, e: ElementEvent, d: &Any) -> bool {
+    fn exec_handler(&mut self, e: ElementEvent, d: &dyn Any) -> bool {
         false
     }
-    fn as_any(&self) -> &Any;
-    fn as_any_mut(&mut self) -> &mut Any;
+    fn as_any(&self) -> &dyn Any;
+    fn as_any_mut(&mut self) -> &mut dyn Any;
     #[allow(unused)]
     fn on_event(
         &mut self,
@@ -130,17 +130,17 @@ pub trait Element: Send + Sync {
     }
 }
 
-pub type ElementObj = Arc<Mutex<Element>>;
+pub type ElementObj = Arc<Mutex<dyn Element>>;
 
 pub trait HasChildren: Element {
     #[allow(unused)]
-    fn get_child(&self, i: u32) -> Option<Arc<Mutex<Element>>> {
+    fn get_child(&self, i: u32) -> Option<Arc<Mutex<dyn Element>>> {
         None
     }
     /*#[allow(unused)]
     fn get_child_mut(&mut self, i:u32) -> Option<Arc> {None}*/
     #[allow(unused)]
-    fn append(&mut self, e: Arc<Mutex<Element>>) -> Option<Arc<Mutex<Element>>> {
+    fn append(&mut self, e: Arc<Mutex<dyn Element>>) -> Option<Arc<Mutex<dyn Element>>> {
         None
     }
 }

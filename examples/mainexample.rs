@@ -43,11 +43,11 @@ impl Person {
     }
 
     #[allow(unused)]
-    fn on_name_change(&mut self, listener: Box<FnMut(&String) + Send>) -> u64 {
+    fn on_name_change(&mut self, listener: Box<dyn FnMut(&String) + Send>) -> u64 {
         self.name.observe(listener)
     }
 
-    fn on_age_change(&mut self, listener: Box<FnMut(&u32) + Send>) -> u64 {
+    fn on_age_change(&mut self, listener: Box<dyn FnMut(&u32) + Send>) -> u64 {
         self.age.observe(listener)
     }
 
@@ -200,7 +200,7 @@ impl PersonElm {
         //An alert window is created.
         alert_button.lock().unwrap().set_handler(
             ElementEvent::Clicked,
-            EventFn::new(Arc::new(Mutex::new(move |_e: &mut Element, _d: &Any| {
+            EventFn::new(Arc::new(Mutex::new(move |_e: &mut dyn Element, _d: &dyn Any| {
                 Alert::show("This is an Alert Box".to_owned(), "Alert".to_owned());
                 true
             }))),
@@ -291,15 +291,15 @@ impl Element for PersonElm {
 
     fn set_handler(&mut self, _e: ElementEvent, _f: EventFn) {}
 
-    fn exec_handler(&mut self, _e: ElementEvent, _d: &Any) -> bool {
+    fn exec_handler(&mut self, _e: ElementEvent, _d: &dyn Any) -> bool {
         false
     }
 
-    fn as_any(&self) -> &Any {
+    fn as_any(&self) -> &dyn Any {
         self
     }
 
-    fn as_any_mut(&mut self) -> &mut Any {
+    fn as_any_mut(&mut self) -> &mut dyn Any {
         self
     }
 }

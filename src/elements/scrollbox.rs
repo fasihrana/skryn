@@ -11,7 +11,7 @@ use crate::util::*;
 
 pub struct ScrollBox {
     ext_id: u64,
-    child: Option<Arc<Mutex<Element>>>,
+    child: Option<Arc<Mutex<dyn Element>>>,
     props: properties::Properties,
     bounds: properties::Extent,
     content: properties::Extent,
@@ -197,7 +197,7 @@ impl Element for ScrollBox {
         self.handlers.insert(_e, _f);
     }
 
-    fn exec_handler(&mut self, _e: ElementEvent, _d: &Any) -> bool {
+    fn exec_handler(&mut self, _e: ElementEvent, _d: &dyn Any) -> bool {
         let h = self.handlers.get_mut(&_e).cloned();
         if let Some(mut h) = h {
             h.call(self, _d)
@@ -206,10 +206,10 @@ impl Element for ScrollBox {
         }
     }
 
-    fn as_any(&self) -> &Any {
+    fn as_any(&self) -> &dyn Any {
         self
     }
-    fn as_any_mut(&mut self) -> &mut Any {
+    fn as_any_mut(&mut self) -> &mut dyn Any {
         self
     }
 }
@@ -222,12 +222,12 @@ impl Default for ScrollBox {
 
 impl HasChildren for ScrollBox {
     #[allow(unused)]
-    fn get_child(&self, i: u32) -> Option<Arc<Mutex<Element>>> {
+    fn get_child(&self, i: u32) -> Option<Arc<Mutex<dyn Element>>> {
         None
     }
     #[allow(unused)]
     //fn get_child_mut(&mut self, i:u32) -> Option<&mut Element> {None}
-    fn append(&mut self, e: Arc<Mutex<Element>>) -> Option<Arc<Mutex<Element>>> {
+    fn append(&mut self, e: Arc<Mutex<dyn Element>>) -> Option<Arc<Mutex<dyn Element>>> {
         let mut ret = Some(e);
         mem::swap(&mut self.child, &mut ret);
         ret

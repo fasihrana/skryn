@@ -324,7 +324,7 @@ impl Element for Button {
         self.event_handlers.insert(_e, _f);
     }
 
-    fn exec_handler(&mut self, _e: ElementEvent, _d: &Any) -> bool {
+    fn exec_handler(&mut self, _e: ElementEvent, _d: &dyn Any) -> bool {
         let h = self.event_handlers.get_mut(&_e).cloned();
         if let Some(mut h) = h {
             h.call(self, _d)
@@ -333,10 +333,10 @@ impl Element for Button {
         }
     }
 
-    fn as_any(&self) -> &Any {
+    fn as_any(&self) -> &dyn Any {
         self
     }
-    fn as_any_mut(&mut self) -> &mut Any {
+    fn as_any_mut(&mut self) -> &mut dyn Any {
         self
     }
 }

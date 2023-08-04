@@ -1,8 +1,8 @@
 use std::any::Any;
 use std::sync::Arc;
 
-use clipboard::{ClipboardContext, ClipboardProvider};
-use glutin::VirtualKeyCode;
+use clipboard::{ClipboardProvider};
+
 use webrender::api::*;
 
 use crate::elements::element::*;
@@ -103,7 +103,7 @@ impl TextBox {
         match self.cursor {
             None => (0,false),
             Some((ref ch, ref p)) => {
-                let mut ind = ch.get_index();
+                let ind = ch.get_index();
                 let pos = ch.get_position();
                 let adv = ch.get_metric().advance;
                 let mut after = false;
@@ -441,7 +441,7 @@ impl Element for TextBox {
         self.event_handlers.insert(e, f);
     }
 
-    fn exec_handler(&mut self, e: ElementEvent, d: &Any) -> bool {
+    fn exec_handler(&mut self, e: ElementEvent, d: &dyn Any) -> bool {
         let h = self.event_handlers.get_mut(&e).cloned();
         if let Some(mut h) = h {
             h.call(self, d)
@@ -450,10 +450,10 @@ impl Element for TextBox {
         }
     }
 
-    fn as_any(&self) -> &Any {
+    fn as_any(&self) -> &dyn Any {
         self
     }
-    fn as_any_mut(&mut self) -> &mut Any {
+    fn as_any_mut(&mut self) -> &mut dyn Any {
         self
     }
 }

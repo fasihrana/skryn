@@ -1,7 +1,7 @@
 use euclid;
 use gleam::gl;
 use glutin;
-use glutin::ContextWrapper;
+
 use webrender;
 use webrender::api::*;
 
@@ -85,7 +85,7 @@ impl WindowNotifier {
 }
 
 impl RenderNotifier for WindowNotifier {
-    fn clone(&self) -> Box<RenderNotifier> {
+    fn clone(&self) -> Box<dyn RenderNotifier> {
         Box::new(WindowNotifier {
             events_proxy: self.events_proxy.clone(),
         })
@@ -402,7 +402,7 @@ impl Internals {
 pub struct Window {
     width: f64,
     height: f64,
-    root: Arc<Mutex<Element>>,
+    root: Arc<Mutex<dyn Element>>,
     name: String,
     id_generator: properties::IdGenerator,
     internals: Option<Internals>,
@@ -416,7 +416,7 @@ impl fmt::Debug for Window {
 }
 
 impl Window {
-    pub fn new(root: Arc<Mutex<Element>>, name: String, width: f64, height: f64) -> Window {
+    pub fn new(root: Arc<Mutex<dyn Element>>, name: String, width: f64, height: f64) -> Window {
         let id_generator = properties::IdGenerator::new(0);
 
         let mut _w = Window {
@@ -710,7 +710,7 @@ impl Drop for Window {
 }
 
 lazy_static! {
-    static ref TOADD: Mutex<Vec<(Arc<Mutex<Element>>, String, f64, f64)>> = Mutex::new(vec![]);
+    static ref TOADD: Mutex<Vec<(Arc<Mutex<dyn Element>>, String, f64, f64)>> = Mutex::new(vec![]);
     static ref TODEL: Mutex<Vec<glutin::WindowId>> = Mutex::new(vec![]);
 }
 
@@ -794,7 +794,7 @@ impl Manager {
         }
     }
 
-    pub fn add(elem: Arc<Mutex<Element>>, name: String, width: f64, height: f64) {
+    pub fn add(elem: Arc<Mutex<dyn Element>>, name: String, width: f64, height: f64) {
         if let Ok(ref mut to_add) = TOADD.lock() {
             to_add.push((elem, name, width, height));
         }

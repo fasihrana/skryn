@@ -3,7 +3,7 @@ use std::collections::HashMap;
 pub struct Observable<T: Clone> {
     next_id: u64,
     value: T,
-    observers: HashMap<u64, Box<FnMut(&T) + Send>>,
+    observers: HashMap<u64, Box<dyn FnMut(&T) + Send>>,
 }
 
 impl<T: Clone> Observable<T> {
@@ -19,7 +19,7 @@ impl<T: Clone> Observable<T> {
         self.value.clone()
     }
 
-    pub fn observe(&mut self, observer: Box<FnMut(&T) + Send>) -> u64 {
+    pub fn observe(&mut self, observer: Box<dyn FnMut(&T) + Send>) -> u64 {
         self.observers.insert(self.next_id, observer);
         let tmp = self.next_id;
         self.next_id += 1;

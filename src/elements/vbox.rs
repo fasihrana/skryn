@@ -10,7 +10,7 @@ use crate::util::*;
 
 pub struct VBox {
     ext_id: u64,
-    children: Vec<Arc<Mutex<Element>>>,
+    children: Vec<Arc<Mutex<dyn Element>>>,
     props: properties::Properties,
     bounds: properties::Extent,
     handlers: EventHandlers,
@@ -320,7 +320,7 @@ impl Element for VBox {
         self.handlers.insert(_e, _f);
     }
 
-    fn exec_handler(&mut self, _e: ElementEvent, _d: &Any) -> bool {
+    fn exec_handler(&mut self, _e: ElementEvent, _d: &dyn Any) -> bool {
         let h = self.handlers.get_mut(&_e).cloned();
         if let Some(mut h) = h {
             h.call(self, _d)
@@ -329,22 +329,22 @@ impl Element for VBox {
         }
     }
 
-    fn as_any(&self) -> &Any {
+    fn as_any(&self) -> &dyn Any {
         self
     }
-    fn as_any_mut(&mut self) -> &mut Any {
+    fn as_any_mut(&mut self) -> &mut dyn Any {
         self
     }
 }
 
 impl HasChildren for VBox {
     #[allow(unused)]
-    fn get_child(&self, i: u32) -> Option<Arc<Mutex<Element>>> {
+    fn get_child(&self, i: u32) -> Option<Arc<Mutex<dyn Element>>> {
         None
     }
     #[allow(unused)]
     //fn get_child_mut(&mut self, i:u32) -> Option<&mut Element> {None}
-    fn append(&mut self, e: Arc<Mutex<Element>>) -> Option<Arc<Mutex<Element>>> {
+    fn append(&mut self, e: Arc<Mutex<dyn Element>>) -> Option<Arc<Mutex<dyn Element>>> {
         self.children.push(e);
         None
     }
